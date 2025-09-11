@@ -53,6 +53,7 @@ ui <- dashboardPage(
       create_metadata_tab(),
       create_results_tab(),
       create_processing_tab(),
+      create_visualization_tab(), 
       create_help_tab()
     )
   )
@@ -525,6 +526,161 @@ output$country_selector <- renderUI({
       write.csv(values$cleaned_data, file, row.names = FALSE)
     }
   )
+  
+  # Update plot selectors when cleaned data changes
+  observe({
+    req(values$cleaned_data)
+    
+    if(nrow(values$cleaned_data) > 0) {
+      # Get unique indicators and countries
+      indicators <- unique(values$cleaned_data$indicator_id)
+      countries <- unique(values$cleaned_data$country_name)
+      
+      # Update indicator selector
+      updateSelectInput(session, "plot_indicator",
+                        choices = setNames(indicators, indicators))
+      
+      # Update country selectors
+      updateSelectInput(session, "plot_countries",
+                        choices = setNames(countries, countries),
+                        selected = countries[1:min(3, length(countries))])
+      
+      updateSelectInput(session, "comparison_country",
+                        choices = setNames(countries, countries))
+      
+      updateSelectInput(session, "comparison_indicators",
+                        choices = setNames(indicators, indicators),
+                        selected = indicators[1:min(3, length(indicators))])
+    }
+  })
+  
+  # Check if cleaned data exists
+  output$has_cleaned_data <- reactive({
+    nrow(values$cleaned_data) > 0
+  })
+  outputOptions(output, "has_cleaned_data", suspendWhenHidden = FALSE)
+  
+  # Generate time series plot
+  observeEvent(input$generate_plot, {
+    req(input$plot_indicator, input$plot_countries, values$cleaned_data)
+    
+    plot_data <- values$cleaned_data %>%
+      filter(
+        indicator_id == input$plot_indicator,
+        country_name %in% input$plot_countries
+      ) %>%
+      arrange(year)
+    
+    if(nrow(plot_data) == 0) {
+      output$time_series_plot <- renderPlotly({
+        plotly::plot_ly() %>%
+          add_text(x = 0.5, y = 0.5, text = "No data available for selected filters",
+                   showlegend = FALSE) %>%
+          layout(xaxis = list(visible = FALSE), yaxis = list(visible = FALSE))
+      })
+      return()
+    }
+    
+    output$time_series_plot <- renderPlotly({
+      p <- plot_ly(plot_data, x = ~year, y = ~value, color = ~country_name,
+                   type = "scatter",
+                   mode = case_when(
+                     input$plot_type == "line" ~ "lines",
+                     input$plot_type == "point" ~ "markers",
+                     input$plot_type == "both" ~ "lines+markers"
+                   ),
+                   line = list(width = 3),
+                   marker = list(size = 8)) %>%
+        layout(
+          title = paste("Time Series:", input$plot_indicator),
+          xaxis = list(title = "Year"),
+          yaxis = list(title = "Value"),
+          hovermode = "x unified"
+        )
+      
+      # Add trend lines if requested
+      if(input$show_trend) {
+        for(country in input$plot_countries) {
+          country_data <- plot_data %>% filter(country_name == country)
+          if(nrow(country_data) > 1) {
+            trend_model <- lm(value ~ year, data = country_data)
+            trend_line <- data.frame(
+              year = range(country_data$year),
+              value = predict(trend_model, newdata = data.frame(year = range(country_data$year)))
+            )
+            
+            p <- p %>% add_lines(
+              data = trend_line,
+              x = ~year, y = ~value,
+              name = paste(country, "trend"),
+              line = list(dash = "dash", width = 2),
+              showlegend = FALSE
+            )
+          }
+        }
+      }
+      
+      p
+    })
+  })
+  
+  # Generate comparison plot
+  observeEvent(input$generate_comparison, {
+    req(input$comparison_country, input$comparison_indicators, values$cleaned_data)
+    
+    plot_data <- values$cleaned_data %>%
+      filter(
+        country_name == input$comparison_country,
+        indicator_id %in% input$comparison_indicators
+      ) %>%
+      arrange(year)
+    
+    if(nrow(plot_data) == 0) {
+      output$comparison_plot <- renderPlotly({
+        plotly::plot_ly() %>%
+          add_text(x = 0.5, y = 0.5, text = "No data available for selected filters",
+                   showlegend = FALSE) %>%
+          layout(xaxis = list(visible = FALSE), yaxis = list(visible = FALSE))
+      })
+      return()
+    }
+    
+    output$comparison_plot <- renderPlotly({
+      if(input$comparison_scale == "free") {
+        # Use subplots for free scale
+        plot_list <- list()
+        for(i in seq_along(input$comparison_indicators)) {
+          indicator_data <- plot_data %>% filter(indicator_id == input$comparison_indicators[i])
+          
+          p <- plot_ly(indicator_data, x = ~year, y = ~value,
+                       type = "scatter", mode = "lines+markers",
+                       name = input$comparison_indicators[i],
+                       line = list(width = 3), marker = list(size = 8)) %>%
+            layout(
+              title = input$comparison_indicators[i],
+              xaxis = list(title = if(i == length(input$comparison_indicators)) "Year" else ""),
+              yaxis = list(title = "Value")
+            )
+          plot_list[[i]] <- p
+        }
+        
+        subplot(plot_list, nrows = length(input$comparison_indicators), 
+                shareX = TRUE, titleY = TRUE)
+        
+      } else {
+        # Fixed scale - single plot
+        plot_ly(plot_data, x = ~year, y = ~value, color = ~indicator_id,
+                type = "scatter", mode = "lines+markers",
+                line = list(width = 3), marker = list(size = 8)) %>%
+          layout(
+            title = paste("Multi-Indicator Comparison:", input$comparison_country),
+            xaxis = list(title = "Year"),
+            yaxis = list(title = "Value"),
+            hovermode = "x unified"
+          )
+      }
+    })
+  })
 }
 
 # ========================================

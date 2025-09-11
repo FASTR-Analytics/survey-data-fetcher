@@ -306,7 +306,100 @@ create_app_sidebar <- function() {
       menuItem("Fetch Data", tabName = "fetcher", icon = icon("download")),
       menuItem("Results", tabName = "results", icon = icon("chart-line")),
       menuItem("Clean & Process", tabName = "processing", icon = icon("magic")),
+      menuItem("Visualize Trends", tabName = "visualize", icon = icon("line-chart")),
       menuItem("Help & Info", tabName = "help", icon = icon("question-circle"))
     )
+  )
+}
+
+
+# ========================================
+# Time Series Visualization
+# ========================================
+create_visualization_tab <- function() {
+  tabItem(tabName = "visualize",
+          fluidRow(
+            box(
+              title = "Time Series Visualization", status = "primary", solidHeader = TRUE, width = 12,
+              
+              conditionalPanel(
+                condition = "output.has_cleaned_data",
+                fluidRow(
+                  column(4,
+                         h5("Visualization Options"),
+                         selectInput("plot_indicator", "Select Indicator:",
+                                     choices = NULL),
+                         
+                         selectInput("plot_countries", "Select Countries:",
+                                     choices = NULL,
+                                     multiple = TRUE),
+                         
+                         radioButtons("plot_type", "Chart Type:",
+                                      choices = list(
+                                        "Line Chart" = "line",
+                                        "Point Chart" = "point",
+                                        "Both" = "both"
+                                      ),
+                                      selected = "line"),
+                         
+                         checkboxInput("show_trend", "Add Trend Line", value = FALSE),
+                         
+                         br(),
+                         actionButton("generate_plot", "Generate Plot",
+                                      class = "btn-primary btn-block")
+                  ),
+                  
+                  column(8,
+                         h5("Time Series Chart"),
+                         withSpinner(plotlyOutput("time_series_plot", height = "500px"), type = 6)
+                  )
+                )
+              ),
+              
+              conditionalPanel(
+                condition = "!output.has_cleaned_data",
+                div(class = "alert alert-info",
+                    icon("info-circle"),
+                    " Please clean your data first in the 'Clean & Process' tab to enable visualizations.")
+              )
+            )
+          ),
+          
+          fluidRow(
+            box(
+              title = "Multi-Indicator Comparison", status = "info", solidHeader = TRUE, width = 12,
+              
+              conditionalPanel(
+                condition = "output.has_cleaned_data",
+                fluidRow(
+                  column(4,
+                         h5("Comparison Options"),
+                         selectInput("comparison_country", "Select Country:",
+                                     choices = NULL),
+                         
+                         selectInput("comparison_indicators", "Select Indicators:",
+                                     choices = NULL,
+                                     multiple = TRUE),
+                         
+                         radioButtons("comparison_scale", "Y-axis Scale:",
+                                      choices = list(
+                                        "Free Scale" = "free",
+                                        "Fixed Scale" = "fixed"
+                                      ),
+                                      selected = "free"),
+                         
+                         br(),
+                         actionButton("generate_comparison", "Generate Comparison",
+                                      class = "btn-info btn-block")
+                  ),
+                  
+                  column(8,
+                         h5("Multi-Indicator Chart"),
+                         withSpinner(plotlyOutput("comparison_plot", height = "500px"), type = 6)
+                  )
+                )
+              )
+            )
+          )
   )
 }
