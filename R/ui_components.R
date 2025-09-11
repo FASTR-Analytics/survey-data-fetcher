@@ -306,6 +306,7 @@ create_app_sidebar <- function() {
       menuItem("Fetch Data", tabName = "fetcher", icon = icon("download")),
       menuItem("Results", tabName = "results", icon = icon("chart-line")),
       menuItem("Clean & Process", tabName = "processing", icon = icon("magic")),
+      menuItem("Visualizations", tabName = "visualize", icon = icon("chart-bar")),
       menuItem("Help & Info", tabName = "help", icon = icon("question-circle"))
     )
   )

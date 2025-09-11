@@ -532,9 +532,9 @@ output$country_selector <- renderUI({
     req(values$cleaned_data)
     
     if(nrow(values$cleaned_data) > 0) {
-      # Get unique indicators and countries
+      # Get unique indicators and countries (using correct column names)
       indicators <- unique(values$cleaned_data$indicator_id)
-      countries <- unique(values$cleaned_data$country_name)
+      countries <- unique(values$cleaned_data$admin_area_1)
       
       # Update indicator selector
       updateSelectInput(session, "plot_indicator",
@@ -566,10 +566,10 @@ output$country_selector <- renderUI({
     
     plot_data <- values$cleaned_data %>%
       filter(
-        indicator_id == input$plot_indicator,
-        country_name %in% input$plot_countries
+        .data$indicator_id == input$plot_indicator,
+        .data$admin_area_1 %in% input$plot_countries
       ) %>%
-      arrange(year)
+      arrange(.data$year)
     
     if(nrow(plot_data) == 0) {
       output$time_series_plot <- renderPlotly({
@@ -582,7 +582,7 @@ output$country_selector <- renderUI({
     }
     
     output$time_series_plot <- renderPlotly({
-      p <- plot_ly(plot_data, x = ~year, y = ~value, color = ~country_name,
+      p <- plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~admin_area_1,
                    type = "scatter",
                    mode = case_when(
                      input$plot_type == "line" ~ "lines",
@@ -601,17 +601,17 @@ output$country_selector <- renderUI({
       # Add trend lines if requested
       if(input$show_trend) {
         for(country in input$plot_countries) {
-          country_data <- plot_data %>% filter(country_name == country)
+          country_data <- plot_data %>% filter(.data$admin_area_1 == country)
           if(nrow(country_data) > 1) {
-            trend_model <- lm(value ~ year, data = country_data)
+            trend_model <- lm(survey_value ~ year, data = country_data)
             trend_line <- data.frame(
               year = range(country_data$year),
-              value = predict(trend_model, newdata = data.frame(year = range(country_data$year)))
+              survey_value = predict(trend_model, newdata = data.frame(year = range(country_data$year)))
             )
             
             p <- p %>% add_lines(
               data = trend_line,
-              x = ~year, y = ~value,
+              x = ~year, y = ~survey_value,
               name = paste(country, "trend"),
               line = list(dash = "dash", width = 2),
               showlegend = FALSE
@@ -630,10 +630,10 @@ output$country_selector <- renderUI({
     
     plot_data <- values$cleaned_data %>%
       filter(
-        country_name == input$comparison_country,
-        indicator_id %in% input$comparison_indicators
+        .data$admin_area_1 == input$comparison_country,
+        .data$indicator_id %in% input$comparison_indicators
       ) %>%
-      arrange(year)
+      arrange(.data$year)
     
     if(nrow(plot_data) == 0) {
       output$comparison_plot <- renderPlotly({
@@ -650,9 +650,9 @@ output$country_selector <- renderUI({
         # Use subplots for free scale
         plot_list <- list()
         for(i in seq_along(input$comparison_indicators)) {
-          indicator_data <- plot_data %>% filter(indicator_id == input$comparison_indicators[i])
+          indicator_data <- plot_data %>% filter(.data$indicator_id == input$comparison_indicators[i])
           
-          p <- plot_ly(indicator_data, x = ~year, y = ~value,
+          p <- plot_ly(indicator_data, x = ~year, y = ~survey_value,
                        type = "scatter", mode = "lines+markers",
                        name = input$comparison_indicators[i],
                        line = list(width = 3), marker = list(size = 8)) %>%
@@ -669,7 +669,7 @@ output$country_selector <- renderUI({
         
       } else {
         # Fixed scale - single plot
-        plot_ly(plot_data, x = ~year, y = ~value, color = ~indicator_id,
+        plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~indicator_id,
                 type = "scatter", mode = "lines+markers",
                 line = list(width = 3), marker = list(size = 8)) %>%
           layout(
