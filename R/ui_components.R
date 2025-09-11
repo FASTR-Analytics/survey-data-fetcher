@@ -306,16 +306,16 @@ create_app_sidebar <- function() {
       menuItem("Fetch Data", tabName = "fetcher", icon = icon("download")),
       menuItem("Results", tabName = "results", icon = icon("chart-line")),
       menuItem("Clean & Process", tabName = "processing", icon = icon("magic")),
-      menuItem("Visualize Trends", tabName = "visualize", icon = icon("line-chart")),
       menuItem("Help & Info", tabName = "help", icon = icon("question-circle"))
     )
   )
 }
 
+# ========================================
+# VISUALIZATION TAB FUNCTION
+# ========================================
+# Purpose: Provides UI components for time series and multi-indicator visualizations of cleaned survey data
 
-# ========================================
-# Time Series Visualization
-# ========================================
 create_visualization_tab <- function() {
   tabItem(tabName = "visualize",
           fluidRow(
@@ -328,25 +328,25 @@ create_visualization_tab <- function() {
                   column(4,
                          h5("Visualization Options"),
                          selectInput("plot_indicator", "Select Indicator:",
-                                     choices = NULL),
+                                    choices = NULL),
                          
                          selectInput("plot_countries", "Select Countries:",
-                                     choices = NULL,
-                                     multiple = TRUE),
+                                    choices = NULL,
+                                    multiple = TRUE),
                          
                          radioButtons("plot_type", "Chart Type:",
-                                      choices = list(
-                                        "Line Chart" = "line",
-                                        "Point Chart" = "point",
-                                        "Both" = "both"
-                                      ),
-                                      selected = "line"),
+                                     choices = list(
+                                       "Line Chart" = "line",
+                                       "Point Chart" = "point",
+                                       "Both" = "both"
+                                     ),
+                                     selected = "line"),
                          
                          checkboxInput("show_trend", "Add Trend Line", value = FALSE),
                          
                          br(),
                          actionButton("generate_plot", "Generate Plot",
-                                      class = "btn-primary btn-block")
+                                     class = "btn-primary btn-block")
                   ),
                   
                   column(8,
@@ -375,22 +375,22 @@ create_visualization_tab <- function() {
                   column(4,
                          h5("Comparison Options"),
                          selectInput("comparison_country", "Select Country:",
-                                     choices = NULL),
+                                    choices = NULL),
                          
                          selectInput("comparison_indicators", "Select Indicators:",
-                                     choices = NULL,
-                                     multiple = TRUE),
+                                    choices = NULL,
+                                    multiple = TRUE),
                          
                          radioButtons("comparison_scale", "Y-axis Scale:",
-                                      choices = list(
-                                        "Free Scale" = "free",
-                                        "Fixed Scale" = "fixed"
-                                      ),
-                                      selected = "free"),
+                                     choices = list(
+                                       "Free Scale" = "free",
+                                       "Fixed Scale" = "fixed"
+                                     ),
+                                     selected = "free"),
                          
                          br(),
                          actionButton("generate_comparison", "Generate Comparison",
-                                      class = "btn-info btn-block")
+                                     class = "btn-info btn-block")
                   ),
                   
                   column(8,
@@ -403,3 +403,4 @@ create_visualization_tab <- function() {
           )
   )
 }
+
