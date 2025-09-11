@@ -6,3 +6,6 @@
 packrat/
 renv/
 .Rproj.user/
+Dockerfile
+docker-compose.yml
+.DS_Store
