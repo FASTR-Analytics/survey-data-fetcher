@@ -354,13 +354,115 @@ fetch_mics_data <- function(indicators, countries = NULL) {
 }
 
 fetch_unwpp_data <- function(indicators, countries, start_year = 2020, end_year = 2025) {
-  # For demo purposes, return simulated data
-  # In production, this would connect to actual UNWPP API
-  data.frame(
-    indicator_id = rep(indicators, each = length(countries)),
-    country = rep(countries, length(indicators)),
-    year = 2023,
-    value = runif(length(indicators) * length(countries), 10, 100),
-    stringsAsFactors = FALSE
-  )
+  tryCatch({
+    all_data <- list()
+    counter <- 1
+    
+    # Get token like your working code
+    unwpp_token <- Sys.getenv("UNWPP_TOKEN")
+    if(unwpp_token == "") {
+      message("UNWPP_TOKEN not found in .Renviron")
+      return(data.frame())
+    }
+    
+    headers <- c("Authorization" = unwpp_token)
+    
+    message("Fetching UNWPP data for ", length(countries), " countries, ", 
+            length(indicators), " indicators, years ", start_year, "-", end_year)
+    
+    # First, get location IDs like in your working code
+    message("Getting location list...")
+    locations_df <- NULL
+    tryCatch({
+      base_url <- "https://population.un.org/dataportalapi/api/v1/locations/?pageSize=100&pageNumber="
+      all_pages <- list()
+      for(page in 1:3) {
+        url <- paste0(base_url, page)
+        res <- RCurl::getURL(url, .opts = list(httpheader = headers, followlocation = TRUE))
+        parsed <- jsonlite::fromJSON(res, flatten = TRUE)
+        if(!is.null(parsed$data)) {
+          all_pages[[page]] <- parsed$data
+        }
+      }
+      locations_df <- bind_rows(all_pages)
+    }, error = function(e) {
+      message("Could not fetch location list: ", e$message)
+    })
+    
+    if(is.null(locations_df)) {
+      message("No location data available")
+      return(data.frame())
+    }
+    
+    # Map country codes to location IDs
+    target_locations <- locations_df %>%
+      filter(iso2 %in% countries) %>%
+      select(id, iso2, iso3, name)
+    
+    if(nrow(target_locations) == 0) {
+      message("No matching locations found for countries: ", paste(countries, collapse = ", "))
+      return(data.frame())
+    }
+    
+    # Helper function exactly like your working code  
+    fetch_wpp_data <- function(location_id, indicator_id, start_year, end_year) {
+      url <- paste0(
+        "https://population.un.org/dataportalapi/api/v1/data/indicators/", indicator_id,
+        "/locations/", location_id,
+        "/start/", start_year, "/end/", end_year, "?pagingInHeader=true&format=json"
+      )
+      
+      response <- tryCatch({
+        RCurl::getURL(url, .opts = list(httpheader = headers, followlocation = TRUE))
+      }, error = function(e) return(NULL))
+      
+      if(is.null(response) || nchar(response) < 10) return(NULL)
+      
+      parsed <- tryCatch({
+        jsonlite::fromJSON(response, flatten = TRUE)
+      }, error = function(e) return(NULL))
+      
+      if(!is.null(parsed) && is.data.frame(parsed)) {
+        return(parsed)
+      } else {
+        return(NULL)
+      }
+    }
+    
+    # Main loop like your working code - use location IDs
+    for(indicator in indicators) {
+      message("Fetching indicator ", indicator)
+      
+      for(i in 1:nrow(target_locations)) {
+        loc <- target_locations[i, ]
+        message("  → ", loc$name, " (", loc$iso2, ")")
+        
+        dat <- fetch_wpp_data(loc$id, indicator, start_year, end_year)
+        
+        if(!is.null(dat) && nrow(dat) > 0) {
+          df <- as.data.frame(dat)
+          df$indicator_id <- indicator
+          df$country <- loc$iso2  # Use ISO2 code for consistency
+          df$country_name <- loc$name
+          all_data[[counter]] <- df
+          counter <- counter + 1
+        } else {
+          message("    No data returned.")
+        }
+      }
+    }
+    
+    if(length(all_data) > 0) {
+      result <- bind_rows(all_data)
+      message("Successfully fetched ", nrow(result), " UNWPP records")
+      return(result)
+    } else {
+      message("No UNWPP data available")
+      return(data.frame())
+    }
+    
+  }, error = function(e) {
+    message("Error in UNWPP data fetching: ", e$message)
+    return(data.frame())
+  })
 }

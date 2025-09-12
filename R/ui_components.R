@@ -61,27 +61,90 @@ create_results_tab <- function() {
 
 create_processing_tab <- function() {
   tabItem(tabName = "processing",
+          # Step 1: Cleaning Configuration
           fluidRow(
             box(
-              title = "Data Cleaning & Processing", status = "warning", solidHeader = TRUE, width = 12,
+              title = "Step 1: Configure Cleaning Rules", status = "info", solidHeader = TRUE, width = 12,
+              
+              conditionalPanel(
+                condition = "output.has_data",
+                div(
+                  p("Review and configure how your raw data should be cleaned and standardized."),
+                  
+                  fluidRow(
+                    column(8,
+                           h5("Indicator Mapping & Filtering"),
+                           div(class = "alert alert-info", style = "margin-bottom: 15px;",
+                               icon("info-circle"),
+                               " Configure how each fetched indicator should be mapped to common IDs and what filters to apply."),
+                           
+                           DT::dataTableOutput("cleaning_config_table")
+                    ),
+                    column(4,
+                           h5("Configuration Actions"),
+                           
+                           div(style = "margin-bottom: 15px;",
+                               actionButton("load_default_config", "📋 Load Default Settings",
+                                           class = "btn-outline-primary btn-block",
+                                           style = "margin-bottom: 8px;"),
+                               actionButton("reset_config", "🔄 Reset All",
+                                           class = "btn-outline-secondary btn-block",
+                                           style = "margin-bottom: 8px;"),
+                               actionButton("save_config", "💾 Save Config",
+                                           class = "btn-outline-success btn-block")
+                           ),
+                           
+                           hr(),
+                           
+                           h6("Quick Filters"),
+                           div(style = "margin-bottom: 10px;",
+                               checkboxInput("filter_totals_only", "Keep totals only (no age/sex breakdown)", value = TRUE),
+                               checkboxInput("filter_preferred", "Keep preferred estimates only", value = TRUE),
+                               checkboxInput("filter_median_variant", "Keep median variant only (UNWPP)", value = TRUE)
+                           ),
+                           
+                           div(class = "alert alert-warning", style = "font-size: 12px;",
+                               strong("Note: "), "Changes will be applied when you click 'Apply Configuration' below.")
+                    )
+                  ),
+                  
+                  div(style = "text-align: center; margin-top: 20px;",
+                      actionButton("apply_config", "✅ Apply Configuration",
+                                  class = "btn-success btn-lg",
+                                  icon = icon("check"),
+                                  style = "margin-right: 15px;"),
+                      actionButton("preview_config", "👁️ Preview Changes",
+                                  class = "btn-info btn-lg",
+                                  icon = icon("eye"))
+                  )
+                )
+              ),
+              
+              conditionalPanel(
+                condition = "!output.has_data",
+                div(class = "alert alert-info",
+                    icon("info-circle"),
+                    " Please fetch data first using the Data Fetcher tab.")
+              )
+            )
+          ),
+          
+          # Step 2: Traditional Processing (kept for backward compatibility)
+          fluidRow(
+            box(
+              title = "Step 2: Quick Clean (Legacy)", status = "warning", solidHeader = TRUE, width = 12, collapsed = TRUE,
               
               fluidRow(
                 column(6,
-                       h4("Clean Fetched Data"),
+                       h4("Use Default Cleaning"),
                        conditionalPanel(
                          condition = "output.has_data",
                          div(
-                           p("Transform raw survey data into standardized format with common indicator IDs."),
-                           actionButton("clean_data", "Clean & Process Data",
-                                        class = "btn-warning btn-lg",
+                           p("Apply default cleaning rules without configuration (legacy method)."),
+                           actionButton("clean_data", "Quick Clean with Defaults",
+                                        class = "btn-warning",
                                         icon = icon("magic"))
                          )
-                       ),
-                       conditionalPanel(
-                         condition = "!output.has_data",
-                         div(class = "alert alert-info",
-                             icon("info-circle"),
-                             " Please fetch data first using the Data Fetcher tab.")
                        )
                 ),
                 column(6,
@@ -92,6 +155,7 @@ create_processing_tab <- function() {
             )
           ),
           
+          # Results
           fluidRow(
             box(
               title = "Cleaned Data Preview", status = "success", solidHeader = TRUE, width = 12,
@@ -328,30 +392,40 @@ create_visualization_tab <- function() {
                 fluidRow(
                   column(4,
                          h5("Visualization Options"),
+                         div(class = "alert alert-info", style = "margin-bottom: 15px;",
+                             icon("info-circle"),
+                             " Select your options below, then click 'Generate Plot' to create your visualization."),
+                         
                          selectInput("plot_indicator", "Select Indicator:",
                                     choices = NULL),
                          
-                         selectInput("plot_countries", "Select Countries:",
+                         selectInput("plot_countries", "Select Geographic Areas:",
                                     choices = NULL,
                                     multiple = TRUE),
                          
                          radioButtons("plot_type", "Chart Type:",
                                      choices = list(
                                        "Line Chart" = "line",
-                                       "Point Chart" = "point",
-                                       "Both" = "both"
+                                       "Point Chart" = "point", 
+                                       "Lines + Points" = "both"
                                      ),
-                                     selected = "line"),
+                                     selected = "both"),
                          
                          checkboxInput("show_trend", "Add Trend Line", value = FALSE),
                          
                          br(),
-                         actionButton("generate_plot", "Generate Plot",
-                                     class = "btn-primary btn-block")
+                         actionButton("generate_plot", "📊 Generate Plot",
+                                     class = "btn-primary btn-block btn-lg",
+                                     style = "font-weight: bold;")
                   ),
                   
                   column(8,
                          h5("Time Series Chart"),
+                         div(id = "plot-placeholder", class = "well text-center", style = "height: 480px; line-height: 480px; background: #f9f9f9; border: 2px dashed #ddd; margin-bottom: 20px;",
+                             icon("chart-line", style = "font-size: 48px; color: #ccc; margin-right: 15px;"),
+                             span("Select options and click 'Generate Plot' to create your time series visualization", 
+                                  style = "color: #999; font-size: 16px; vertical-align: middle;")
+                         ),
                          withSpinner(plotlyOutput("time_series_plot", height = "500px"), type = 6)
                   )
                 )
@@ -375,7 +449,11 @@ create_visualization_tab <- function() {
                 fluidRow(
                   column(4,
                          h5("Comparison Options"),
-                         selectInput("comparison_country", "Select Country:",
+                         div(class = "alert alert-info", style = "margin-bottom: 15px;",
+                             icon("info-circle"),
+                             " Choose one geographic area and multiple indicators to compare them over time."),
+                         
+                         selectInput("comparison_country", "Select Geographic Area:",
                                     choices = NULL),
                          
                          selectInput("comparison_indicators", "Select Indicators:",
@@ -384,18 +462,24 @@ create_visualization_tab <- function() {
                          
                          radioButtons("comparison_scale", "Y-axis Scale:",
                                      choices = list(
-                                       "Free Scale" = "free",
-                                       "Fixed Scale" = "fixed"
+                                       "Free Scale (Separate Charts)" = "free",
+                                       "Fixed Scale (One Chart)" = "fixed"
                                      ),
                                      selected = "free"),
                          
                          br(),
-                         actionButton("generate_comparison", "Generate Comparison",
-                                     class = "btn-info btn-block")
+                         actionButton("generate_comparison", "📈 Generate Comparison",
+                                     class = "btn-info btn-block btn-lg",
+                                     style = "font-weight: bold;")
                   ),
                   
                   column(8,
                          h5("Multi-Indicator Chart"),
+                         div(id = "comparison-placeholder", class = "well text-center", style = "height: 480px; line-height: 480px; background: #f9f9f9; border: 2px dashed #ddd; margin-bottom: 20px;",
+                             icon("chart-bar", style = "font-size: 48px; color: #ccc; margin-right: 15px;"),
+                             span("Select options and click 'Generate Comparison' to create your multi-indicator chart", 
+                                  style = "color: #999; font-size: 16px; vertical-align: middle;")
+                         ),
                          withSpinner(plotlyOutput("comparison_plot", height = "500px"), type = 6)
                   )
                 )

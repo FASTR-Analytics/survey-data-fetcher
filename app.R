@@ -456,6 +456,200 @@ output$country_selector <- renderUI({
   })
   outputOptions(output, "has_data", suspendWhenHidden = FALSE)
   
+  # ========================================
+  # CLEANING CONFIGURATION INTERFACE
+  # ========================================
+  
+  # Initialize cleaning configuration
+  values$cleaning_config <- data.frame()
+  
+  # Create cleaning configuration table when data is available
+  observe({
+    req(values$fetched_data)
+    if(nrow(values$fetched_data) > 0) {
+      values$cleaning_config <- create_cleaning_config(values$fetched_data, input$data_source)
+    }
+  })
+  
+  # Render cleaning configuration table
+  output$cleaning_config_table <- DT::renderDataTable({
+    req(values$cleaning_config)
+    
+    if(nrow(values$cleaning_config) == 0) {
+      return(data.frame(Message = "No indicators found. Please fetch data first."))
+    }
+    
+    # Create editable table
+    DT::datatable(
+      values$cleaning_config %>%
+        select(
+          `Source ID` = indicator_id,
+          `Indicator Name` = indicator_name,
+          `Common ID` = indicator_common_id,
+          `Type` = indicator_type,
+          `Include` = include_indicator,
+          `Filter Totals` = apply_filter_totals,
+          `Filter Preferred` = apply_filter_preferred,
+          `Filter Median` = apply_filter_median
+        ),
+      options = list(
+        pageLength = 15,
+        scrollX = TRUE,
+        dom = 'frtip'
+      ),
+      rownames = FALSE,
+      editable = list(
+        target = 'cell',
+        disable = list(columns = c(0, 1))  # Disable editing of source ID and name
+      )
+    )
+  })
+  
+  # Handle table edits
+  observeEvent(input$cleaning_config_table_cell_edit, {
+    info <- input$cleaning_config_table_cell_edit
+    str(info)  # For debugging
+    
+    # Update the config data
+    i <- info$row
+    j <- info$col + 1  # R is 1-indexed
+    v <- info$value
+    
+    # Map display columns back to actual columns
+    col_mapping <- c("indicator_id", "indicator_name", "indicator_common_id", 
+                     "indicator_type", "include_indicator", "apply_filter_totals",
+                     "apply_filter_preferred", "apply_filter_median")
+    
+    if(j <= length(col_mapping)) {
+      col_name <- col_mapping[j]
+      
+      # Convert value to appropriate type
+      if(col_name %in% c("include_indicator", "apply_filter_totals", "apply_filter_preferred", "apply_filter_median")) {
+        v <- as.logical(v)
+      }
+      
+      values$cleaning_config[i, col_name] <- v
+    }
+  })
+  
+  # Load default configuration
+  observeEvent(input$load_default_config, {
+    req(values$fetched_data)
+    values$cleaning_config <- get_default_cleaning_config(values$fetched_data, input$data_source)
+    showNotification("Default configuration loaded!", type = "message")
+  })
+  
+  # Reset configuration
+  observeEvent(input$reset_config, {
+    req(values$fetched_data)
+    values$cleaning_config <- create_cleaning_config(values$fetched_data, input$data_source)
+    showNotification("Configuration reset!", type = "message")
+  })
+  
+  # Apply configuration and clean data
+  observeEvent(input$apply_config, {
+    req(values$fetched_data, values$cleaning_config)
+    
+    if(nrow(values$fetched_data) == 0) {
+      showNotification("No data to clean. Please fetch data first.", type = "warning")
+      return()
+    }
+    
+    if(nrow(values$cleaning_config) == 0) {
+      showNotification("No configuration available. Please load default settings.", type = "warning")
+      return()
+    }
+    
+    output$cleaning_status <- renderUI({
+      div(class = "alert alert-info",
+          icon("spinner", class = "fa-spin"),
+          " Applying configuration and cleaning data... Please wait.")
+    })
+    
+    tryCatch({
+      # Apply global filters from checkboxes to config
+      if("filter_totals_only" %in% names(input) && !is.null(input$filter_totals_only)) {
+        values$cleaning_config$apply_filter_totals <- input$filter_totals_only
+      }
+      if("filter_preferred" %in% names(input) && !is.null(input$filter_preferred)) {
+        values$cleaning_config$apply_filter_preferred <- input$filter_preferred
+      }
+      if("filter_median_variant" %in% names(input) && !is.null(input$filter_median_variant)) {
+        values$cleaning_config$apply_filter_median <- input$filter_median_variant
+      }
+      
+      # Use dynamic cleaning function
+      cleaned <- clean_data_with_config(values$fetched_data, values$cleaning_config, input$data_source)
+      values$cleaned_data <- cleaned
+      
+      if(nrow(cleaned) > 0) {
+        output$cleaning_status <- renderUI({
+          div(class = "alert alert-success",
+              icon("check"),
+              paste("Successfully cleaned", nrow(cleaned), "records using custom configuration!"))
+        })
+        
+        showNotification(paste("Cleaned", nrow(cleaned), "records with custom configuration!"), type = "message")
+      } else {
+        output$cleaning_status <- renderUI({
+          div(class = "alert alert-warning",
+              icon("exclamation-triangle"),
+              " No data remained after cleaning with current configuration.")
+        })
+      }
+      
+    }, error = function(e) {
+      output$cleaning_status <- renderUI({
+        div(class = "alert alert-danger",
+            icon("times"),
+            paste("Configuration cleaning error:", e$message))
+      })
+      
+      showNotification(paste("Configuration cleaning error:", e$message), type = "error")
+    })
+  })
+  
+  # Preview configuration changes
+  observeEvent(input$preview_config, {
+    req(values$cleaning_config)
+    
+    included_indicators <- values$cleaning_config %>%
+      filter(include_indicator == TRUE) %>%
+      nrow()
+    
+    showModal(modalDialog(
+      title = "Configuration Preview",
+      size = "l",
+      
+      h4("Summary"),
+      p(paste("Total indicators:", nrow(values$cleaning_config))),
+      p(paste("Included indicators:", included_indicators)),
+      p(paste("Excluded indicators:", nrow(values$cleaning_config) - included_indicators)),
+      
+      hr(),
+      
+      h4("Included Indicators"),
+      DT::renderDataTable({
+        values$cleaning_config %>%
+          filter(include_indicator == TRUE) %>%
+          select(`Source ID` = indicator_id, `Name` = indicator_name, `Common ID` = indicator_common_id, `Type` = indicator_type)
+      }, options = list(pageLength = 10, dom = 'frtip')),
+      
+      easyClose = TRUE,
+      footer = tagList(
+        actionButton("close_preview", "Close", class = "btn-secondary")
+      )
+    ))
+  })
+  
+  observeEvent(input$close_preview, {
+    removeModal()
+  })
+  
+  # ========================================
+  # LEGACY CLEANING (BACKWARD COMPATIBILITY)
+  # ========================================
+  
   observeEvent(input$clean_data, {
     req(values$fetched_data)
     
@@ -532,25 +726,50 @@ output$country_selector <- renderUI({
     req(values$cleaned_data)
     
     if(nrow(values$cleaned_data) > 0) {
-      # Get unique indicators and countries (using correct column names)
-      indicators <- unique(values$cleaned_data$indicator_id)
-      countries <- unique(values$cleaned_data$admin_area_1)
+      # Get unique indicators with readable names
+      indicator_choices <- values$cleaned_data %>%
+        select(indicator_id, indicator_common_id) %>%
+        distinct() %>%
+        {setNames(.$indicator_id, .$indicator_common_id)}
       
-      # Update indicator selector
+      # Create geographic area choices that handle both national and subnational data
+      geo_areas <- values$cleaned_data %>%
+        mutate(
+          # Create display name for geographic areas
+          geo_display = if_else(
+            admin_area_2 == "NATIONAL" | is.na(admin_area_2),
+            admin_area_1,
+            paste(admin_area_1, "-", admin_area_2)
+          ),
+          # Create unique identifier for filtering
+          geo_id = if_else(
+            admin_area_2 == "NATIONAL" | is.na(admin_area_2),
+            admin_area_1,
+            paste(admin_area_1, "||", admin_area_2)
+          )
+        ) %>%
+        select(geo_id, geo_display) %>%
+        distinct() %>%
+        arrange(geo_display)
+      
+      geo_choices <- setNames(geo_areas$geo_id, geo_areas$geo_display)
+      
+      # Update indicator selector with readable names
       updateSelectInput(session, "plot_indicator",
-                        choices = setNames(indicators, indicators))
+                        choices = indicator_choices)
       
-      # Update country selectors
+      # Update country selectors with geographic areas
       updateSelectInput(session, "plot_countries",
-                        choices = setNames(countries, countries),
-                        selected = countries[1:min(3, length(countries))])
+                        choices = geo_choices,
+                        selected = geo_areas$geo_id[1:min(3, length(geo_areas$geo_id))])
       
       updateSelectInput(session, "comparison_country",
-                        choices = setNames(countries, countries))
+                        choices = geo_choices)
       
+      # Update comparison indicators with readable names too
       updateSelectInput(session, "comparison_indicators",
-                        choices = setNames(indicators, indicators),
-                        selected = indicators[1:min(3, length(indicators))])
+                        choices = indicator_choices,
+                        selected = names(indicator_choices)[1:min(3, length(indicator_choices))])
     }
   })
   
@@ -560,14 +779,70 @@ output$country_selector <- renderUI({
   })
   outputOptions(output, "has_cleaned_data", suspendWhenHidden = FALSE)
   
+  # Create filtering function that handles both national and subnational data
+  filter_data <- function(data, selected_geos) {
+    filtered_data <- data.frame()
+    
+    # Debug: Print available data structure
+    cat("=== DEBUG: Available data structure ===\n")
+    cat("Unique admin_area_1 values:", paste(unique(data$admin_area_1), collapse = ", "), "\n")
+    cat("Unique admin_area_2 values:", paste(unique(data$admin_area_2), collapse = ", "), "\n")
+    cat("Selected geo_ids:", paste(selected_geos, collapse = ", "), "\n")
+    
+    for(geo_id in selected_geos) {
+      cat("\n--- Processing geo_id:", geo_id, "---\n")
+      
+      if(grepl("\\|\\|", geo_id)) {
+        # Subnational data - split geo_id to get admin_area_1 and admin_area_2
+        parts <- strsplit(geo_id, "\\|\\|")[[1]]
+        admin1 <- parts[1]
+        admin2 <- parts[2]
+        cat("Looking for admin1:", admin1, "admin2:", admin2, "\n")
+        
+        # Check if this combination exists
+        matching_rows <- data %>%
+          filter(.data$admin_area_1 == admin1 & .data$admin_area_2 == admin2)
+        cat("Found", nrow(matching_rows), "matching rows\n")
+        
+        # Also try trimmed comparison in case of whitespace issues
+        if(nrow(matching_rows) == 0) {
+          matching_rows <- data %>%
+            filter(str_trim(.data$admin_area_1) == str_trim(admin1) & 
+                   str_trim(.data$admin_area_2) == str_trim(admin2))
+          cat("Found", nrow(matching_rows), "matching rows after trimming\n")
+        }
+        
+        subset_data <- matching_rows
+      } else {
+        # National data - just match admin_area_1
+        cat("Looking for national data for:", geo_id, "\n")
+        subset_data <- data %>%
+          filter(.data$admin_area_1 == geo_id & (.data$admin_area_2 == "NATIONAL" | is.na(.data$admin_area_2)))
+        cat("Found", nrow(subset_data), "national rows\n")
+      }
+      filtered_data <- bind_rows(filtered_data, subset_data)
+    }
+    
+    cat("=== Final filtered data has", nrow(filtered_data), "rows ===\n")
+    return(filtered_data)
+  }
+  
   # Generate time series plot
   observeEvent(input$generate_plot, {
     req(input$plot_indicator, input$plot_countries, values$cleaned_data)
     
-    plot_data <- values$cleaned_data %>%
-      filter(
-        .data$indicator_id == input$plot_indicator,
-        .data$admin_area_1 %in% input$plot_countries
+    # First filter by indicator, then by geography
+    indicator_data <- values$cleaned_data %>%
+      filter(.data$indicator_id == input$plot_indicator)
+    
+    plot_data <- filter_data(indicator_data, input$plot_countries) %>%
+      mutate(
+        # Create display name for legend
+        geo_label = if_else(
+          admin_area_2 == "NATIONAL" | is.na(admin_area_2),
+          admin_area_1,
+          paste(admin_area_1, "-", admin_area_2)
+        )
       ) %>%
       arrange(.data$year)
     
@@ -581,14 +856,24 @@ output$country_selector <- renderUI({
       return()
     }
     
+    # Hide placeholder and show plot
+    shinyjs::hide("plot-placeholder")
+    
     output$time_series_plot <- renderPlotly({
-      p <- plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~admin_area_1,
+      # Determine plot mode based on user selection
+      plot_mode <- if(input$plot_type == "line") {
+        "lines"
+      } else if(input$plot_type == "point") {
+        "markers"
+      } else if(input$plot_type == "both") {
+        "lines+markers"
+      } else {
+        "lines+markers"  # default
+      }
+      
+      p <- plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~geo_label,
                    type = "scatter",
-                   mode = case_when(
-                     input$plot_type == "line" ~ "lines",
-                     input$plot_type == "point" ~ "markers",
-                     input$plot_type == "both" ~ "lines+markers"
-                   ),
+                   mode = plot_mode,
                    line = list(width = 3),
                    marker = list(size = 8)) %>%
         layout(
@@ -600,19 +885,19 @@ output$country_selector <- renderUI({
       
       # Add trend lines if requested
       if(input$show_trend) {
-        for(country in input$plot_countries) {
-          country_data <- plot_data %>% filter(.data$admin_area_1 == country)
-          if(nrow(country_data) > 1) {
-            trend_model <- lm(survey_value ~ year, data = country_data)
+        for(geo_label in unique(plot_data$geo_label)) {
+          geo_data <- plot_data %>% filter(.data$geo_label == geo_label)
+          if(nrow(geo_data) > 1) {
+            trend_model <- lm(survey_value ~ year, data = geo_data)
             trend_line <- data.frame(
-              year = range(country_data$year),
-              survey_value = predict(trend_model, newdata = data.frame(year = range(country_data$year)))
+              year = range(geo_data$year),
+              survey_value = predict(trend_model, newdata = data.frame(year = range(geo_data$year)))
             )
             
             p <- p %>% add_lines(
               data = trend_line,
               x = ~year, y = ~survey_value,
-              name = paste(country, "trend"),
+              name = paste(geo_label, "trend"),
               line = list(dash = "dash", width = 2),
               showlegend = FALSE
             )
@@ -628,11 +913,11 @@ output$country_selector <- renderUI({
   observeEvent(input$generate_comparison, {
     req(input$comparison_country, input$comparison_indicators, values$cleaned_data)
     
-    plot_data <- values$cleaned_data %>%
-      filter(
-        .data$admin_area_1 == input$comparison_country,
-        .data$indicator_id %in% input$comparison_indicators
-      ) %>%
+    # Filter data using the same logic as the time series plot
+    indicators_data <- values$cleaned_data %>%
+      filter(.data$indicator_id %in% input$comparison_indicators)
+    
+    plot_data <- filter_data(indicators_data, list(input$comparison_country)) %>%
       arrange(.data$year)
     
     if(nrow(plot_data) == 0) {
@@ -644,6 +929,9 @@ output$country_selector <- renderUI({
       })
       return()
     }
+    
+    # Hide placeholder and show comparison plot  
+    shinyjs::hide("comparison-placeholder")
     
     output$comparison_plot <- renderPlotly({
       if(input$comparison_scale == "free") {
