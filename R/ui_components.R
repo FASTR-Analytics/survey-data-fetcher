@@ -61,90 +61,29 @@ create_results_tab <- function() {
 
 create_processing_tab <- function() {
   tabItem(tabName = "processing",
-          # Step 1: Cleaning Configuration
+          # Clean Data
           fluidRow(
             box(
-              title = "Step 1: Configure Cleaning Rules", status = "info", solidHeader = TRUE, width = 12,
-              
-              conditionalPanel(
-                condition = "output.has_data",
-                div(
-                  p("Review and configure how your raw data should be cleaned and standardized."),
-                  
-                  fluidRow(
-                    column(8,
-                           h5("Indicator Mapping & Filtering"),
-                           div(class = "alert alert-info", style = "margin-bottom: 15px;",
-                               icon("info-circle"),
-                               " Configure how each fetched indicator should be mapped to common IDs and what filters to apply."),
-                           
-                           DT::dataTableOutput("cleaning_config_table")
-                    ),
-                    column(4,
-                           h5("Configuration Actions"),
-                           
-                           div(style = "margin-bottom: 15px;",
-                               actionButton("load_default_config", "📋 Load Default Settings",
-                                           class = "btn-outline-primary btn-block",
-                                           style = "margin-bottom: 8px;"),
-                               actionButton("reset_config", "🔄 Reset All",
-                                           class = "btn-outline-secondary btn-block",
-                                           style = "margin-bottom: 8px;"),
-                               actionButton("save_config", "💾 Save Config",
-                                           class = "btn-outline-success btn-block")
-                           ),
-                           
-                           hr(),
-                           
-                           h6("Quick Filters"),
-                           div(style = "margin-bottom: 10px;",
-                               checkboxInput("filter_totals_only", "Keep totals only (no age/sex breakdown)", value = TRUE),
-                               checkboxInput("filter_preferred", "Keep preferred estimates only", value = TRUE),
-                               checkboxInput("filter_median_variant", "Keep median variant only (UNWPP)", value = TRUE)
-                           ),
-                           
-                           div(class = "alert alert-warning", style = "font-size: 12px;",
-                               strong("Note: "), "Changes will be applied when you click 'Apply Configuration' below.")
-                    )
-                  ),
-                  
-                  div(style = "text-align: center; margin-top: 20px;",
-                      actionButton("apply_config", "✅ Apply Configuration",
-                                  class = "btn-success btn-lg",
-                                  icon = icon("check"),
-                                  style = "margin-right: 15px;"),
-                      actionButton("preview_config", "👁️ Preview Changes",
-                                  class = "btn-info btn-lg",
-                                  icon = icon("eye"))
-                  )
-                )
-              ),
-              
-              conditionalPanel(
-                condition = "!output.has_data",
-                div(class = "alert alert-info",
-                    icon("info-circle"),
-                    " Please fetch data first using the Data Fetcher tab.")
-              )
-            )
-          ),
-          
-          # Step 2: Traditional Processing (kept for backward compatibility)
-          fluidRow(
-            box(
-              title = "Step 2: Quick Clean (Legacy)", status = "warning", solidHeader = TRUE, width = 12, collapsed = TRUE,
+              title = "Clean & Process Data", status = "success", solidHeader = TRUE, width = 12,
               
               fluidRow(
                 column(6,
-                       h4("Use Default Cleaning"),
+                       h4("Clean Data"),
                        conditionalPanel(
                          condition = "output.has_data",
                          div(
-                           p("Apply default cleaning rules without configuration (legacy method)."),
-                           actionButton("clean_data", "Quick Clean with Defaults",
-                                        class = "btn-warning",
+                           p("Apply standard cleaning and standardization to your fetched data."),
+                           actionButton("clean_data", "Clean Data",
+                                        class = "btn-success btn-lg",
                                         icon = icon("magic"))
                          )
+                       ),
+                       
+                       conditionalPanel(
+                         condition = "!output.has_data",
+                         div(class = "alert alert-info",
+                             icon("info-circle"),
+                             " Please fetch data first using the Data Fetcher tab.")
                        )
                 ),
                 column(6,
@@ -179,33 +118,30 @@ create_help_tab <- function() {
               title = "About This Application", status = "info", solidHeader = TRUE, width = 12,
               
               h4("Purpose"),
-              p("This application provides an easy-to-use interface for fetching survey data from multiple international sources:"),
-              
+              p("This application provides an easy-to-use interface for fetching survey data from multiple international sources using real-time API connections:"),
+
               tags$ul(
-                tags$li(strong("DHS:"), " Demographic & Health Surveys from 90+ countries"),
-                tags$li(strong("MICS:"), " Multiple Indicator Cluster Surveys (UNICEF)"),
-                tags$li(strong("UNWPP:"), " UN World Population Prospects")
+                tags$li(strong("DHS:"), " Demographic & Health Surveys from 90+ countries via the DHS Program API"),
+                tags$li(strong("MICS:"), " Multiple Indicator Cluster Surveys (UNICEF) via SDMX web services"),
+                tags$li(strong("UNWPP:"), " UN World Population Prospects via UN Data API")
               ),
-              
+
+              h4("How It Works"),
+              p("The application connects directly to official data sources through their APIs, ensuring you always get the most up-to-date information. When you click 'Fetch Data', the app makes real-time requests to the respective databases and processes the results for analysis."),
+
               h4("Getting Started"),
               tags$ol(
-                tags$li("Choose your data source (DHS, MICS, or UNWPP)"),
-                tags$li("Select indicators using favorites or browse all available"),
-                tags$li("Choose countries"),
-                tags$li("Click 'Fetch Data' and wait for results"),
-                tags$li("View, analyze, and download your data")
+                tags$li("Choose your data source (DHS, MICS, or UNWPP) from the sidebar"),
+                tags$li("Select indicators using quick favorites or browse all available options"),
+                tags$li("Choose your countries of interest"),
+                tags$li("Click 'Fetch Data' and wait for the API to retrieve your data"),
+                tags$li("Clean and process your data using the built-in tools"),
+                tags$li("Create visualizations and download your results")
               ),
+
+              h4("Data Processing"),
+              p("You can choose to clean and standardize your fetched data using the built-in processing tools, which harmonizes different data formats across sources and prepares the data for integration into the FASTR Analytics Platform. Alternatively, you can download the raw data and use your own tools, code, or methods to clean it according to your specific needs."),
               
-              hr(),
-              
-              h4("Important Notes"),
-              div(class = "alert alert-warning",
-                  icon("exclamation-triangle"),
-                  " ", strong("ANC1 Indicator:"), " For ANC1 coverage, always use RH_ANCP_W_SKP (ANC1 from skilled provider) rather than RH_ANCN_W_N01 (exactly 1 visit). This ensures data quality and comparability across surveys."),
-              
-              div(class = "alert alert-success",
-                  icon("check-circle"),
-                  " ", strong("Côte d'Ivoire:"), " This country is fully supported across all data sources using ISO code 'CI'.")
             )
           )
   )
@@ -274,13 +210,28 @@ create_country_selection_box <- function() {
 create_fetch_data_box <- function() {
   box(
     title = "Fetch Data", status = "success", solidHeader = TRUE, width = 12,
-    
+
     div(style = "text-align: center;",
         actionButton("fetch_data", "Fetch Data",
                      class = "btn-success btn-lg",
-                     icon = icon("play"),
+                     icon = icon("download"),
                      style = "margin-bottom: 15px;")),
-    
+
+    # Progress indicator
+    div(id = "progress_container", style = "margin-bottom: 15px;",
+        conditionalPanel(
+          condition = "input.fetch_data > 0",
+          div(
+            div(class = "progress", style = "height: 8px; margin-bottom: 10px;",
+                div(id = "fetch_progress", class = "progress-bar",
+                    style = "width: 0%; transition: width 0.3s ease;")
+            ),
+            div(id = "progress_text", style = "font-size: 14px; color: #6c757d; text-align: center;",
+                "Ready to fetch data...")
+          )
+        )
+    ),
+
     div(id = "fetch_status",
         uiOutput("status_message"))
   )
@@ -403,18 +354,10 @@ create_visualization_tab <- function() {
                                     choices = NULL,
                                     multiple = TRUE),
                          
-                         radioButtons("plot_type", "Chart Type:",
-                                     choices = list(
-                                       "Line Chart" = "line",
-                                       "Point Chart" = "point", 
-                                       "Lines + Points" = "both"
-                                     ),
-                                     selected = "both"),
-                         
                          checkboxInput("show_trend", "Add Trend Line", value = FALSE),
                          
                          br(),
-                         actionButton("generate_plot", "📊 Generate Plot",
+                         actionButton("generate_plot", "Generate Plot",
                                      class = "btn-primary btn-block btn-lg",
                                      style = "font-weight: bold;")
                   ),
@@ -468,7 +411,7 @@ create_visualization_tab <- function() {
                                      selected = "free"),
                          
                          br(),
-                         actionButton("generate_comparison", "📈 Generate Comparison",
+                         actionButton("generate_comparison", "Generate Comparison",
                                      class = "btn-info btn-block btn-lg",
                                      style = "font-weight: bold;")
                   ),

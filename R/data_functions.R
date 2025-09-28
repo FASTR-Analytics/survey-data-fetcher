@@ -327,18 +327,37 @@ fetch_dhs_data <- function(indicators, countries, breakdown = "national") {
 
 fetch_mics_data <- function(indicators, countries = NULL) {
   tryCatch({
-    # MICS SDMX doesn't support country filtering in URL, so fetch all and filter later
+    # Build country filter for SDMX URL
+    if(!is.null(countries) && length(countries) > 0) {
+      # Convert ISO2 to ISO3 for MICS SDMX API
+      iso3_countries <- countrycode(countries, "iso2c", "iso3c", warn = FALSE)
+      iso3_countries <- iso3_countries[!is.na(iso3_countries)]
+
+      # Handle special cases like Côte d'Ivoire
+      if("CI" %in% countries) {
+        iso3_countries <- c(iso3_countries, "CIV")
+      }
+
+      country_filter <- paste(iso3_countries, collapse = "+")
+      message("Filtering MICS data for countries: ", paste(countries, collapse = ", "))
+      message("Using ISO3 codes: ", country_filter)
+    } else {
+      country_filter <- "."
+      message("Fetching MICS data for all countries")
+    }
+
     mics_url <- paste0(
-      "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,GLOBAL_DATAFLOW,1.0/.",
+      "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,GLOBAL_DATAFLOW,1.0/",
+      country_filter, ".",
       paste(indicators, collapse = "+"),
       "..?startPeriod=2010&endPeriod=2024"
     )
-    
+
     message("Fetching MICS data from: ", mics_url)
     mics_sdmx <- readSDMX(mics_url)
     mics_data <- as.data.frame(mics_sdmx)
-    
-    message("Successfully fetched ", nrow(mics_data), " MICS records (will filter by country during cleaning)")
+
+    message("Successfully fetched ", nrow(mics_data), " MICS records for selected countries")
     return(mics_data)
     
   }, error = function(e) {

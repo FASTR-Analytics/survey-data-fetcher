@@ -1,613 +1,439 @@
 /* ========================================
-   AGGRESSIVE CSS OVERRIDE FOR TEAL THEME
+   FASTR CLEAN THEME - VERSION 3.2
    ========================================
-   This CSS uses !important and high specificity to override shinydashboard
+   Clean, minimal design with FASTR teal #0f706d as accent
+   Fixed: Header alignment, button colors, progress indicators, green alert backgrounds
 */
 
 :root {
-  --teal: #20A29C;
-  --dark-teal: #1a8882;
-  --light-teal: #4db6ac;
-  --white: #ffffff;
-  --light-gray: #f8f9fa;
-  --medium-gray: #dee2e6;
+  --fastr-teal: #0f706d;
+  --fastr-teal-light: #1a8b86;
+  --text-dark: #2c3e50;
+  --text-medium: #7f8c8d;
+  --text-light: #95a5a6;
+  --bg-white: #ffffff;
+  --bg-light: #f8f9fa;
+  --bg-medium: #e9ecef;
+  --border-light: #dee2e6;
 }
 
 /* ========================================
-   HEADER - COMPLETE OVERRIDE
+   BASIC RESETS
    ======================================== */
-body .skin-blue .main-header .navbar,
-.skin-blue .main-header .navbar,
-.main-header .navbar,
-.main-header,
-body .main-header {
-  background: var(--teal) !important;
-  background-image: none !important;
+* {
+  box-sizing: border-box;
+}
+
+/* ========================================
+   HEADER - CLEAN WHITE WITH ALIGNED TEAL BORDER
+   ======================================== */
+.main-header {
+  background: var(--bg-white) !important;
+  border-bottom: 3px solid var(--fastr-teal) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.main-header .navbar {
+  background: var(--bg-white) !important;
   border-bottom: none !important;
+  margin-bottom: 0 !important;
 }
 
-/* Override any gradients or multiple backgrounds in header */
-.main-header .navbar::before,
-.main-header .navbar::after,
-.main-header::before,
-.main-header::after {
-  background: var(--teal) !important;
-  background-color: var(--teal) !important;
-  background-image: none !important;
+.main-header .logo {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  font-weight: 700 !important;
+  font-size: 18px !important;
 }
 
-/* Force header content to white text */
-body .skin-blue .main-header .navbar .nav > li > a,
-.skin-blue .main-header .navbar .nav > li > a,
-.main-header .navbar .nav > li > a,
-.main-header .navbar-brand,
-.main-header .navbar .navbar-brand {
-  color: var(--white) !important;
-  background: transparent !important;
+.main-header .navbar .nav > li > a {
+  color: var(--text-dark) !important;
 }
 
 /* ========================================
-   LOGO AREA - FORCE TEAL
+   SIDEBAR - CLEAN GRAY
    ======================================== */
-.skin-black .main-header > .logo,
-.skin-blue .main-header > .logo {
-  background-color: var(--teal) !important;
-  color: var(--white) !important;
-  border-right: 1px solid var(--teal) !important;
-  border-bottom: 0 solid transparent !important;
-}
-
-/* ========================================
-   SIDEBAR - TEAL THEME TO MATCH HEADER
-   ======================================== */
-body .skin-blue .main-sidebar,
-.skin-blue .main-sidebar,
 .main-sidebar {
-  background-color: var(--teal) !important;
-  background: var(--teal) !important;
+  background: var(--bg-light) !important;
+  border-right: 1px solid var(--border-light) !important;
 }
 
-body .skin-blue .sidebar-menu > li > a,
-.skin-blue .sidebar-menu > li > a,
 .sidebar-menu > li > a {
-  color: var(--white) !important;
-  background: transparent !important;
+  color: var(--text-dark) !important;
+  padding: 12px 15px !important;
   border-left: 3px solid transparent !important;
+  transition: all 0.2s ease !important;
 }
 
-body .skin-blue .sidebar-menu > li:hover > a,
-.skin-blue .sidebar-menu > li:hover > a {
-  background-color: var(--dark-teal) !important;
-  color: var(--white) !important;
-  border-left: 3px solid var(--white) !important;
+.sidebar-menu > li:hover > a {
+  background: var(--bg-white) !important;
+  border-left: 3px solid var(--fastr-teal-light) !important;
 }
 
-body .skin-blue .sidebar-menu > li.active > a,
-.skin-blue .sidebar-menu > li.active > a {
-  background-color: var(--dark-teal) !important;
-  color: var(--white) !important;
-  border-left: 3px solid var(--white) !important;
+.sidebar-menu > li.active > a {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
+  font-weight: 600 !important;
 }
 
-/* Sidebar icons */
-body .skin-blue .sidebar-menu > li > a > .fa,
-.skin-blue .sidebar-menu > li > a > .fa,
 .sidebar-menu > li > a > .fa {
-  color: var(--white) !important;
+  color: var(--text-medium) !important;
+}
+
+.sidebar-menu > li.active > a > .fa {
+  color: var(--fastr-teal) !important;
 }
 
 /* ========================================
-   BOX HEADERS - FORCE TEAL
+   CONTENT AREA
    ======================================== */
-.box.box-primary > .box-header,
-.box.box-info > .box-header,
-.content-wrapper .box.box-primary > .box-header,
-.content-wrapper .box.box-info > .box-header,
-body .box.box-primary > .box-header,
-body .box.box-info > .box-header {
-  background-color: var(--teal) !important;
-  background: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-.box.box-success > .box-header,
-.content-wrapper .box.box-success > .box-header,
-body .box.box-success > .box-header {
-  background-color: #28a745 !important;
-  color: var(--white) !important;
-}
-
-.box.box-warning > .box-header,
-.content-wrapper .box.box-warning > .box-header,
-body .box.box-warning > .box-header {
-  background-color: #ffc107 !important;
-  color: #212529 !important;
+.content-wrapper {
+  background: var(--bg-light) !important;
 }
 
 /* ========================================
-   BUTTONS - FORCE TEAL
+   BOXES - CLEAN WHITE WITH MINIMAL BORDERS
+   ======================================== */
+.box {
+  background: var(--bg-white) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  margin-bottom: 20px !important;
+}
+
+.box-header {
+  background: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+  border-bottom: 2px solid var(--fastr-teal) !important;
+  padding: 15px !important;
+  font-weight: 600 !important;
+  border-radius: 6px 6px 0 0 !important;
+}
+
+.box-title {
+  color: var(--text-dark) !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+}
+
+/* ========================================
+   RADIO BUTTONS - SIMPLE AND VISIBLE
+   ======================================== */
+input[type="radio"] {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 10px 0 0 !important;
+  opacity: 1 !important;
+  position: relative !important;
+  display: inline-block !important;
+  accent-color: var(--fastr-teal) !important;
+  cursor: pointer !important;
+}
+
+.radio {
+  margin-bottom: 10px !important;
+  display: block !important;
+}
+
+.radio label {
+  color: var(--text-dark) !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 8px 0 !important;
+}
+
+/* ========================================
+   BUTTONS - CONSISTENT FASTR TEAL THEME
    ======================================== */
 .btn-primary,
-.content-wrapper .btn-primary,
-body .btn-primary,
-.btn.btn-primary {
-  background-color: var(--teal) !important;
-  background: var(--teal) !important;
-  border-color: var(--teal) !important;
-  color: var(--white) !important;
+.btn-success {
+  background: var(--fastr-teal) !important;
+  border-color: var(--fastr-teal) !important;
+  color: var(--bg-white) !important;
+  font-weight: 500 !important;
+  border-radius: 4px !important;
+  padding: 8px 16px !important;
+  transition: all 0.2s ease !important;
 }
 
 .btn-primary:hover,
 .btn-primary:focus,
 .btn-primary:active,
-.content-wrapper .btn-primary:hover,
-body .btn-primary:hover {
-  background-color: var(--dark-teal) !important;
-  background: var(--dark-teal) !important;
-  border-color: var(--dark-teal) !important;
-  color: var(--white) !important;
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+  background: var(--fastr-teal-light) !important;
+  border-color: var(--fastr-teal-light) !important;
+  color: var(--bg-white) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(15, 112, 109, 0.3) !important;
 }
 
-.btn-info,
-.content-wrapper .btn-info,
-body .btn-info {
-  background-color: var(--light-teal) !important;
-  border-color: var(--light-teal) !important;
-  color: var(--white) !important;
+.btn-info {
+  background: var(--bg-medium) !important;
+  border-color: var(--bg-medium) !important;
+  color: var(--text-dark) !important;
 }
 
-/* ========================================
-   OUTLINE BUTTONS
-   ======================================== */
-.btn-outline-primary,
-.content-wrapper .btn-outline-primary,
-body .btn-outline-primary {
-  border: 2px solid var(--teal) !important;
-  color: var(--teal) !important;
-  background: transparent !important;
-}
-
-.btn-outline-primary:hover,
-.btn-outline-primary:focus,
-.btn-outline-primary:active,
-.content-wrapper .btn-outline-primary:hover {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-.btn-outline-info,
-.content-wrapper .btn-outline-info {
-  border: 2px solid var(--light-teal) !important;
-  color: var(--light-teal) !important;
-  background: transparent !important;
-}
-
-.btn-outline-info:hover {
-  background-color: var(--light-teal) !important;
-  color: var(--white) !important;
-}
-
-/* ========================================
-   ALERTS
-   ======================================== */
-.alert-info {
-  background-color: #e0f2f1 !important;
-  border: 1px solid var(--light-teal) !important;
-  border-left: 4px solid var(--teal) !important;
-  color: var(--dark-teal) !important;
-}
-
-.alert-success {
-  background-color: #e8f5e9 !important;
-  border: 1px solid #28a745 !important;
-  border-left: 4px solid #28a745 !important;
-  color: #155724 !important;
-}
-
-.alert-warning {
-  background-color: #fff3cd !important;
-  border: 1px solid #ffc107 !important;
-  border-left: 4px solid #ffc107 !important;
-  color: #856404 !important;
-}
-
-/* ========================================
-   BADGES
-   ======================================== */
-.badge,
-body .badge {
-  background-color: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-.badge-light,
-body .badge-light {
-  background-color: var(--medium-gray) !important;
-  color: #495057 !important;
-}
-
-.badge-warning {
-  background-color: #ffc107 !important;
-  color: #212529 !important;
-}
-
-/* ========================================
-   CONTENT BACKGROUND
-   ======================================== */
-.content-wrapper,
-.right-side,
-body .content-wrapper,
-body .right-side {
-  background-color: var(--light-gray) !important;
-}
-
-/* ========================================
-   BOXES GENERAL
-   ======================================== */
-.box,
-body .box {
-  border-top: 3px solid var(--teal) !important;
-  border-radius: 4px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12) !important;
+.btn-warning {
+  background: var(--text-medium) !important;
+  border-color: var(--text-medium) !important;
+  color: var(--bg-white) !important;
 }
 
 /* ========================================
    FORM CONTROLS
    ======================================== */
-.form-control:focus,
-body .form-control:focus {
-  border-color: var(--teal) !important;
-  box-shadow: 0 0 0 0.2rem rgba(32, 162, 156, 0.25) !important;
+.form-control {
+  border: 1px solid var(--border-light) !important;
+  border-radius: 4px !important;
+  color: var(--text-dark) !important;
+}
+
+.form-control:focus {
+  border-color: var(--fastr-teal) !important;
+  box-shadow: 0 0 0 0.2rem rgba(15, 112, 109, 0.25) !important;
 }
 
 /* ========================================
-   RADIO BUTTONS
+   TYPOGRAPHY
    ======================================== */
-.radio input[type="radio"]:checked + label::before {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
+body, .content-wrapper {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  color: var(--text-dark) !important;
+  line-height: 1.5 !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-dark) !important;
+  font-weight: 600 !important;
 }
 
 /* ========================================
-   DATATABLES
+   TABLES
    ======================================== */
-.dataTables_wrapper .dataTables_paginate .paginate_button.current,
-.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-  background: var(--teal) !important;
-  border: 1px solid var(--teal) !important;
-  color: var(--white) !important;
+.table {
+  color: var(--text-dark) !important;
+}
+
+.table thead th {
+  background: var(--bg-light) !important;
+  color: var(--text-dark) !important;
+  border-bottom: 2px solid var(--border-light) !important;
+  font-weight: 600 !important;
 }
 
 /* ========================================
-   BOOTSTRAP SELECT (for pickerInput)
+   ALERTS - CONSISTENT FASTR THEME
    ======================================== */
-.bootstrap-select .dropdown-menu li.selected a {
-  background-color: var(--teal) !important;
-  color: var(--white) !important;
+.alert-info {
+  background: rgba(15, 112, 109, 0.1) !important;
+  border: 1px solid var(--fastr-teal) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
+  color: var(--text-dark) !important;
 }
 
-.bootstrap-select .dropdown-toggle:focus {
-  border-color: var(--teal) !important;
-  box-shadow: 0 0 0 0.2rem rgba(32, 162, 156, 0.25) !important;
+.alert-success {
+  background: rgba(15, 112, 109, 0.1) !important;
+  border: 1px solid var(--fastr-teal) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
+  color: var(--text-dark) !important;
+}
+
+.alert-warning {
+  background: rgba(243, 156, 18, 0.1) !important;
+  border: 1px solid #f39c12 !important;
+  border-left: 4px solid #f39c12 !important;
+  color: var(--text-dark) !important;
+}
+
+.alert-danger {
+  background: rgba(231, 76, 60, 0.1) !important;
+  border: 1px solid #e74c3c !important;
+  border-left: 4px solid #e74c3c !important;
+  color: var(--text-dark) !important;
 }
 
 /* ========================================
-   PROGRESS AND SPINNERS
+   CLEAN UP ANY REMAINING ISSUES
    ======================================== */
+.skin-blue .main-header > .logo {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+}
+
+.skin-blue .main-header .navbar {
+  background: var(--bg-white) !important;
+}
+
+.skin-blue .main-sidebar {
+  background: var(--bg-light) !important;
+}
+
+.skin-blue .sidebar-menu > li > a {
+  color: var(--text-dark) !important;
+}
+
+.skin-blue .sidebar-menu > li.active > a {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+}
+
+/* ========================================
+   PROGRESS INDICATORS & LOADING STATES
+   ======================================== */
+
+/* Progress bars */
+.progress {
+  background-color: var(--bg-medium) !important;
+  border-radius: 4px !important;
+  height: 8px !important;
+  margin: 10px 0 !important;
+}
+
 .progress-bar {
-  background-color: var(--teal) !important;
+  background-color: var(--fastr-teal) !important;
+  transition: width 0.3s ease !important;
 }
 
+/* Spinners and loading indicators */
 .spinner-border,
 .fa-spin {
-  color: var(--teal) !important;
+  color: var(--fastr-teal) !important;
 }
 
-/* ========================================
-   CLEAN UP
-   ======================================== */
-.box:hover {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
-}
-
-/* ========================================
-   CATCH REMAINING BLUE ELEMENTS
-   ======================================== */
-
-/* Target any remaining blue elements */
-*[style*="background-color: #3c8dbc"],
-*[style*="background: #3c8dbc"],
-*[class*="bg-blue"],
-*[class*="btn-info"] {
-  background-color: var(--teal) !important;
-  background: var(--teal) !important;
-}
-
-/* Force override any bootstrap info colors */
-.bg-info,
-.btn-info,
-.alert-info .alert-link,
-.badge-info {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
-}
-
-/* Catch any remaining blue text */
-.text-info {
-  color: var(--teal) !important;
-}
-
-/* Override any lingering primary colors that might be blue */
-.bg-primary,
-.btn-primary,
-.text-primary,
-.border-primary {
-  background-color: var(--teal) !important;
-  color: var(--white) !important;
-  border-color: var(--teal) !important;
-}
-
-/* ========================================
-   UNIFY ALL COLORS TO TEAL THEME
-   ======================================== */
-
-/* Override ALL warning/orange buttons to use teal */
-.btn-warning,
-.content-wrapper .btn-warning,
-body .btn-warning {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-.btn-warning:hover,
-.btn-warning:focus,
-.btn-warning:active {
-  background-color: var(--dark-teal) !important;
-  border-color: var(--dark-teal) !important;
-  color: var(--white) !important;
-}
-
-/* Override ALL success/green elements to use teal */
-.btn-success,
-.content-wrapper .btn-success,
-body .btn-success,
-.box.box-success > .box-header,
-.content-wrapper .box.box-success > .box-header,
-body .box.box-success > .box-header {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-.btn-success:hover,
-.btn-success:focus,
-.btn-success:active {
-  background-color: var(--dark-teal) !important;
-  border-color: var(--dark-teal) !important;
-  color: var(--white) !important;
-}
-
-/* Override warning box headers to use teal */
-.box.box-warning > .box-header,
-.content-wrapper .box.box-warning > .box-header,
-body .box.box-warning > .box-header {
-  background-color: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-/* Override any remaining colored backgrounds */
-.bg-warning,
-.bg-success,
-.bg-orange,
-.bg-green {
-  background-color: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-/* Override badge colors */
-.badge-warning,
-.badge-success,
-body .badge-warning,
-body .badge-success {
-  background-color: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-/* Catch any remaining orange/yellow/green colors */
-*[style*="background-color: #f39c12"],
-*[style*="background-color: #ff851b"],
-*[style*="background-color: #00a65a"],
-*[style*="background-color: #28a745"],
-*[style*="background-color: #ffc107"],
-*[style*="background: #f39c12"],
-*[style*="background: #ff851b"],
-*[style*="background: #00a65a"],
-*[style*="background: #28a745"],
-*[style*="background: #ffc107"] {
-  background-color: var(--teal) !important;
-  background: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-/* Force all button types to use teal */
-.btn[class*="btn-"]:not(.btn-outline-secondary):not(.btn-light):not(.btn-secondary) {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-.btn[class*="btn-"]:not(.btn-outline-secondary):not(.btn-light):not(.btn-secondary):hover {
-  background-color: var(--dark-teal) !important;
-  border-color: var(--dark-teal) !important;
-  color: var(--white) !important;
-}
-
-/* ========================================
-   SQUARE RADIO BUTTONS FOR SIDEBAR
-   ======================================== */
-
-/* Override any existing radio button styles */
-.main-sidebar .radio,
-.sidebar .radio,
-body .main-sidebar .radio {
-  margin-bottom: 12px !important;
-}
-
-/* Hide the default radio button completely */
-.main-sidebar .radio input[type="radio"],
-.sidebar .radio input[type="radio"],
-body .main-sidebar .radio input[type="radio"] {
-  opacity: 0 !important;
+/* Loading overlay */
+.loading-overlay {
   position: absolute !important;
-  width: 0 !important;
-  height: 0 !important;
-  margin: 0 !important;
-}
-
-/* Style the label and create space for custom checkbox */
-.main-sidebar .radio label,
-.sidebar .radio label,
-body .main-sidebar .radio label {
-  position: relative !important;
-  padding-left: 30px !important;
-  cursor: pointer !important;
-  color: var(--white) !important;
-  font-weight: normal !important;
-  margin-bottom: 0 !important;
-  display: block !important;
-  line-height: 1.4 !important;
-}
-
-/* Create the custom square box */
-.main-sidebar .radio label::before,
-.sidebar .radio label::before,
-body .main-sidebar .radio label::before {
-  content: '' !important;
-  position: absolute !important;
+  top: 0 !important;
   left: 0 !important;
-  top: 3px !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1000 !important;
+}
+
+.loading-spinner {
+  border: 3px solid var(--bg-medium) !important;
+  border-top: 3px solid var(--fastr-teal) !important;
+  border-radius: 50% !important;
+  width: 40px !important;
+  height: 40px !important;
+  animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Button loading states */
+.btn.loading {
+  position: relative !important;
+  color: transparent !important;
+}
+
+.btn.loading::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
   width: 16px !important;
   height: 16px !important;
-  border: 2px solid rgba(255, 255, 255, 0.6) !important;
-  background-color: transparent !important;
-  border-radius: 2px !important;
-  transition: all 0.2s ease !important;
+  border: 2px solid transparent !important;
+  border-top: 2px solid var(--bg-white) !important;
+  border-radius: 50% !important;
+  animation: spin 1s linear infinite !important;
 }
 
-/* Checked state - fill the square */
-.main-sidebar .radio input[type="radio"]:checked + label::before,
-.sidebar .radio input[type="radio"]:checked + label::before,
-body .main-sidebar .radio input[type="radio"]:checked + label::before,
-.main-sidebar .radio label > input[type="radio"]:checked ~ label::before,
-.sidebar .radio label > input[type="radio"]:checked ~ label::before,
-body .main-sidebar .radio label > input[type="radio"]:checked ~ label::before {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
+/* Status messages */
+.status-message {
+  background: var(--bg-light) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
+  padding: 12px 16px !important;
+  margin: 10px 0 !important;
+  border-radius: 0 4px 4px 0 !important;
+  color: var(--text-dark) !important;
 }
 
-/* Add checkmark when selected */
-.main-sidebar .radio label > input[type="radio"]:checked ~ span::after,
-.sidebar .radio label > input[type="radio"]:checked ~ span::after,
-body .main-sidebar .radio label > input[type="radio"]:checked ~ span::after,
-.main-sidebar .radio input[type="radio"]:checked + label::after,
-.sidebar .radio input[type="radio"]:checked + label::after,
-body .main-sidebar .radio input[type="radio"]:checked + label::after {
-  content: '✓' !important;
-  position: absolute !important;
-  left: 3px !important;
-  top: 1px !important;
-  color: white !important;
-  font-size: 12px !important;
-  font-weight: bold !important;
-  line-height: 1 !important;
+.status-message.success {
+  border-left-color: var(--fastr-teal) !important;
+  background: rgba(15, 112, 109, 0.05) !important;
 }
 
-/* Hover effect */
-.main-sidebar .radio label:hover::before,
-.sidebar .radio label:hover::before,
-body .main-sidebar .radio label:hover::before {
-  border-color: rgba(255, 255, 255, 0.9) !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+.status-message.error {
+  border-left-color: #e74c3c !important;
+  background: rgba(231, 76, 60, 0.05) !important;
 }
 
-/* Make sure checked state persists on hover */
-.main-sidebar .radio input[type="radio"]:checked + label:hover::before,
-.sidebar .radio input[type="radio"]:checked + label:hover::before,
-body .main-sidebar .radio input[type="radio"]:checked + label:hover::before {
-  background-color: var(--dark-teal) !important;
-  border-color: var(--dark-teal) !important;
+.status-message.warning {
+  border-left-color: #f39c12 !important;
+  background: rgba(243, 156, 18, 0.05) !important;
 }
 
 /* ========================================
-   ACTIVE TAB STYLING - CLEAR VISUAL DISTINCTION
+   OVERRIDE ALL GREEN ELEMENTS
    ======================================== */
 
-/* Default tab styling - subtle */
-body .skin-blue .sidebar-menu > li > a,
-.skin-blue .sidebar-menu > li > a,
-.sidebar-menu > li > a {
-  color: rgba(255, 255, 255, 0.8) !important;
-  background: transparent !important;
-  border-left: 3px solid transparent !important;
-  border-right: none !important;
-  border-top: none !important;
-  border-bottom: none !important;
-  margin: 2px 0 !important;
-  transition: all 0.3s ease !important;
+/* Bootstrap success classes */
+.bg-success,
+.text-success,
+.border-success {
+  background-color: rgba(15, 112, 109, 0.1) !important;
+  color: var(--fastr-teal) !important;
+  border-color: var(--fastr-teal) !important;
 }
 
-/* Hover state - lighter background */
-body .skin-blue .sidebar-menu > li:hover > a,
-.skin-blue .sidebar-menu > li:hover > a {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  color: var(--white) !important;
-  border-left: 3px solid rgba(255, 255, 255, 0.5) !important;
+/* Success badges and labels */
+.badge-success,
+.label-success {
+  background-color: var(--fastr-teal) !important;
+  color: var(--bg-white) !important;
 }
 
-/* ACTIVE TAB - Strong visual distinction */
-body .skin-blue .sidebar-menu > li.active > a,
-.skin-blue .sidebar-menu > li.active > a,
-.sidebar-menu > li.active > a {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  color: var(--white) !important;
-  border-left: 4px solid var(--white) !important;
-  border-right: 2px solid rgba(255, 255, 255, 0.3) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 0 8px 8px 0 !important;
-  font-weight: 600 !important;
-  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1) !important;
-  margin: 2px 0 !important;
+/* Override any remaining green backgrounds */
+*[style*="background-color: #28a745"],
+*[style*="background-color: #5cb85c"],
+*[style*="background-color: green"],
+*[style*="background: #28a745"],
+*[style*="background: #5cb85c"],
+*[style*="background: green"] {
+  background-color: rgba(15, 112, 109, 0.1) !important;
+  background: rgba(15, 112, 109, 0.1) !important;
 }
 
-/* Active tab icons - make them brighter */
-body .skin-blue .sidebar-menu > li.active > a > .fa,
-.skin-blue .sidebar-menu > li.active > a > .fa,
-.sidebar-menu > li.active > a > .fa {
-  color: var(--white) !important;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3) !important;
+/* Shiny notification overrides */
+.shiny-notification {
+  border-left: 4px solid var(--fastr-teal) !important;
+  background-color: var(--bg-white) !important;
+  color: var(--text-dark) !important;
 }
 
-/* Ensure active state persists on hover */
-body .skin-blue .sidebar-menu > li.active:hover > a,
-.skin-blue .sidebar-menu > li.active:hover > a {
-  background-color: rgba(255, 255, 255, 0.2) !important;
-  color: var(--white) !important;
-  border-left: 4px solid var(--white) !important;
-  border-right: 2px solid rgba(255, 255, 255, 0.4) !important;
+.shiny-notification.shiny-notification-message {
+  background-color: rgba(15, 112, 109, 0.1) !important;
 }
 
-/* Add a subtle glow effect to the active tab */
-body .skin-blue .sidebar-menu > li.active > a::before,
-.skin-blue .sidebar-menu > li.active > a::before {
-  content: '' !important;
-  position: absolute !important;
-  left: 0 !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  width: 2px !important;
-  background: linear-gradient(to bottom, transparent, var(--white), transparent) !important;
-  opacity: 0.8 !important;
+.shiny-notification.shiny-notification-warning {
+  background-color: rgba(243, 156, 18, 0.1) !important;
+  border-left-color: #f39c12 !important;
 }
+
+.shiny-notification.shiny-notification-error {
+  background-color: rgba(231, 76, 60, 0.1) !important;
+  border-left-color: #e74c3c !important;
+}
+
+/* ========================================
+   JAVASCRIPT FOR PROGRESS HANDLING
+   ======================================== */

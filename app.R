@@ -42,9 +42,10 @@ ui <- dashboardPage(
   dashboardBody(
     useShinyjs(),
     
-    # External CSS file reference (clean!)
+    # External CSS and JS file references (clean!)
     tags$head(
-      tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+      tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
+      tags$script(src = "progress.js")
     ),
     
     # All tabs now come from ui_components.R
@@ -353,57 +354,83 @@ output$country_selector <- renderUI({
   
   observeEvent(input$fetch_data, {
     req(input$indicators, input$countries)
-    
+
     if(length(input$indicators) == 0) {
       showNotification("Please select at least one indicator", type = "warning")
       return()
     }
-    
+
     if(length(input$countries) == 0) {
       showNotification("Please select at least one country", type = "warning")
       return()
     }
-    
+
+    # Initialize progress
+    session$sendCustomMessage("updateProgress", list(percent = 10, text = "Initializing fetch..."))
+
+    # Disable the fetch button
+    session$sendCustomMessage("disableButton", "fetch_data")
+
     output$status_message <- renderUI({
       div(class = "alert alert-info",
           icon("spinner", class = "fa-spin"),
           " Fetching data... Please wait.")
     })
-    
+
+    # Add a small delay to show progress initialization
+    Sys.sleep(0.5)
+    session$sendCustomMessage("updateProgress", list(percent = 25, text = "Connecting to data source..."))
+
     tryCatch({
       if(input$data_source == "dhs") {
+        session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching DHS data..."))
         data <- fetch_dhs_data(input$indicators, input$countries, input$breakdown)
       } else if(input$data_source == "mics") {
+        session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching MICS data..."))
         data <- fetch_mics_data(input$indicators, input$countries)
       } else if(input$data_source == "unwpp") {
+        session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching UNWPP data..."))
         data <- fetch_unwpp_data(input$indicators, input$countries, input$start_year, input$end_year)
       }
-      
+
+      session$sendCustomMessage("updateProgress", list(percent = 85, text = "Processing retrieved data..."))
       values$fetched_data <- data
       
       if(nrow(data) > 0) {
+        session$sendCustomMessage("updateProgress", list(percent = 100, text = paste("Successfully fetched", nrow(data), "records!")))
+
         output$status_message <- renderUI({
           div(class = "alert alert-success",
               icon("check"),
               paste(" Successfully fetched", nrow(data), "records from", toupper(input$data_source), "!"))
         })
-        
+
         showNotification(paste("Successfully fetched", nrow(data), "records!"), type = "message", duration = 5)
       } else {
+        session$sendCustomMessage("updateProgress", list(percent = 100, text = "No data returned"))
+
         output$status_message <- renderUI({
           div(class = "alert alert-warning",
               icon("exclamation-triangle"),
               " No data returned. Try different selections.")
         })
       }
-      
+
+      # Re-enable the fetch button
+      session$sendCustomMessage("enableButton", "fetch_data")
+
     }, error = function(e) {
+      session$sendCustomMessage("updateProgress", list(percent = 0, text = "Fetch failed"))
+
       output$status_message <- renderUI({
         div(class = "alert alert-danger",
             icon("times"),
             paste(" Error:", e$message))
       })
-      
+
+      # Re-enable the fetch button
+      session$sendCustomMessage("enableButton", "fetch_data")
+
       showNotification(paste("Error:", e$message), type = "error", duration = 10)
     })
   })
@@ -460,194 +487,8 @@ output$country_selector <- renderUI({
   # CLEANING CONFIGURATION INTERFACE
   # ========================================
   
-  # Initialize cleaning configuration
-  values$cleaning_config <- data.frame()
-  
-  # Create cleaning configuration table when data is available
-  observe({
-    req(values$fetched_data)
-    if(nrow(values$fetched_data) > 0) {
-      values$cleaning_config <- create_cleaning_config(values$fetched_data, input$data_source)
-    }
-  })
-  
-  # Render cleaning configuration table
-  output$cleaning_config_table <- DT::renderDataTable({
-    req(values$cleaning_config)
-    
-    if(nrow(values$cleaning_config) == 0) {
-      return(data.frame(Message = "No indicators found. Please fetch data first."))
-    }
-    
-    # Create editable table
-    DT::datatable(
-      values$cleaning_config %>%
-        select(
-          `Source ID` = indicator_id,
-          `Indicator Name` = indicator_name,
-          `Common ID` = indicator_common_id,
-          `Type` = indicator_type,
-          `Include` = include_indicator,
-          `Filter Totals` = apply_filter_totals,
-          `Filter Preferred` = apply_filter_preferred,
-          `Filter Median` = apply_filter_median
-        ),
-      options = list(
-        pageLength = 15,
-        scrollX = TRUE,
-        dom = 'frtip'
-      ),
-      rownames = FALSE,
-      editable = list(
-        target = 'cell',
-        disable = list(columns = c(0, 1))  # Disable editing of source ID and name
-      )
-    )
-  })
-  
-  # Handle table edits
-  observeEvent(input$cleaning_config_table_cell_edit, {
-    info <- input$cleaning_config_table_cell_edit
-    str(info)  # For debugging
-    
-    # Update the config data
-    i <- info$row
-    j <- info$col + 1  # R is 1-indexed
-    v <- info$value
-    
-    # Map display columns back to actual columns
-    col_mapping <- c("indicator_id", "indicator_name", "indicator_common_id", 
-                     "indicator_type", "include_indicator", "apply_filter_totals",
-                     "apply_filter_preferred", "apply_filter_median")
-    
-    if(j <= length(col_mapping)) {
-      col_name <- col_mapping[j]
-      
-      # Convert value to appropriate type
-      if(col_name %in% c("include_indicator", "apply_filter_totals", "apply_filter_preferred", "apply_filter_median")) {
-        v <- as.logical(v)
-      }
-      
-      values$cleaning_config[i, col_name] <- v
-    }
-  })
-  
-  # Load default configuration
-  observeEvent(input$load_default_config, {
-    req(values$fetched_data)
-    values$cleaning_config <- get_default_cleaning_config(values$fetched_data, input$data_source)
-    showNotification("Default configuration loaded!", type = "message")
-  })
-  
-  # Reset configuration
-  observeEvent(input$reset_config, {
-    req(values$fetched_data)
-    values$cleaning_config <- create_cleaning_config(values$fetched_data, input$data_source)
-    showNotification("Configuration reset!", type = "message")
-  })
-  
-  # Apply configuration and clean data
-  observeEvent(input$apply_config, {
-    req(values$fetched_data, values$cleaning_config)
-    
-    if(nrow(values$fetched_data) == 0) {
-      showNotification("No data to clean. Please fetch data first.", type = "warning")
-      return()
-    }
-    
-    if(nrow(values$cleaning_config) == 0) {
-      showNotification("No configuration available. Please load default settings.", type = "warning")
-      return()
-    }
-    
-    output$cleaning_status <- renderUI({
-      div(class = "alert alert-info",
-          icon("spinner", class = "fa-spin"),
-          " Applying configuration and cleaning data... Please wait.")
-    })
-    
-    tryCatch({
-      # Apply global filters from checkboxes to config
-      if("filter_totals_only" %in% names(input) && !is.null(input$filter_totals_only)) {
-        values$cleaning_config$apply_filter_totals <- input$filter_totals_only
-      }
-      if("filter_preferred" %in% names(input) && !is.null(input$filter_preferred)) {
-        values$cleaning_config$apply_filter_preferred <- input$filter_preferred
-      }
-      if("filter_median_variant" %in% names(input) && !is.null(input$filter_median_variant)) {
-        values$cleaning_config$apply_filter_median <- input$filter_median_variant
-      }
-      
-      # Use dynamic cleaning function
-      cleaned <- clean_data_with_config(values$fetched_data, values$cleaning_config, input$data_source)
-      values$cleaned_data <- cleaned
-      
-      if(nrow(cleaned) > 0) {
-        output$cleaning_status <- renderUI({
-          div(class = "alert alert-success",
-              icon("check"),
-              paste("Successfully cleaned", nrow(cleaned), "records using custom configuration!"))
-        })
-        
-        showNotification(paste("Cleaned", nrow(cleaned), "records with custom configuration!"), type = "message")
-      } else {
-        output$cleaning_status <- renderUI({
-          div(class = "alert alert-warning",
-              icon("exclamation-triangle"),
-              " No data remained after cleaning with current configuration.")
-        })
-      }
-      
-    }, error = function(e) {
-      output$cleaning_status <- renderUI({
-        div(class = "alert alert-danger",
-            icon("times"),
-            paste("Configuration cleaning error:", e$message))
-      })
-      
-      showNotification(paste("Configuration cleaning error:", e$message), type = "error")
-    })
-  })
-  
-  # Preview configuration changes
-  observeEvent(input$preview_config, {
-    req(values$cleaning_config)
-    
-    included_indicators <- values$cleaning_config %>%
-      filter(include_indicator == TRUE) %>%
-      nrow()
-    
-    showModal(modalDialog(
-      title = "Configuration Preview",
-      size = "l",
-      
-      h4("Summary"),
-      p(paste("Total indicators:", nrow(values$cleaning_config))),
-      p(paste("Included indicators:", included_indicators)),
-      p(paste("Excluded indicators:", nrow(values$cleaning_config) - included_indicators)),
-      
-      hr(),
-      
-      h4("Included Indicators"),
-      DT::renderDataTable({
-        values$cleaning_config %>%
-          filter(include_indicator == TRUE) %>%
-          select(`Source ID` = indicator_id, `Name` = indicator_name, `Common ID` = indicator_common_id, `Type` = indicator_type)
-      }, options = list(pageLength = 10, dom = 'frtip')),
-      
-      easyClose = TRUE,
-      footer = tagList(
-        actionButton("close_preview", "Close", class = "btn-secondary")
-      )
-    ))
-  })
-  
-  observeEvent(input$close_preview, {
-    removeModal()
-  })
-  
   # ========================================
-  # LEGACY CLEANING (BACKWARD COMPATIBILITY)
+  # DATA CLEANING - SIMPLIFIED DEFAULT ONLY  
   # ========================================
   
   observeEvent(input$clean_data, {
@@ -665,13 +506,8 @@ output$country_selector <- renderUI({
     })
     
     tryCatch({
-      if(input$data_source == "dhs") {
-        cleaned <- clean_dhs_data(values$fetched_data)
-      } else if(input$data_source == "mics") {
-        cleaned <- clean_mics_data(values$fetched_data, input$countries)
-      } else {
-        cleaned <- clean_unwpp_data(values$fetched_data)
-      }
+      # Use the simplified dispatcher
+      cleaned <- clean_survey_data(values$fetched_data, input$data_source)
       
       values$cleaned_data <- cleaned
       
@@ -860,26 +696,36 @@ output$country_selector <- renderUI({
     shinyjs::hide("plot-placeholder")
     
     output$time_series_plot <- renderPlotly({
-      # Determine plot mode based on user selection
-      plot_mode <- if(input$plot_type == "line") {
-        "lines"
-      } else if(input$plot_type == "point") {
-        "markers"
-      } else if(input$plot_type == "both") {
-        "lines+markers"
-      } else {
-        "lines+markers"  # default
-      }
+      # Use lines+markers for optimal time series visualization
+      plot_mode <- "lines+markers"
       
+      # Define FASTR theme colors
+      fastr_colors <- c("#0f706d", "#1a8b86", "#2c3e50", "#7f8c8d", "#e74c3c", "#f39c12", "#3498db", "#9b59b6", "#2ecc71", "#e67e22")
+
       p <- plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~geo_label,
                    type = "scatter",
                    mode = plot_mode,
                    line = list(width = 3),
-                   marker = list(size = 8)) %>%
+                   marker = list(size = 8),
+                   colors = fastr_colors) %>%
         layout(
-          title = paste("Time Series:", input$plot_indicator),
-          xaxis = list(title = "Year"),
-          yaxis = list(title = "Value"),
+          title = list(
+            text = paste("Time Series:", unique(plot_data$indicator_common_id)[1]),
+            font = list(color = "#2c3e50", size = 16)
+          ),
+          xaxis = list(
+            title = list(text = "Year", font = list(color = "#2c3e50")),
+            gridcolor = "#dee2e6",
+            linecolor = "#dee2e6"
+          ),
+          yaxis = list(
+            title = list(text = "Value", font = list(color = "#2c3e50")),
+            gridcolor = "#dee2e6",
+            linecolor = "#dee2e6"
+          ),
+          plot_bgcolor = "#ffffff",
+          paper_bgcolor = "#ffffff",
+          font = list(color = "#2c3e50"),
           hovermode = "x unified"
         )
       
@@ -939,15 +785,37 @@ output$country_selector <- renderUI({
         plot_list <- list()
         for(i in seq_along(input$comparison_indicators)) {
           indicator_data <- plot_data %>% filter(.data$indicator_id == input$comparison_indicators[i])
-          
+          indicator_common <- unique(indicator_data$indicator_common_id)[1]
+
+          # Define FASTR theme colors
+          fastr_colors <- c("#0f706d", "#1a8b86", "#2c3e50", "#7f8c8d", "#e74c3c", "#f39c12", "#3498db", "#9b59b6", "#2ecc71", "#e67e22")
+
           p <- plot_ly(indicator_data, x = ~year, y = ~survey_value,
                        type = "scatter", mode = "lines+markers",
-                       name = input$comparison_indicators[i],
-                       line = list(width = 3), marker = list(size = 8)) %>%
+                       name = if(!is.na(indicator_common)) indicator_common else input$comparison_indicators[i],
+                       line = list(width = 3, color = fastr_colors[((i-1) %% length(fastr_colors)) + 1]),
+                       marker = list(size = 8, color = fastr_colors[((i-1) %% length(fastr_colors)) + 1])) %>%
             layout(
-              title = input$comparison_indicators[i],
-              xaxis = list(title = if(i == length(input$comparison_indicators)) "Year" else ""),
-              yaxis = list(title = "Value")
+              title = list(
+                text = if(!is.na(indicator_common)) indicator_common else input$comparison_indicators[i],
+                font = list(color = "#2c3e50", size = 14)
+              ),
+              xaxis = list(
+                title = list(
+                  text = if(i == length(input$comparison_indicators)) "Year" else "",
+                  font = list(color = "#2c3e50")
+                ),
+                gridcolor = "#dee2e6",
+                linecolor = "#dee2e6"
+              ),
+              yaxis = list(
+                title = list(text = "Value", font = list(color = "#2c3e50")),
+                gridcolor = "#dee2e6",
+                linecolor = "#dee2e6"
+              ),
+              plot_bgcolor = "#ffffff",
+              paper_bgcolor = "#ffffff",
+              font = list(color = "#2c3e50")
             )
           plot_list[[i]] <- p
         }
@@ -956,15 +824,36 @@ output$country_selector <- renderUI({
                 shareX = TRUE, titleY = TRUE)
         
       } else {
-        # Fixed scale - single plot
-        plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~indicator_id,
+        # Fixed scale - single plot with indicator_common_id in legend
+        # Define FASTR theme colors
+        fastr_colors <- c("#0f706d", "#1a8b86", "#2c3e50", "#7f8c8d", "#e74c3c", "#f39c12", "#3498db", "#9b59b6", "#2ecc71", "#e67e22")
+
+        plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~indicator_common_id,
                 type = "scatter", mode = "lines+markers",
-                line = list(width = 3), marker = list(size = 8)) %>%
+                line = list(width = 3), marker = list(size = 8),
+                colors = fastr_colors) %>%
           layout(
-            title = paste("Multi-Indicator Comparison:", input$comparison_country),
-            xaxis = list(title = "Year"),
-            yaxis = list(title = "Value"),
-            hovermode = "x unified"
+            title = list(
+              text = paste("Multi-Indicator Comparison:", input$comparison_country),
+              font = list(color = "#2c3e50", size = 16)
+            ),
+            xaxis = list(
+              title = list(text = "Year", font = list(color = "#2c3e50")),
+              gridcolor = "#dee2e6",
+              linecolor = "#dee2e6"
+            ),
+            yaxis = list(
+              title = list(text = "Value", font = list(color = "#2c3e50")),
+              gridcolor = "#dee2e6",
+              linecolor = "#dee2e6"
+            ),
+            plot_bgcolor = "#ffffff",
+            paper_bgcolor = "#ffffff",
+            font = list(color = "#2c3e50"),
+            hovermode = "x unified",
+            legend = list(
+              font = list(color = "#2c3e50")
+            )
           )
       }
     })
