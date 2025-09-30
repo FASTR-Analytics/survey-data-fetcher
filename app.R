@@ -72,14 +72,33 @@ server <- function(input, output, session) {
     fetched_data = data.frame(),
     cleaned_data = data.frame()
   )
+
+  # Initialize indicator lookup table for better plotting labels
+  observe({
+    if(!exists("indicator_lookup", envir = .GlobalEnv)) {
+      tryCatch({
+        message("Building indicator lookup table...")
+        lookup <- get_all_indicators_lookup()
+        assign("indicator_lookup", lookup, envir = .GlobalEnv)
+        message("Indicator lookup table created with ", nrow(lookup), " indicators")
+      }, error = function(e) {
+        message("Could not build indicator lookup table: ", e$message)
+      })
+    }
+  })
   
   observe({
     req(input$data_source)  # Add this line to require the input exists
-    
+
     metadata <- switch(input$data_source,
                        "dhs" = fetch_dhs_metadata(),
                        "mics" = fetch_mics_metadata(),
-                       "unwpp" = prepare_unwpp_metadata())
+                       "unwpp" = fetch_unwpp_metadata())
+
+    # Debug: Check metadata right after fetching
+    message("Data source changed to: ", input$data_source)
+    message("Metadata fetched - rows: ", nrow(metadata))
+
     values$metadata <- metadata
     
     countries <- switch(input$data_source,
@@ -326,27 +345,156 @@ output$country_selector <- renderUI({
     mics_mortality <- c("CME_MRM0", "CME_MRY0T4")
     updatePickerInput(session, "indicators", selected = mics_mortality)
   })
+
+  # ========================================
+  # UNWPP FAVORITE BUTTON HANDLERS
+  # ========================================
+
+  observeEvent(input$select_unwpp_health, {
+    unwpp_health <- c("22", "24", "61", "62")  # IMR, U5MR, Life Expectancy, Adult Mortality
+    current_selection <- input$indicators %||% character(0)
+
+    if(all(unwpp_health %in% current_selection)) {
+      new_selection <- setdiff(current_selection, unwpp_health)
+    } else {
+      new_selection <- union(current_selection, unwpp_health)
+    }
+
+    updatePickerInput(session, "indicators", selected = new_selection)
+  })
+
+  observeEvent(input$select_unwpp_demographics, {
+    unwpp_demo <- c("49", "19", "67", "72")  # Total Pop, TFR, Median Age, Sex Ratio
+    current_selection <- input$indicators %||% character(0)
+
+    if(all(unwpp_demo %in% current_selection)) {
+      new_selection <- setdiff(current_selection, unwpp_demo)
+    } else {
+      new_selection <- union(current_selection, unwpp_demo)
+    }
+
+    updatePickerInput(session, "indicators", selected = new_selection)
+  })
+
+  observeEvent(input$select_unwpp_social, {
+    unwpp_social <- c("83", "84", "86")  # Child Dependency, Old Dependency, Total Dependency
+    current_selection <- input$indicators %||% character(0)
+
+    if(all(unwpp_social %in% current_selection)) {
+      new_selection <- setdiff(current_selection, unwpp_social)
+    } else {
+      new_selection <- union(current_selection, unwpp_social)
+    }
+
+    updatePickerInput(session, "indicators", selected = new_selection)
+  })
+
+  observeEvent(input$select_unwpp_favorites, {
+    unwpp_favorites <- c("2", "22", "24", "41", "46", "47", "49", "55")  # Current 8 favorites
+    current_selection <- input$indicators %||% character(0)
+
+    if(all(unwpp_favorites %in% current_selection)) {
+      new_selection <- setdiff(current_selection, unwpp_favorites)
+    } else {
+      new_selection <- union(current_selection, unwpp_favorites)
+    }
+
+    updatePickerInput(session, "indicators", selected = new_selection)
+  })
+
+  observeEvent(input$clear_unwpp_selection, {
+    updatePickerInput(session, "indicators", selected = character(0))
+  })
   
   output$metadata_table <- DT::renderDataTable({
     req(values$metadata)
-    
+
+    # Debug: Check what's in metadata
+    message("Metadata table rendering - rows: ", nrow(values$metadata))
+    message("Data source: ", if("source" %in% names(values$metadata)) unique(values$metadata$source) else "unknown")
+
     if(nrow(values$metadata) == 0) {
       return(data.frame(Message = "No metadata available"))
     }
     
+    # Create clean display with standardized column names
     display_data <- values$metadata %>%
       mutate(
         Favorite = ifelse(is_favorite %in% TRUE, "YES", ""),
         `Indicator ID` = IndicatorId,
+        `Display Label` = if("display_label" %in% names(.)) display_label else NA,
         `Label` = Label,
-        `Definition` = full_definition,
+        `Definition` = if("description" %in% names(.)) description else if("full_definition" %in% names(.)) full_definition else NA,
         Source = source
-      ) %>%
-      select(Favorite, `Indicator ID`, `Label`, `Definition`, Source)
-    
+      )
+
+    # Add sourceUrl if available (for UNWPP)
+    if("sourceUrl" %in% names(values$metadata)) {
+      display_data <- display_data %>% mutate(`Source URL` = sourceUrl)
+    }
+
+    # Add rich DHS metadata fields if available
+    if("Category" %in% names(values$metadata)) {
+      display_data <- display_data %>% mutate(Category = Category)
+    }
+    if("Subcategory" %in% names(values$metadata)) {
+      display_data <- display_data %>% mutate(Subcategory = Subcategory)
+    }
+    if("Demographic Group" %in% names(values$metadata)) {
+      display_data <- display_data %>% mutate(`Demographic Group` = `Demographic Group`)
+    }
+    if("Measurement Type" %in% names(values$metadata)) {
+      display_data <- display_data %>% mutate(`Measurement Type` = `Measurement Type`)
+    }
+    if("Denominator" %in% names(values$metadata)) {
+      display_data <- display_data %>% mutate(Denominator = Denominator)
+    }
+
+    # Build column list dynamically based on available fields
+    key_cols <- c("Favorite", "Indicator ID", "Display Label", "Label", "Definition")
+
+    # Add optional fields if they exist
+    if("Category" %in% names(values$metadata)) key_cols <- c(key_cols, "Category")
+    if("Subcategory" %in% names(values$metadata)) key_cols <- c(key_cols, "Subcategory")
+    if("Demographic Group" %in% names(values$metadata)) key_cols <- c(key_cols, "Demographic Group")
+    if("Measurement Type" %in% names(values$metadata)) key_cols <- c(key_cols, "Measurement Type")
+    if("Denominator" %in% names(values$metadata)) key_cols <- c(key_cols, "Denominator")
+
+    key_cols <- c(key_cols, "Source")
+    if("sourceUrl" %in% names(values$metadata)) key_cols <- c(key_cols, "Source URL")
+
+    display_data <- display_data %>% select(all_of(key_cols[key_cols %in% names(.)]))
+
+    # Debug: Check final display data
+    message("Final display_data rows: ", nrow(display_data))
+    message("Final display_data columns: ", paste(names(display_data), collapse = ", "))
+
     DT::datatable(
       display_data,
-      options = list(scrollX = TRUE, pageLength = 25, processing = TRUE, server = TRUE),
+      options = list(
+        scrollX = TRUE,
+        scrollY = "400px",
+        pageLength = 25,
+        processing = TRUE,
+        server = TRUE,
+        columnDefs = list(
+          list(width = '80px', targets = which(names(display_data) == "Favorite") - 1),
+          list(width = '120px', targets = which(names(display_data) == "Indicator ID") - 1),
+          list(width = '180px', targets = which(names(display_data) == "Display Label") - 1),
+          list(width = '200px', targets = which(names(display_data) == "Label") - 1),
+          list(width = '300px', targets = which(names(display_data) == "Definition") - 1),
+          list(width = '140px', targets = which(names(display_data) == "Category") - 1),
+          list(width = '140px', targets = which(names(display_data) == "Subcategory") - 1),
+          list(width = '140px', targets = which(names(display_data) == "Demographic Group") - 1),
+          list(width = '120px', targets = which(names(display_data) == "Measurement Type") - 1),
+          list(width = '150px', targets = which(names(display_data) == "Denominator") - 1),
+          list(width = '100px', targets = which(names(display_data) == "Source") - 1),
+          list(width = '200px', targets = which(names(display_data) == "Source URL") - 1),
+          list(width = '120px', targets = '_all')  # Default for any additional columns
+        ) %>% purrr::discard(~ length(.x$targets) == 0 || any(is.na(.x$targets))),
+        autoWidth = FALSE,
+        dom = 'Bfrtip'
+      ),
       rownames = FALSE,
       filter = "top"
     )
@@ -437,13 +585,22 @@ output$country_selector <- renderUI({
   
   output$results_table <- DT::renderDataTable({
     req(values$fetched_data)
-    
+
     if(nrow(values$fetched_data) == 0) {
       return(data.frame(Message = "No data available. Please fetch data first."))
     }
-    
+
     values$fetched_data
-  }, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  }, options = list(
+    scrollX = TRUE,
+    scrollY = "400px",
+    pageLength = 10,
+    autoWidth = FALSE,
+    columnDefs = list(
+      list(width = '80px', targets = '_all')  # Set minimum width for all columns
+    ),
+    dom = 'Bfrtip'
+  ), rownames = FALSE)
   
   output$data_summary <- renderText({
     req(values$fetched_data)
@@ -506,8 +663,10 @@ output$country_selector <- renderUI({
     })
     
     tryCatch({
-      # Use the simplified dispatcher
-      cleaned <- clean_survey_data(values$fetched_data, input$data_source)
+      # Use the simplified dispatcher with FASTR standardization option
+      cleaned <- clean_survey_data(values$fetched_data, input$data_source,
+                                   selected_countries = NULL,
+                                   apply_fastr_standardization = input$apply_fastr_standardization)
       
       values$cleaned_data <- cleaned
       
@@ -540,13 +699,26 @@ output$country_selector <- renderUI({
   
   output$cleaned_data_table <- DT::renderDataTable({
     req(values$cleaned_data)
-    
+
     if(nrow(values$cleaned_data) == 0) {
       return(data.frame(Message = "No cleaned data available. Please clean data first."))
     }
-    
+
     values$cleaned_data
-  }, options = list(scrollX = TRUE, pageLength = 10), rownames = FALSE)
+  }, options = list(
+    scrollX = TRUE,
+    scrollY = "400px",
+    pageLength = 10,
+    autoWidth = FALSE,
+    columnDefs = list(
+      list(width = '120px', targets = c(0, 1)),  # admin_area columns
+      list(width = '80px', targets = c(2, 5, 6)), # year, indicator_type, survey_value
+      list(width = '150px', targets = c(3, 4)),  # indicator_id, indicator_common_id
+      list(width = '100px', targets = c(7, 8, 9)), # source, source_detail, survey_type
+      list(width = '120px', targets = c(10, 11, 12)) # country_name, iso2_code, iso3_code
+    ),
+    dom = 'Bfrtip'
+  ), rownames = FALSE)
   
   output$download_cleaned_csv <- downloadHandler(
     filename = function() {
@@ -571,11 +743,11 @@ output$country_selector <- renderUI({
       # Create geographic area choices that handle both national and subnational data
       geo_areas <- values$cleaned_data %>%
         mutate(
-          # Create display name for geographic areas
+          # Create display name for geographic areas using country_name for better readability
           geo_display = if_else(
             admin_area_2 == "NATIONAL" | is.na(admin_area_2),
-            admin_area_1,
-            paste(admin_area_1, "-", admin_area_2)
+            country_name,  # Use country_name instead of admin_area_1
+            paste(country_name, "-", admin_area_2)  # Use country_name for subnational too
           ),
           # Create unique identifier for filtering
           geo_id = if_else(
@@ -663,6 +835,25 @@ output$country_selector <- renderUI({
     return(filtered_data)
   }
   
+  # Helper function to shorten long indicator names for better plot display
+  shorten_indicator_name <- function(name, max_chars = 50) {
+    if(is.null(name) || is.na(name) || nchar(name) <= max_chars) {
+      return(name)
+    }
+
+    # Try to break at natural points (commas, dashes, parentheses)
+    if(grepl("[,-]", name)) {
+      parts <- strsplit(name, "[,-]")[[1]]
+      shortened <- trimws(parts[1])
+      if(nchar(shortened) <= max_chars) {
+        return(shortened)
+      }
+    }
+
+    # If still too long, truncate and add ellipsis
+    paste0(substr(name, 1, max_chars - 3), "...")
+  }
+
   # Generate time series plot
   observeEvent(input$generate_plot, {
     req(input$plot_indicator, input$plot_countries, values$cleaned_data)
@@ -673,11 +864,11 @@ output$country_selector <- renderUI({
     
     plot_data <- filter_data(indicator_data, input$plot_countries) %>%
       mutate(
-        # Create display name for legend
+        # Create display name for legend using country_name
         geo_label = if_else(
           admin_area_2 == "NATIONAL" | is.na(admin_area_2),
-          admin_area_1,
-          paste(admin_area_1, "-", admin_area_2)
+          country_name,  # Use country_name instead of admin_area_1
+          paste(country_name, "-", admin_area_2)  # Use country_name for subnational too
         )
       ) %>%
       arrange(.data$year)
@@ -698,11 +889,50 @@ output$country_selector <- renderUI({
     output$time_series_plot <- renderPlotly({
       # Use lines+markers for optimal time series visualization
       plot_mode <- "lines+markers"
-      
+
       # Define FASTR theme colors
       fastr_colors <- c("#0f706d", "#1a8b86", "#2c3e50", "#7f8c8d", "#e74c3c", "#f39c12", "#3498db", "#9b59b6", "#2ecc71", "#e67e22")
 
-      p <- plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~geo_label,
+      # Enhance plot data with better labels from lookup table
+      enhanced_plot_data <- plot_data %>%
+        mutate(
+          indicator_display_label = sapply(indicator_id, function(id) {
+            tryCatch({
+              label <- get_indicator_label(id)
+              if(label == id && "indicator_common_id" %in% names(plot_data) &&
+                 !is.na(indicator_common_id) && indicator_common_id != "") {
+                return(indicator_common_id)
+              }
+              return(label)
+            }, error = function(e) {
+              # Fallback to original ID if lookup fails
+              return(id)
+            })
+          }),
+          # Create shortened version for legend
+          indicator_short_label = sapply(indicator_display_label, function(name) {
+            shorten_indicator_name(name, max_chars = 40)
+          })
+        )
+
+      # Check if indicators are percentage types for y-axis formatting
+      is_percentage <- any(enhanced_plot_data$indicator_type == "percent", na.rm = TRUE)
+      y_axis_config <- if(is_percentage) {
+        list(
+          title = list(text = "Value (%)", font = list(color = "#2c3e50")),
+          tickformat = ".1%",
+          gridcolor = "#dee2e6",
+          linecolor = "#dee2e6"
+        )
+      } else {
+        list(
+          title = list(text = "Value", font = list(color = "#2c3e50")),
+          gridcolor = "#dee2e6",
+          linecolor = "#dee2e6"
+        )
+      }
+
+      p <- plot_ly(enhanced_plot_data, x = ~year, y = ~survey_value, color = ~geo_label,
                    type = "scatter",
                    mode = plot_mode,
                    line = list(width = 3),
@@ -710,7 +940,7 @@ output$country_selector <- renderUI({
                    colors = fastr_colors) %>%
         layout(
           title = list(
-            text = paste("Time Series:", unique(plot_data$indicator_common_id)[1]),
+            text = shorten_indicator_name(unique(enhanced_plot_data$indicator_display_label)[1], max_chars = 60),
             font = list(color = "#2c3e50", size = 16)
           ),
           xaxis = list(
@@ -718,11 +948,7 @@ output$country_selector <- renderUI({
             gridcolor = "#dee2e6",
             linecolor = "#dee2e6"
           ),
-          yaxis = list(
-            title = list(text = "Value", font = list(color = "#2c3e50")),
-            gridcolor = "#dee2e6",
-            linecolor = "#dee2e6"
-          ),
+          yaxis = y_axis_config,
           plot_bgcolor = "#ffffff",
           paper_bgcolor = "#ffffff",
           font = list(color = "#2c3e50"),
@@ -765,7 +991,31 @@ output$country_selector <- renderUI({
     
     plot_data <- filter_data(indicators_data, list(input$comparison_country)) %>%
       arrange(.data$year)
-    
+
+    # Enhance plot data with better labels from lookup table
+    if(nrow(plot_data) > 0) {
+      plot_data <- plot_data %>%
+        mutate(
+          indicator_display_label = sapply(indicator_id, function(id) {
+            tryCatch({
+              label <- get_indicator_label(id)
+              if(label == id && "indicator_common_id" %in% names(plot_data) &&
+                 !is.na(indicator_common_id) && indicator_common_id != "") {
+                return(indicator_common_id)
+              }
+              return(label)
+            }, error = function(e) {
+              # Fallback to original ID if lookup fails
+              return(id)
+            })
+          }),
+          # Create shortened version for legend (shorter for comparison plots)
+          indicator_short_label = sapply(indicator_display_label, function(name) {
+            shorten_indicator_name(name, max_chars = 30)
+          })
+        )
+    }
+
     if(nrow(plot_data) == 0) {
       output$comparison_plot <- renderPlotly({
         plotly::plot_ly() %>%
@@ -785,19 +1035,36 @@ output$country_selector <- renderUI({
         plot_list <- list()
         for(i in seq_along(input$comparison_indicators)) {
           indicator_data <- plot_data %>% filter(.data$indicator_id == input$comparison_indicators[i])
-          indicator_common <- unique(indicator_data$indicator_common_id)[1]
+          indicator_display <- unique(indicator_data$indicator_short_label)[1]
 
           # Define FASTR theme colors
           fastr_colors <- c("#0f706d", "#1a8b86", "#2c3e50", "#7f8c8d", "#e74c3c", "#f39c12", "#3498db", "#9b59b6", "#2ecc71", "#e67e22")
 
+          # Check if this indicator is a percentage type for y-axis formatting
+          is_percentage <- any(indicator_data$indicator_type == "percent", na.rm = TRUE)
+          y_axis_config <- if(is_percentage) {
+            list(
+              title = list(text = "Value (%)", font = list(color = "#2c3e50")),
+              tickformat = ".1%",
+              gridcolor = "#dee2e6",
+              linecolor = "#dee2e6"
+            )
+          } else {
+            list(
+              title = list(text = "Value", font = list(color = "#2c3e50")),
+              gridcolor = "#dee2e6",
+              linecolor = "#dee2e6"
+            )
+          }
+
           p <- plot_ly(indicator_data, x = ~year, y = ~survey_value,
                        type = "scatter", mode = "lines+markers",
-                       name = if(!is.na(indicator_common)) indicator_common else input$comparison_indicators[i],
+                       name = if(!is.na(indicator_display)) indicator_display else input$comparison_indicators[i],
                        line = list(width = 3, color = fastr_colors[((i-1) %% length(fastr_colors)) + 1]),
                        marker = list(size = 8, color = fastr_colors[((i-1) %% length(fastr_colors)) + 1])) %>%
             layout(
               title = list(
-                text = if(!is.na(indicator_common)) indicator_common else input$comparison_indicators[i],
+                text = if(!is.na(indicator_display)) indicator_display else input$comparison_indicators[i],
                 font = list(color = "#2c3e50", size = 14)
               ),
               xaxis = list(
@@ -808,11 +1075,7 @@ output$country_selector <- renderUI({
                 gridcolor = "#dee2e6",
                 linecolor = "#dee2e6"
               ),
-              yaxis = list(
-                title = list(text = "Value", font = list(color = "#2c3e50")),
-                gridcolor = "#dee2e6",
-                linecolor = "#dee2e6"
-              ),
+              yaxis = y_axis_config,
               plot_bgcolor = "#ffffff",
               paper_bgcolor = "#ffffff",
               font = list(color = "#2c3e50")
@@ -828,13 +1091,30 @@ output$country_selector <- renderUI({
         # Define FASTR theme colors
         fastr_colors <- c("#0f706d", "#1a8b86", "#2c3e50", "#7f8c8d", "#e74c3c", "#f39c12", "#3498db", "#9b59b6", "#2ecc71", "#e67e22")
 
-        plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~indicator_common_id,
+        # Check if indicators are percentage types for y-axis formatting
+        is_percentage <- any(plot_data$indicator_type == "percent", na.rm = TRUE)
+        y_axis_config <- if(is_percentage) {
+          list(
+            title = list(text = "Value (%)", font = list(color = "#2c3e50")),
+            tickformat = ".1%",
+            gridcolor = "#dee2e6",
+            linecolor = "#dee2e6"
+          )
+        } else {
+          list(
+            title = list(text = "Value", font = list(color = "#2c3e50")),
+            gridcolor = "#dee2e6",
+            linecolor = "#dee2e6"
+          )
+        }
+
+        plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~indicator_short_label,
                 type = "scatter", mode = "lines+markers",
                 line = list(width = 3), marker = list(size = 8),
                 colors = fastr_colors) %>%
           layout(
             title = list(
-              text = paste("Multi-Indicator Comparison:", input$comparison_country),
+              text = paste("Multi-Indicator Comparison:", unique(plot_data$country_name)[1]),
               font = list(color = "#2c3e50", size = 16)
             ),
             xaxis = list(
@@ -842,11 +1122,7 @@ output$country_selector <- renderUI({
               gridcolor = "#dee2e6",
               linecolor = "#dee2e6"
             ),
-            yaxis = list(
-              title = list(text = "Value", font = list(color = "#2c3e50")),
-              gridcolor = "#dee2e6",
-              linecolor = "#dee2e6"
-            ),
+            yaxis = y_axis_config,
             plot_bgcolor = "#ffffff",
             paper_bgcolor = "#ffffff",
             font = list(color = "#2c3e50"),

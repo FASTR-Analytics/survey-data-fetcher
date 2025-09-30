@@ -73,6 +73,15 @@ create_processing_tab <- function() {
                          condition = "output.has_data",
                          div(
                            p("Apply standard cleaning and standardization to your fetched data."),
+                           div(style = "margin-bottom: 15px;",
+                               checkboxInput("apply_fastr_standardization",
+                                           "Apply FASTR name standardization",
+                                           value = TRUE,
+                                           width = "100%"),
+                               div(class = "alert alert-info", style = "margin-top: 10px; padding: 8px; font-size: 12px;",
+                                   icon("info-circle", style = "margin-right: 5px;"),
+                                   "Standardizes country and province names for FASTR Analytics Platform compatibility")
+                           ),
                            actionButton("clean_data", "Clean Data",
                                         class = "btn-success btn-lg",
                                         icon = icon("magic"))
@@ -173,6 +182,15 @@ create_indicator_selection_box <- function() {
       div(
         h5(icon("star"), "Quick Select MICS Favorites"),
         create_mics_favorite_buttons(),
+        hr()
+      )
+    ),
+
+    conditionalPanel(
+      condition = "input.data_source == 'unwpp'",
+      div(
+        h5(icon("star"), "Quick Select UNWPP Favorites"),
+        create_unwpp_favorite_buttons(),
         hr()
       )
     ),
@@ -286,6 +304,36 @@ create_mics_favorite_buttons <- function() {
   )
 }
 
+create_unwpp_favorite_buttons <- function() {
+  div(style = "margin-bottom: 15px;",
+      div(class = "btn-group-toggle", `data-toggle` = "buttons",
+          actionButton("select_unwpp_health",
+                       HTML('Health & Mortality <span id="unwpp_health_count" class="badge badge-light">0</span>'),
+                       class = "btn btn-outline-primary btn-sm",
+                       style = "margin: 2px;"),
+          actionButton("select_unwpp_demographics",
+                       HTML('Demographics <span id="unwpp_demo_count" class="badge badge-light">0</span>'),
+                       class = "btn btn-outline-primary btn-sm",
+                       style = "margin: 2px;"),
+          actionButton("select_unwpp_social",
+                       HTML('Social Structure <span id="unwpp_social_count" class="badge badge-light">0</span>'),
+                       class = "btn btn-outline-primary btn-sm",
+                       style = "margin: 2px;")
+      ),
+      br(),
+      div(style = "margin-top: 10px;",
+          actionButton("select_unwpp_favorites",
+                       HTML('Current Favorites <span id="unwpp_fav_count" class="badge badge-warning">0</span>'),
+                       class = "btn btn-warning btn-sm",
+                       style = "margin: 2px;"),
+          actionButton("clear_unwpp_selection",
+                       HTML('Clear All'),
+                       class = "btn btn-outline-secondary btn-sm",
+                       style = "margin: 2px;")
+      )
+  )
+}
+
 # ========================================
 # HEADER AND SIDEBAR COMPONENTS
 # ========================================
@@ -336,7 +384,7 @@ create_visualization_tab <- function() {
   tabItem(tabName = "visualize",
           fluidRow(
             box(
-              title = "Time Series Visualization", status = "primary", solidHeader = TRUE, width = 12,
+              title = "Indicator Trends", status = "primary", solidHeader = TRUE, width = 12,
               
               conditionalPanel(
                 condition = "output.has_cleaned_data",
