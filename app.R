@@ -534,7 +534,7 @@ output$country_selector <- renderUI({
         session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching DHS data..."))
         data <- fetch_dhs_data(input$indicators, input$countries, input$breakdown)
       } else if(input$data_source == "mics") {
-        session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching MICS data..."))
+        session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching UNICEF data..."))
         data <- fetch_mics_data(input$indicators, input$countries)
       } else if(input$data_source == "unwpp") {
         session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching UNWPP data..."))

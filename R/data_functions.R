@@ -125,7 +125,7 @@ fetch_mics_countries <- function() {
         country_code = countrycode(id, "iso3c", "iso2c", warn = FALSE),
         country_name = label.en,
         country_display = paste0(label.en, " (", country_code, ")"),
-        source = "MICS",
+        source = "UNICEF",
         continent = countrycode(id, "iso3c", "continent", warn = FALSE),
         region = countrycode(id, "iso3c", "region", warn = FALSE)
       ) %>%
@@ -152,7 +152,7 @@ fetch_mics_countries <- function() {
           TRUE ~ countrycode(country_code, "iso2c", "country.name", warn = FALSE)
         ),
         country_display = paste0(country_name, " (", country_code, ")"),
-        source = "MICS",
+        source = "UNICEF",
         continent = countrycode(country_code, "iso2c", "continent", warn = FALSE),
         region = countrycode(country_code, "iso2c", "region", warn = FALSE)
       ) %>%
@@ -244,7 +244,7 @@ fetch_mics_metadata <- function() {
         description = if("description.en" %in% names(.)) description.en else !!sym(name_col),
         Category = if("parent" %in% names(.)) parent else "General",
         is_favorite = !!sym(id_col) %in% favorite_indicators,
-        source = "MICS"
+        source = "UNICEF"
       ) %>%
       select(IndicatorId, display_label, Label, description, Category, is_favorite, source) %>%
       arrange(desc(is_favorite), Category, Label)
@@ -279,7 +279,7 @@ fetch_mics_metadata <- function() {
       Category = c("Child Mortality", "Child Mortality", "Immunization", "Immunization", "Immunization",
                    "Maternal Health", "Maternal Health", "Maternal Health", "Maternal Health", "Child Health"),
       is_favorite = TRUE,
-      source = "MICS",
+      source = "UNICEF",
       stringsAsFactors = FALSE
     )
   })
@@ -514,11 +514,11 @@ fetch_mics_data <- function(indicators, countries = NULL) {
       }
 
       country_filter <- paste(iso3_countries, collapse = "+")
-      message("Filtering MICS data for countries: ", paste(countries, collapse = ", "))
+      message("Filtering UNICEF data for countries: ", paste(countries, collapse = ", "))
       message("Using ISO3 codes: ", country_filter)
     } else {
       country_filter <- "."
-      message("Fetching MICS data for all countries")
+      message("Fetching UNICEF data for all countries")
     }
 
     mics_url <- paste0(
@@ -528,18 +528,18 @@ fetch_mics_data <- function(indicators, countries = NULL) {
       "..?startPeriod=2010&endPeriod=2024"
     )
 
-    message("Fetching MICS data from: ", mics_url)
+    message("Fetching UNICEF data from: ", mics_url)
     mics_sdmx <- readSDMX(mics_url)
     mics_data <- as.data.frame(mics_sdmx)
 
-    message("Successfully fetched ", nrow(mics_data), " MICS records for selected countries")
+    message("Successfully fetched ", nrow(mics_data), " UNICEF records for selected countries")
     return(mics_data)
     
   }, error = function(e) {
-    message("Error fetching MICS data: ", e$message)
+    message("Error fetching UNICEF data: ", e$message)
     # Return informative error data frame
     data.frame(
-      Message = paste("MICS API Error:", e$message, "- Please try again or use DHS/UNWPP"),
+      Message = paste("UNICEF API Error:", e$message, "- Please try again or use DHS/UNWPP"),
       Error_Details = as.character(e$message),
       URL_Attempted = mics_url,
       stringsAsFactors = FALSE

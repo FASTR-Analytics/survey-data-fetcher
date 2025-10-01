@@ -272,9 +272,22 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
       indicator_common_id = as.character(indicator_common_id), # Ensure string type
       indicator_type = indicator_type,
       survey_value = survey_value,
-      source = "MICS",
+      # Intelligently categorize based on DATA_SOURCE field from UNICEF API
+      source = case_when(
+        grepl("MICS|Multiple Indicator|grappes à indicateurs", DATA_SOURCE, ignore.case = TRUE) ~ "MICS",
+        grepl("DHS|Demographic.*Health|Démographique et de Santé", DATA_SOURCE, ignore.case = TRUE) ~ "DHS",
+        grepl("WHO/UNICEF.*immunization|WUENIC", DATA_SOURCE, ignore.case = TRUE) ~ "WUENIC",
+        grepl("UN_IGME|IGME", DATA_SOURCE, ignore.case = TRUE) ~ "UN IGME",
+        TRUE ~ "UNICEF Other"
+      ),
       source_detail = as.character(DATA_SOURCE),
-      survey_type = "household",
+      # Classify survey type based on source
+      survey_type = case_when(
+        grepl("MICS|Multiple Indicator|grappes à indicateurs", DATA_SOURCE, ignore.case = TRUE) ~ "household",
+        grepl("DHS|Demographic.*Health|Démographique et de Santé", DATA_SOURCE, ignore.case = TRUE) ~ "household",
+        grepl("WHO/UNICEF|WUENIC|UN_IGME|IGME", DATA_SOURCE, ignore.case = TRUE) ~ "modeled",
+        TRUE ~ "other"
+      ),
       country_name = admin_area_1,
       iso2_code = admin_area_1_iso,  # MICS REF_AREA provides ISO2 codes
       iso3_code = countrycode(admin_area_1_iso, "iso2c", "iso3c", warn = FALSE)
@@ -283,7 +296,7 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
   # Apply FASTR name standardization
   cleaned_data <- apply_fastr_name_standardization(cleaned_data, apply_standardization = apply_fastr_standardization)
 
-  message("MICS cleaning completed. Final records: ", nrow(cleaned_data))
+  message("UNICEF data cleaning completed. Final records: ", nrow(cleaned_data))
   return(cleaned_data)
 }
 

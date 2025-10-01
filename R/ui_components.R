@@ -131,7 +131,7 @@ create_help_tab <- function() {
 
               tags$ul(
                 tags$li(strong("DHS:"), " Demographic & Health Surveys from 90+ countries via the DHS Program API"),
-                tags$li(strong("MICS:"), " Multiple Indicator Cluster Surveys (UNICEF) via SDMX web services"),
+                tags$li(strong("UNICEF:"), " Multiple data sources including MICS surveys, WHO/UNICEF immunization estimates (WUENIC), and UN IGME mortality estimates via SDMX web services"),
                 tags$li(strong("UNWPP:"), " UN World Population Prospects via UN Data API")
               ),
 
@@ -357,8 +357,8 @@ create_app_sidebar <- function() {
            style = "color: white; margin-bottom: 15px; font-weight: bold;"),
         radioButtons("data_source", NULL,
                      choices = list(
-                       "DHS - Demographic & Health Surveys" = "dhs", 
-                       "MICS - Multiple Indicator Cluster" = "mics",
+                       "DHS - Demographic & Health Surveys" = "dhs",
+                       "UNICEF (MICS, WUENIC, etc.)" = "mics",
                        "UN World Population Prospects" = "unwpp"
                      ),
                      selected = "dhs")
