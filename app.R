@@ -22,6 +22,7 @@ library(shinyBS)
 library(stringr)
 library(shinyjs)
 library(readxl)  # For WUENIC MICS data parser
+library(rlang)   # For %||% operator
 
 # Load environment variables
 readRenviron(".Renviron")
