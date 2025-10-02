@@ -13,27 +13,15 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libtiff5-dev \
     libjpeg-dev \
+    libsodium-dev \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install R packages one by one to identify failures
-RUN R -e "install.packages('shiny', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('shinydashboard', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('DT', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('dplyr', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('rdhs', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('rsdmx', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('httr', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('jsonlite', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('countrycode', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('data.table', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('plotly', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('shinyWidgets', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('RCurl', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('shinycssloaders', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('shinyBS', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('stringr', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('shinyjs', repos='https://cloud.r-project.org/')"
-RUN R -e "install.packages('readxl', repos='https://cloud.r-project.org/')"
+# Install R packages (combining to reduce layers)
+RUN R -e "install.packages(c('shiny', 'shinydashboard', 'DT', 'dplyr', 'httr', 'jsonlite', 'countrycode', 'data.table', 'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', 'shinyBS', 'stringr', 'shinyjs', 'readxl', 'rsdmx'), repos='https://cloud.r-project.org/', dependencies=TRUE)"
+
+# Install rdhs separately (requires libsodium-dev)
+RUN R -e "install.packages('rdhs', repos='https://cloud.r-project.org/', dependencies=TRUE)"
 
 # Create app directory
 RUN mkdir -p /app
