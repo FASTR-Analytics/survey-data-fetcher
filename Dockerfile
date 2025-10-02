@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 
 # Use RStudio Package Manager for faster binary installations
 RUN R -e "options(repos = c(RSPM = 'https://packagemanager.rstudio.com/all/__linux__/jammy/latest', CRAN = 'https://cloud.r-project.org/')); \
-    install.packages(c('shinydashboard', 'DT', 'dplyr', 'httr', 'jsonlite', 'countrycode', 'data.table', 'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', 'shinyBS', 'stringr', 'shinyjs', 'readxl', 'rsdmx', 'rdhs', 'rlang'))"
+    install.packages(c('shinydashboard', 'DT', 'dplyr', 'httr', 'jsonlite', 'countrycode', 'data.table', 'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', 'shinyBS', 'stringr', 'shinyjs', 'rsdmx', 'rdhs', 'rlang'))"
 
 # Create app directory
 RUN mkdir -p /app
