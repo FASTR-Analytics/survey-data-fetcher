@@ -24,3 +24,7 @@ DEPLOY.md
 
 # Logs
 *.log
+
+# Binary files
+*.xlsx
+*.xls
