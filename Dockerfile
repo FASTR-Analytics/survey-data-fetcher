@@ -1,7 +1,7 @@
-# Use official R base image which supports ARM/Apple Silicon
-FROM r-base:latest
+# Use rocker/shiny base image which has optimized R and system dependencies
+FROM rocker/shiny:latest
 
-# Install system dependencies for R packages
+# Install additional system dependencies
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libssl-dev \
@@ -10,33 +10,49 @@ RUN apt-get update && apt-get install -y \
     libgeos-dev \
     libproj-dev \
     libudunits2-dev \
+    libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    libtiff5-dev \
+    libjpeg-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install R packages with error checking
-RUN R -e "options(warn=2); \
-    pkgs <- c('shiny', 'shinydashboard', 'DT', 'dplyr', 'rdhs', \
-              'rsdmx', 'httr', 'jsonlite', 'countrycode', 'data.table', \
-              'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', \
-              'shinyBS', 'stringr', 'shinyjs', 'readxl'); \
-    install.packages(pkgs, repos='https://cloud.r-project.org/', dependencies=TRUE); \
-    if (!all(pkgs %in% installed.packages()[,'Package'])) { \
-        stop('Failed to install all required packages'); \
-    }"
+# Install R packages
+RUN install2.r --error --skipinstalled \
+    shinydashboard \
+    DT \
+    dplyr \
+    rdhs \
+    rsdmx \
+    httr \
+    jsonlite \
+    countrycode \
+    data.table \
+    plotly \
+    shinyWidgets \
+    RCurl \
+    shinycssloaders \
+    shinyBS \
+    stringr \
+    shinyjs \
+    readxl
 
-# Create app directory
-RUN mkdir -p /app
+# Remove default shiny app
+RUN rm -rf /srv/shiny-server/*
 
-# Copy app files
-COPY app.R /app/
-COPY R/ /app/R/
-COPY www/ /app/www/
-COPY assets/ /app/assets/
+# Copy app files to shiny server directory
+COPY app.R /srv/shiny-server/
+COPY R/ /srv/shiny-server/R/
+COPY www/ /srv/shiny-server/www/
+COPY assets/ /srv/shiny-server/assets/
 
-# Set working directory
-WORKDIR /app
+# Set permissions
+RUN chown -R shiny:shiny /srv/shiny-server
 
 # Expose port
 EXPOSE 3838
 
-# Run the app
-CMD ["R", "-e", "shiny::runApp(host='0.0.0.0', port=3838)"]
+# Run shiny server
+CMD ["/init"]

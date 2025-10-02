@@ -1,0 +1,26 @@
+# Git files
+.git
+.gitignore
+
+# RStudio files
+.Rproj.user
+*.Rproj
+.RData
+.Rhistory
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+test_*.R
+
+# Deployment files
+deploy.R
+DEPLOY.md
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
