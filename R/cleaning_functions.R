@@ -301,6 +301,77 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
 }
 
 # ========================================
+# MICS WUENIC DATA CLEANING
+# ========================================
+
+clean_mics_wuenic_data <- function(df, apply_fastr_standardization = TRUE) {
+  if(nrow(df) == 0) return(data.frame())
+
+  # Define percentage indicators (coverage indicators - already in percentage, convert to decimal)
+  percentage_indicators <- c("bcg", "penta1", "penta2", "penta3", "polio1", "polio2", "polio3",
+                             "measles1", "measles2", "pneumococcal", "rotavirus", "hepb3",
+                             "hepb_birth", "hib3", "yellow_fever", "full_vaccination")
+
+  cleaned_data <- df %>%
+    mutate(
+      year = as.integer(SurveyYear),
+      # Map vaccine indicators to common IDs
+      indicator_common_id = case_when(
+        Indicator == "BCG" ~ "bcg",
+        Indicator == "DTP1" ~ "penta1",
+        Indicator == "DTP2" ~ "penta2",
+        Indicator == "DTP3" ~ "penta3",
+        Indicator == "Pol1" ~ "polio1",
+        Indicator == "Pol2" ~ "polio2",
+        Indicator == "Pol3" ~ "polio3",
+        Indicator == "MCV1" ~ "measles1",
+        Indicator == "MCV2" ~ "measles2",
+        Indicator == "PCV3" ~ "pneumococcal",
+        Indicator == "RCV1" ~ "rotavirus",
+        Indicator == "HepB3" ~ "hepb3",
+        Indicator == "HepB_BD" ~ "hepb_birth",
+        Indicator == "Hib3" ~ "hib3",
+        Indicator == "YFV" ~ "yellow_fever",
+        grepl("DTP3.*HepB3.*Hib3", Indicator) ~ "full_vaccination",
+        TRUE ~ tolower(Indicator)
+      ),
+      # Convert percentages to decimals
+      survey_value = case_when(
+        indicator_common_id %in% percentage_indicators ~ Value / 100,
+        TRUE ~ Value
+      ),
+      # Set indicator type
+      indicator_type = "percent"
+    ) %>%
+    transmute(
+      admin_area_1 = CountryName,
+      admin_area_2 = "NATIONAL",
+      year = year,
+      indicator_id = Indicator,
+      indicator_common_id = indicator_common_id,
+      indicator_type = indicator_type,
+      survey_value = survey_value,
+      source = "WUENIC",
+      source_detail = SurveyId,
+      survey_type = "household",
+      country_name = CountryName,
+      iso2_code = ISO2_CountryCode,
+      iso3_code = DHS_CountryCode,  # This contains ISO3 code
+      # Add MICS-specific metadata
+      evidence_type = Evidence,
+      validity = Validity,
+      denominator = SampleSize,
+      cards_seen_pct = CardsSeenPct
+    )
+
+  # Apply FASTR name standardization
+  cleaned_data <- apply_fastr_name_standardization(cleaned_data, apply_standardization = apply_fastr_standardization)
+
+  message("MICS WUENIC data cleaning completed. Final records: ", nrow(cleaned_data))
+  return(cleaned_data)
+}
+
+# ========================================
 # UNWPP DATA CLEANING
 # ========================================
 
@@ -834,6 +905,8 @@ clean_survey_data <- function(raw_data, data_source, selected_countries = NULL, 
     return(clean_dhs_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else if(data_source == "mics") {
     return(clean_mics_data(raw_data, selected_countries, apply_fastr_standardization = apply_fastr_standardization))
+  } else if(data_source == "mics_wuenic") {
+    return(clean_mics_wuenic_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else if(data_source == "unwpp") {
     return(clean_unwpp_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else {

@@ -187,6 +187,16 @@ create_indicator_selection_box <- function() {
     ),
 
     conditionalPanel(
+      condition = "input.data_source == 'mics_wuenic'",
+      div(
+        h5(icon("syringe"), "Select MICS Vaccines"),
+        p(style = "font-size: 12px; margin-bottom: 10px;", "Select vaccines directly - no metadata browsing needed!"),
+        create_mics_vaccine_checkboxes(),
+        hr()
+      )
+    ),
+
+    conditionalPanel(
       condition = "input.data_source == 'unwpp'",
       div(
         h5(icon("star"), "Quick Select UNWPP Favorites"),
@@ -194,8 +204,12 @@ create_indicator_selection_box <- function() {
         hr()
       )
     ),
-    
-    withSpinner(uiOutput("indicator_selector"), type = 6)
+
+    # Hide indicator picker for MICS - uses checkboxes only
+    conditionalPanel(
+      condition = "input.data_source != 'mics_wuenic'",
+      withSpinner(uiOutput("indicator_selector"), type = 6)
+    )
   )
 }
 
@@ -358,7 +372,8 @@ create_app_sidebar <- function() {
         radioButtons("data_source", NULL,
                      choices = list(
                        "DHS - Demographic & Health Surveys" = "dhs",
-                       "UNICEF (MICS, WUENIC, etc.)" = "mics",
+                       "UNICEF SDMX API" = "mics",
+                       "MICS - Multiple Indicator Cluster Surveys" = "mics_wuenic",
                        "UN World Population Prospects" = "unwpp"
                      ),
                      selected = "dhs")
@@ -480,3 +495,38 @@ create_visualization_tab <- function() {
   )
 }
 
+# ========================================
+# MICS VACCINE CHECKBOXES (Direct Selection)
+# ========================================
+
+create_mics_vaccine_checkboxes <- function() {
+  div(
+    div(style = "margin-bottom: 10px;",
+        actionButton("select_all_vaccines", "Select All", class = "btn-sm btn-primary", style = "margin-right: 5px;"),
+        actionButton("clear_vaccines", "Clear All", class = "btn-sm btn-secondary")
+    ),
+    div(style = "max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #f9f9f9;",
+        checkboxGroupInput("mics_vaccines", NULL,
+                          choices = list(
+                            "BCG (Tuberculosis)" = "CH_VACC_C_BCG",
+                            "DTP1/Penta1" = "CH_VACC_C_PT1",
+                            "DTP2/Penta2" = "CH_VACC_C_PT2",
+                            "DTP3/Penta3" = "CH_VACC_C_PT3",
+                            "Polio 1" = "CH_VACS_C_OP1",
+                            "Polio 2" = "CH_VACC_C_OP2",
+                            "Polio 3" = "CH_VACC_C_OP3",
+                            "Measles 1 (MCV1)" = "CH_VACC_C_MSL",
+                            "Measles 2 (MCV2)" = "CH_VACC_C_MS2",
+                            "Pneumococcal (PCV3)" = "CH_VACC_C_PC3",
+                            "Rotavirus" = "CH_VACC_C_RTC",
+                            "Hepatitis B3" = "CH_VACC_C_HB3",
+                            "Hepatitis B birth dose" = "CH_VACC_C_HBB",
+                            "Hib3" = "CH_VACC_C_HI3",
+                            "Yellow Fever" = "CH_VACC_C_YF",
+                            "Full Vaccination" = "CH_VACC_C_FUL"
+                          ),
+                          selected = c("CH_VACC_C_BCG", "CH_VACC_C_PT1", "CH_VACC_C_PT3")  # Default: BCG, Penta1, Penta3
+        )
+    )
+  )
+}

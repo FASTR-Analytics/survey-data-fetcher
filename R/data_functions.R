@@ -163,6 +163,51 @@ fetch_mics_countries <- function() {
   })
 }
 
+fetch_mics_wuenic_countries <- function() {
+  tryCatch({
+    # Read WUENIC file to get countries with actual MICS data
+    wuenic_file <- "assets/survey-data_wuenic2024rev.xlsx"
+
+    if (!file.exists(wuenic_file)) {
+      stop("WUENIC file not found at: ", wuenic_file)
+    }
+
+    # Read the data
+    survey_data <- read_excel(wuenic_file, sheet = "Data", skip = 1)
+
+    # Filter to MICS only and get unique countries
+    mics_countries <- survey_data %>%
+      filter(grepl("MICS|Multiple Indicator Cluster", surveyNameEnglish, ignore.case = TRUE)) %>%
+      select(ISO3) %>%
+      distinct() %>%
+      mutate(
+        country_code = countrycode(ISO3, "iso3c", "iso2c", warn = FALSE),
+        country_name = countrycode(ISO3, "iso3c", "country.name", warn = FALSE),
+        country_display = paste0(country_name, " (", country_code, ")"),
+        source = "WUENIC",
+        continent = countrycode(ISO3, "iso3c", "continent", warn = FALSE),
+        region = countrycode(ISO3, "iso3c", "region", warn = FALSE)
+      ) %>%
+      filter(!is.na(country_code), !is.na(country_name)) %>%
+      select(country_code, country_name, country_display, continent, region, source) %>%
+      arrange(country_name)
+
+    return(mics_countries)
+
+  }, error = function(e) {
+    message("Could not read WUENIC file: ", e$message)
+    # Return empty data frame if file not found
+    return(data.frame(
+      country_code = character(0),
+      country_name = character(0),
+      country_display = character(0),
+      continent = character(0),
+      region = character(0),
+      source = character(0)
+    ))
+  })
+}
+
 fetch_unwpp_countries <- function() {
   get_fallback_countries("UNWPP")
 }
@@ -545,6 +590,164 @@ fetch_mics_data <- function(indicators, countries = NULL) {
       stringsAsFactors = FALSE
     )
   })
+}
+
+# ========================================
+# WUENIC MICS DATA FETCHER
+# ========================================
+# Parse WUENIC survey database Excel file for MICS immunization data
+# This provides actual MICS survey data with full time series
+
+fetch_wuenic_mics_data <- function(
+    wuenic_file = "assets/survey-data_wuenic2024rev.xlsx",
+    indicators = NULL,
+    countries = NULL,
+    evidence_type = "Record or Recall",
+    source_filter = "MICS",
+    use_latest_only = FALSE
+) {
+
+  if (!file.exists(wuenic_file)) {
+    stop("WUENIC file not found at: ", wuenic_file)
+  }
+
+  message("Reading WUENIC survey database...")
+  survey_data <- read_excel(wuenic_file, sheet = "Data", skip = 1)
+  message("Loaded ", nrow(survey_data), " total survey records")
+
+  # Filter by survey source
+  if (source_filter == "MICS") {
+    survey_data <- survey_data %>%
+      filter(grepl("MICS|Multiple Indicator Cluster", surveyNameEnglish, ignore.case = TRUE))
+    message("Filtered to ", nrow(survey_data), " MICS records")
+  } else if (source_filter == "DHS") {
+    survey_data <- survey_data %>%
+      filter(grepl("DHS|Demographic and Health", surveyNameEnglish, ignore.case = TRUE))
+    message("Filtered to ", nrow(survey_data), " DHS records")
+  }
+
+  # Filter by evidence type
+  if (!is.null(evidence_type)) {
+    survey_data <- survey_data %>%
+      filter(grepl(evidence_type, evidence, ignore.case = FALSE))
+    message("Filtered to ", nrow(survey_data), " records with evidence type: ", evidence_type)
+  }
+
+  # Map WUENIC vaccine codes to DHS-style indicator codes
+  vaccine_mapping <- list(
+    "BCG" = "CH_VACC_C_BCG",
+    "DTP1" = "CH_VACC_C_PT1", "DTP2" = "CH_VACC_C_PT2", "DTP3" = "CH_VACC_C_PT3",
+    "HEPB1" = "CH_VACC_C_HB1", "HEPB2" = "CH_VACC_C_HB2", "HEPB3" = "CH_VACC_C_HB3", "HEPBB" = "CH_VACC_C_HBB",
+    "HIB1" = "CH_VACC_C_HI1", "HIB2" = "CH_VACC_C_HI2", "HIB3" = "CH_VACC_C_HI3",
+    "POL0" = "CH_VACC_C_OP0", "POL1" = "CH_VACS_C_OP1", "POL2" = "CH_VACC_C_OP2", "POL3" = "CH_VACC_C_OP3",
+    "IPV1" = "CH_VACC_C_IP1", "IPV2" = "CH_VACC_C_IP2",
+    "MCV1" = "CH_VACC_C_MSL", "MCV2" = "CH_VACC_C_MS2",
+    "RCV1" = "CH_VACC_C_MSL", "RCV2" = "CH_VACC_C_MS2",
+    "PCV1" = "CH_VACC_C_PC1", "PCV2" = "CH_VACC_C_PC2", "PCV3" = "CH_VACC_C_PC3",
+    "ROTA1" = "CH_VACC_C_RT1", "ROTA2" = "CH_VACC_C_RT2", "ROTAC" = "CH_VACC_C_RTC",
+    "YFV" = "CH_VACC_C_YF",
+    "FULL" = "CH_VACC_C_FUL"
+  )
+
+  # Filter by indicators
+  if (!is.null(indicators)) {
+    reverse_map <- setNames(names(vaccine_mapping), unlist(vaccine_mapping))
+    wuenic_vaccines <- unique(unname(reverse_map[indicators]))
+    wuenic_vaccines <- wuenic_vaccines[!is.na(wuenic_vaccines)]
+
+    if (length(wuenic_vaccines) > 0) {
+      survey_data <- survey_data %>%
+        filter(vaccine %in% wuenic_vaccines)
+      message("Filtered to ", length(wuenic_vaccines), " vaccine types: ", paste(wuenic_vaccines, collapse = ", "))
+    }
+  }
+
+  # Filter by countries (convert ISO2 to ISO3 if needed)
+  if (!is.null(countries) && length(countries) > 0) {
+    # Check if countries are ISO2 (2 characters) or ISO3 (3 characters)
+    if (all(nchar(countries) == 2)) {
+      # Convert ISO2 to ISO3
+      iso3_countries <- countrycode(countries, "iso2c", "iso3c", warn = FALSE)
+      iso3_countries <- iso3_countries[!is.na(iso3_countries)]
+      message("Converting ISO2 to ISO3: ", paste(countries, "->", iso3_countries, collapse = ", "))
+      countries <- iso3_countries
+    }
+
+    survey_data <- survey_data %>%
+      filter(ISO3 %in% countries)
+    message("Filtered to ", length(countries), " countries: ", paste(countries, collapse = ", "))
+  }
+
+  # DEDUPLICATION: One record per country/vaccine/year
+  survey_data <- survey_data %>%
+    mutate(
+      evidence_priority = case_when(
+        evidence == "Record or Recall" ~ 1,
+        grepl("^Record or Recall<", evidence) ~ 2,
+        evidence == "Record" ~ 3,
+        evidence == "Recall" ~ 4,
+        TRUE ~ 5
+      ),
+      age_score = case_when(
+        ageVaccination == "0-35 m" ~ 0,
+        ageVaccination == "0-23 m" ~ 1,
+        ageVaccination == "0-12 m" ~ 2,
+        TRUE ~ 3
+      ),
+      validity_priority = ifelse(validity == "CRUDE", 1, 2)
+    ) %>%
+    group_by(ISO3, vaccine, cohortYear) %>%
+    arrange(evidence_priority, age_score, validity_priority, desc(coverage)) %>%
+    slice(1) %>%
+    ungroup() %>%
+    select(-evidence_priority, -age_score, -validity_priority)
+
+  message("After deduplication: ", nrow(survey_data), " records")
+
+  if (use_latest_only) {
+    survey_data <- survey_data %>%
+      group_by(ISO3, vaccine) %>%
+      filter(cohortYear == max(cohortYear, na.rm = TRUE)) %>%
+      ungroup()
+    message("Selected latest year only: ", nrow(survey_data), " records")
+  }
+
+  # Transform to match app structure
+  formatted_data <- survey_data %>%
+    mutate(
+      IndicatorId = sapply(vaccine, function(v) {
+        ind <- vaccine_mapping[[v]]
+        if (is.null(ind)) NA_character_ else ind
+      }),
+      Indicator = vaccine,
+      SurveyYear = as.integer(cohortYear),
+      CountryName = countrycode(ISO3, "iso3c", "country.name", warn = FALSE),
+      DHS_CountryCode = ISO3,
+      ISO2_CountryCode = countrycode(ISO3, "iso3c", "iso2c", warn = FALSE),
+      Value = as.numeric(coverage),
+      SurveyId = surveyNameProduction,
+      SurveyType = ifelse(grepl("MICS", surveyNameEnglish), "MICS", "Other"),
+      DataSource = source_filter,
+      Evidence = evidence,
+      Validity = validity,
+      SampleSize = as.numeric(denominator),
+      CardsSeenPct = as.numeric(cardsSeen),
+      CharacteristicLabel = "National",
+      CharacteristicCategory = "Total",
+      CollectionStart = collectBegin,
+      CollectionEnd = collectEnd,
+      IsPreferred = TRUE
+    ) %>%
+    select(IndicatorId, Indicator, Value, SurveyYear, CountryName, DHS_CountryCode,
+           ISO2_CountryCode, SurveyId, SurveyType, CharacteristicLabel,
+           CharacteristicCategory, IsPreferred, DataSource, Evidence, Validity,
+           SampleSize, CardsSeenPct, CollectionStart, CollectionEnd) %>%
+    filter(!is.na(Value), !is.na(IndicatorId))
+
+  message("Final dataset: ", nrow(formatted_data), " records across ",
+          n_distinct(formatted_data$ISO2_CountryCode), " countries")
+
+  return(formatted_data)
 }
 
 fetch_unwpp_data <- function(indicators, countries, start_year = 2020, end_year = 2025) {
