@@ -121,7 +121,14 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
     } else .} %>%
     mutate(indicator_id = tolower(IndicatorId)) %>%
     left_join(mapping, by = c("indicator_id" = "original_id")) %>%
-    filter(!is.na(common_id)) %>%
+    # NEW: Auto-generate common_id for indicators not in mapping
+    mutate(
+      common_id = ifelse(
+        is.na(common_id),
+        get_or_generate_common_id(IndicatorId, Label, "DHS"),
+        common_id
+      )
+    ) %>%
     mutate(
       # Convert percentages to decimals
       cleaned_value = ifelse(common_id %in% percentage_indicators, Value / 100, Value),
@@ -202,16 +209,17 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
       ),
       admin_area_1_iso = REF_AREA,
       indicator_id = INDICATOR,
+      indicator_label = if("INDICATOR_LABEL" %in% names(df)) INDICATOR_LABEL else INDICATOR,
       indicator_common_id = case_when(
         # Mortality
         indicator_id == "CME_MRM0" ~ "nmr",          # Neonatal mortality rate
         indicator_id == "CME_MRY0T4" ~ "imr",        # Infant mortality rate (0-4 years)
-        
+
         # Population estimates
         indicator_id == "DM_POP_GRT" ~ "popgrowth",  # Population growth rate
         indicator_id == "DM_POP_TOT" ~ "poptot",     # Total population
         indicator_id == "DM_POP_U5" ~ "popu5",       # Under-5 population
-        
+
         # Immunization
         indicator_id == "IM_BCG" ~ "bcg",            # BCG vaccine
         indicator_id == "IM_HEPBB" ~ "hepb",         # Hepatitis B
@@ -219,7 +227,7 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
         indicator_id == "IM_HIB3" ~ "hib3",          # Hib3
         indicator_id == "IM_DTP1" ~ "penta1",        # DTP1 (Penta1)
         indicator_id == "IM_DTP3" ~ "penta3",        # DTP3 (Penta3)
-        
+
         # Maternal and newborn care
         indicator_id == "MNCH_ANC1" ~ "anc1",        # ANC1
         indicator_id == "MNCH_ANC4" ~ "anc4",        # ANC4+
@@ -227,19 +235,19 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
         indicator_id == "MNCH_PNCMOM" ~ "pnc1",      # PNC (mother)
         indicator_id == "MNCH_IPTP" ~ "iptp3",       # IPTp3+ doses
         indicator_id == "MNCH_MMR" ~ "mmr",          # Maternal mortality ratio
-        
+
         # Diarrhoea treatment
         indicator_id == "MNCH_ORS" ~ "ors",          # ORS only
         indicator_id == "MNCH_ORSZINC" ~ "ors_zinc",  # ORS and Zinc
-        
+
         # Family planning and nutrition
         indicator_id == "MNCH_DEMAND_FP" ~ "fp",     # Family planning demand satisfied
-        
-        # Fallback
-        TRUE ~ NA_character_
+
+        # Fallback: use auto-generation
+        TRUE ~ get_or_generate_common_id(indicator_id, indicator_label, "MICS")
       )
     ) %>%
-    filter(!is.na(value), !is.na(indicator_common_id)) %>%
+    filter(!is.na(value)) %>%
     mutate(
       # Convert country codes to names, with special handling for Côte d'Ivoire
       admin_area_1 = case_when(
@@ -315,6 +323,7 @@ clean_mics_wuenic_data <- function(df, apply_fastr_standardization = TRUE) {
   cleaned_data <- df %>%
     mutate(
       year = as.integer(SurveyYear),
+      indicator_label = if("IndicatorLabel" %in% names(df)) IndicatorLabel else Indicator,
       # Map vaccine indicators to common IDs
       indicator_common_id = case_when(
         Indicator == "BCG" ~ "bcg",
@@ -333,7 +342,8 @@ clean_mics_wuenic_data <- function(df, apply_fastr_standardization = TRUE) {
         Indicator == "Hib3" ~ "hib3",
         Indicator == "YFV" ~ "yellow_fever",
         grepl("DTP3.*HepB3.*Hib3", Indicator) ~ "full_vaccination",
-        TRUE ~ tolower(Indicator)
+        # Fallback: use auto-generation
+        TRUE ~ get_or_generate_common_id(Indicator, indicator_label, "WUENIC")
       ),
       # Convert percentages to decimals
       survey_value = case_when(

@@ -21,12 +21,13 @@ library(shinycssloaders)
 library(shinyBS)
 library(stringr)
 library(shinyjs)
-library(rlang)   # For %||% operator
+library(readxl)  # For WUENIC MICS data parser
 
 # Load environment variables
 readRenviron(".Renviron")
 
 # Source all modular files
+source("R/indicator_mappings.R")
 source("R/data_functions.R")
 source("R/cleaning_functions.R")
 source("R/ui_components.R")
@@ -66,12 +67,17 @@ ui <- dashboardPage(
 # ========================================
 
 server <- function(input, output, session) {
-  
+
   values <- reactiveValues(
     metadata = data.frame(),
     countries = data.frame(),
+    # Legacy single dataset storage (for backward compatibility)
     fetched_data = data.frame(),
-    cleaned_data = data.frame()
+    cleaned_data = data.frame(),
+    # NEW: Collection-based storage for multi-fetch sessions
+    fetch_collection = list(),      # List of fetched datasets
+    cleaned_collection = list(),    # List of cleaned datasets
+    next_dataset_id = 1             # Auto-increment ID for datasets
   )
 
   # Initialize indicator lookup table for better plotting labels

@@ -36,24 +36,56 @@ create_metadata_tab <- function() {
 
 create_results_tab <- function() {
   tabItem(tabName = "results",
+          # NEW: Data Cart Management
           fluidRow(
             box(
-              title = "Fetched Data Preview", status = "success", solidHeader = TRUE, width = 12,
+              title = "Session Data Cart", status = "primary", solidHeader = TRUE, width = 12, collapsible = TRUE,
+              div(class = "alert alert-info",
+                  icon("info-circle"),
+                  " Your data cart allows you to accumulate multiple datasets in a single session. Fetch data from different sources or indicators, add them to your cart, and combine them for visualization."),
+
+              fluidRow(
+                column(9,
+                       DT::dataTableOutput("cart_table")
+                ),
+                column(3,
+                       h5("Cart Actions"),
+                       actionButton("remove_selected_from_cart", "Remove Selected",
+                                  class = "btn-warning btn-block",
+                                  icon = icon("trash")),
+                       br(),
+                       actionButton("clear_cart", "Clear All",
+                                  class = "btn-danger btn-block",
+                                  icon = icon("trash-alt")),
+                       br(),
+                       div(class = "alert alert-secondary", style = "margin-top: 10px;",
+                           uiOutput("cart_summary"))
+                )
+              )
+            )
+          ),
+
+          # Current/Latest Fetch Preview
+          fluidRow(
+            box(
+              title = "Latest Fetch Preview", status = "success", solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = FALSE,
               withSpinner(DT::dataTableOutput("results_table"), type = 6)
             )
           ),
-          
+
           fluidRow(
             box(
               title = "Data Summary", status = "info", solidHeader = TRUE, width = 6,
               verbatimTextOutput("data_summary")
             ),
-            
+
             box(
               title = "Download Options", status = "warning", solidHeader = TRUE, width = 6,
-              downloadButton("download_csv", "Download CSV", class = "btn-primary"),
+              downloadButton("download_csv", "Download Latest CSV", class = "btn-primary"),
               br(), br(),
-              downloadButton("download_rds", "Download RDS", class = "btn-info")
+              downloadButton("download_rds", "Download Latest RDS", class = "btn-info"),
+              br(), br(),
+              downloadButton("download_cart_csv", "Download All Cart Data (CSV)", class = "btn-success")
             )
           )
   )
@@ -163,22 +195,38 @@ create_help_tab <- function() {
 create_indicator_selection_box <- function() {
   box(
     title = "Indicator Selection", status = "info", solidHeader = TRUE, width = 6,
-    
+
+    # NEW: Indicator Mode Toggle
     conditionalPanel(
-      condition = "input.data_source == 'dhs'",
+      condition = "input.data_source == 'dhs' || input.data_source == 'mics' || input.data_source == 'unwpp'",
+      div(style = "margin-bottom: 15px;",
+          radioButtons("indicator_mode", "Selection Mode:",
+                      choices = list(
+                        "Favorites (Quick Select)" = "favorites",
+                        "Browse All (Advanced)" = "browse"
+                      ),
+                      selected = "favorites",
+                      inline = TRUE)
+      )
+    ),
+
+    # Favorites Mode - DHS
+    conditionalPanel(
+      condition = "input.data_source == 'dhs' && input.indicator_mode == 'favorites'",
       div(
         h5(icon("star"), "Quick Select Favorites"),
         div(class = "alert alert-info", style = "margin-bottom: 10px; padding: 8px;",
             icon("info-circle"),
             " ", strong("ANC1 Note:"), " We use RH_ANCP_W_SKP (ANC1 from skilled provider) as the standard ANC1 indicator."),
-        
+
         create_dhs_favorite_buttons(),
         hr()
       )
     ),
     
+    # Favorites Mode - MICS
     conditionalPanel(
-      condition = "input.data_source == 'mics'",
+      condition = "input.data_source == 'mics' && input.indicator_mode == 'favorites'",
       div(
         h5(icon("star"), "Quick Select MICS Favorites"),
         create_mics_favorite_buttons(),
@@ -186,6 +234,7 @@ create_indicator_selection_box <- function() {
       )
     ),
 
+    # MICS WUENIC - Always uses checkboxes (no mode toggle)
     conditionalPanel(
       condition = "input.data_source == 'mics_wuenic'",
       div(
@@ -196,8 +245,9 @@ create_indicator_selection_box <- function() {
       )
     ),
 
+    # Favorites Mode - UNWPP
     conditionalPanel(
-      condition = "input.data_source == 'unwpp'",
+      condition = "input.data_source == 'unwpp' && input.indicator_mode == 'favorites'",
       div(
         h5(icon("star"), "Quick Select UNWPP Favorites"),
         create_unwpp_favorite_buttons(),
@@ -205,7 +255,19 @@ create_indicator_selection_box <- function() {
       )
     ),
 
-    # Hide indicator picker for MICS - uses checkboxes only
+    # Browse Mode - All sources except MICS_WUENIC
+    conditionalPanel(
+      condition = "(input.data_source == 'dhs' || input.data_source == 'mics' || input.data_source == 'unwpp') && input.indicator_mode == 'browse'",
+      div(
+        h5(icon("search"), "Browse All Indicators"),
+        div(class = "alert alert-warning", style = "margin-bottom: 10px; padding: 8px;",
+            icon("exclamation-triangle"),
+            " Browse mode shows ALL available indicators. Use search to filter."),
+        hr()
+      )
+    ),
+
+    # Indicator Picker (shown in both modes, but Browse mode shows full list)
     conditionalPanel(
       condition = "input.data_source != 'mics_wuenic'",
       withSpinner(uiOutput("indicator_selector"), type = 6)
@@ -242,6 +304,14 @@ create_country_selection_box <- function() {
 create_fetch_data_box <- function() {
   box(
     title = "Fetch Data", status = "success", solidHeader = TRUE, width = 12,
+
+    # NEW: Add to Cart option
+    div(style = "margin-bottom: 15px;",
+        checkboxInput("add_to_cart", "Add to session cart (accumulate datasets)", value = TRUE),
+        div(class = "alert alert-info", style = "padding: 8px; font-size: 12px;",
+            icon("info-circle"),
+            " When checked, fetched data will be added to your cart. Uncheck to replace previous data.")
+    ),
 
     div(style = "text-align: center;",
         actionButton("fetch_data", "Fetch Data",

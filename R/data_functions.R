@@ -166,14 +166,14 @@ fetch_mics_countries <- function() {
 fetch_mics_wuenic_countries <- function() {
   tryCatch({
     # Read WUENIC file to get countries with actual MICS data
-    wuenic_file <- "assets/survey-data_wuenic2024rev.csv"
+    wuenic_file <- "assets/survey-data_wuenic2024rev.xlsx"
 
     if (!file.exists(wuenic_file)) {
       stop("WUENIC file not found at: ", wuenic_file)
     }
 
     # Read the data
-    survey_data <- read.csv(wuenic_file, stringsAsFactors = FALSE)
+    survey_data <- read_excel(wuenic_file, sheet = "Data", skip = 1)
 
     # Filter to MICS only and get unique countries
     mics_countries <- survey_data %>%
@@ -599,7 +599,7 @@ fetch_mics_data <- function(indicators, countries = NULL) {
 # This provides actual MICS survey data with full time series
 
 fetch_wuenic_mics_data <- function(
-    wuenic_file = "assets/survey-data_wuenic2024rev.csv",
+    wuenic_file = "assets/survey-data_wuenic2024rev.xlsx",
     indicators = NULL,
     countries = NULL,
     evidence_type = "Record or Recall",
@@ -612,7 +612,7 @@ fetch_wuenic_mics_data <- function(
   }
 
   message("Reading WUENIC survey database...")
-  survey_data <- read.csv(wuenic_file, stringsAsFactors = FALSE)
+  survey_data <- read_excel(wuenic_file, sheet = "Data", skip = 1)
   message("Loaded ", nrow(survey_data), " total survey records")
 
   # Filter by survey source

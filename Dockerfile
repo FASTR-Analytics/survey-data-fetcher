@@ -1,18 +1,27 @@
-# Use Rocker Shiny image (comes with Shiny pre-installed)
-FROM rocker/shiny:4.3.1
+# Use R base image
+FROM r-base:4.3.1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    libtiff5-dev \
+    libjpeg-dev \
     libsodium-dev \
-    libgdal-dev \
-    libgeos-dev \
-    libproj-dev \
-    libudunits2-dev \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Use RStudio Package Manager for faster binary installations
-RUN R -e "options(repos = c(RSPM = 'https://packagemanager.rstudio.com/all/__linux__/jammy/latest', CRAN = 'https://cloud.r-project.org/')); \
-    install.packages(c('shinydashboard', 'DT', 'dplyr', 'httr', 'jsonlite', 'countrycode', 'data.table', 'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', 'shinyBS', 'stringr', 'shinyjs', 'rsdmx', 'rdhs', 'rlang'))"
+# Install R packages (combining to reduce layers)
+RUN R -e "install.packages(c('shiny', 'shinydashboard', 'DT', 'dplyr', 'httr', 'jsonlite', 'countrycode', 'data.table', 'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', 'shinyBS', 'stringr', 'shinyjs', 'readxl', 'rsdmx'), repos='https://cloud.r-project.org/', dependencies=TRUE)"
+
+# Install rdhs separately (requires libsodium-dev)
+RUN R -e "install.packages('rdhs', repos='https://cloud.r-project.org/', dependencies=TRUE)"
 
 # Create app directory
 RUN mkdir -p /app
