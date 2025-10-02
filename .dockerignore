@@ -25,6 +25,7 @@ DEPLOY.md
 # Logs
 *.log
 
-# Binary files
+# Binary files (except required data files)
 *.xlsx
 *.xls
+!assets/survey-data_wuenic2024rev.xlsx
