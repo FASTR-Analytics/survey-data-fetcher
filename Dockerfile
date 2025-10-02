@@ -13,6 +13,10 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libtiff5-dev \
     libjpeg-dev \
+    libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
+    libudunits2-dev \
     libsodium-dev \
     git \
     && rm -rf /var/lib/apt/lists/*
