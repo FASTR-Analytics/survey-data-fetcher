@@ -1,3 +1,12 @@
+---
+title: Survey Data Fetcher
+emoji: 📊
+colorFrom: blue
+colorTo: purple
+sdk: docker
+app_port: 3838
+---
+
 # FASTR Survey Data Fetcher
 
 A Shiny web application for fetching and processing survey data from multiple international sources.
