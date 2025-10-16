@@ -100,7 +100,6 @@ server <- function(input, output, session) {
     metadata <- switch(input$data_source,
                        "dhs" = fetch_dhs_metadata(),
                        "mics" = fetch_mics_metadata(),
-                       "mics_wuenic" = data.frame(),  # No metadata - using direct checkbox selection
                        "unwpp" = fetch_unwpp_metadata())
 
     # Debug: Check metadata right after fetching
@@ -112,17 +111,11 @@ server <- function(input, output, session) {
     countries <- switch(input$data_source,
                         "dhs" = fetch_dhs_countries(),
                         "mics" = fetch_mics_countries(),
-                        "mics_wuenic" = fetch_mics_wuenic_countries(),  # Countries from WUENIC Excel file
                         "unwpp" = fetch_unwpp_countries())
     values$countries <- countries
   })
   
   output$indicator_selector <- renderUI({
-    # Skip indicator selector for MICS WUENIC (uses checkboxes instead)
-    if(input$data_source == "mics_wuenic") {
-      return(NULL)
-    }
-
     req(values$metadata)
 
     if(nrow(values$metadata) == 0) {
@@ -161,11 +154,6 @@ server <- function(input, output, session) {
   })
   
   output$indicator_count <- renderText({
-    # Skip for MICS WUENIC (uses checkboxes instead)
-    if(input$data_source == "mics_wuenic") {
-      return("")
-    }
-
     selected_count <- length(input$indicators %||% 0)
     total_count <- nrow(values$metadata)
 
@@ -366,25 +354,6 @@ output$country_selector <- renderUI({
   })
 
   # ========================================
-  # MICS VACCINE CHECKBOX HANDLERS (for mics_wuenic)
-  # ========================================
-
-  # Select All Vaccines button
-  observeEvent(input$select_all_vaccines, {
-    all_vaccines <- c("CH_VACC_C_BCG", "CH_VACC_C_PT1", "CH_VACC_C_PT2", "CH_VACC_C_PT3",
-                      "CH_VACS_C_OP1", "CH_VACC_C_OP2", "CH_VACC_C_OP3",
-                      "CH_VACC_C_MSL", "CH_VACC_C_MS2", "CH_VACC_C_PC3",
-                      "CH_VACC_C_RTC", "CH_VACC_C_HB3", "CH_VACC_C_HBB",
-                      "CH_VACC_C_HI3", "CH_VACC_C_YF", "CH_VACC_C_FUL")
-    updateCheckboxGroupInput(session, "mics_vaccines", selected = all_vaccines)
-  })
-
-  # Clear Vaccines button
-  observeEvent(input$clear_vaccines, {
-    updateCheckboxGroupInput(session, "mics_vaccines", selected = character(0))
-  })
-
-  # ========================================
   # UNWPP FAVORITE BUTTON HANDLERS
   # ========================================
 
@@ -539,21 +508,11 @@ output$country_selector <- renderUI({
   }, server = TRUE)
   
   observeEvent(input$fetch_data, {
-    req(input$countries)
+    req(input$countries, input$indicators)
 
-    # For MICS WUENIC, check mics_vaccines instead of indicators
-    if(input$data_source == "mics_wuenic") {
-      req(input$mics_vaccines)
-      if(length(input$mics_vaccines) == 0) {
-        showNotification("Please select at least one vaccine", type = "warning")
-        return()
-      }
-    } else {
-      req(input$indicators)
-      if(length(input$indicators) == 0) {
-        showNotification("Please select at least one indicator", type = "warning")
-        return()
-      }
+    if(length(input$indicators) == 0) {
+      showNotification("Please select at least one indicator", type = "warning")
+      return()
     }
 
     if(length(input$countries) == 0) {
@@ -584,17 +543,6 @@ output$country_selector <- renderUI({
       } else if(input$data_source == "mics") {
         session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching UNICEF SDMX data..."))
         data <- fetch_mics_data(input$indicators, input$countries)
-      } else if(input$data_source == "mics_wuenic") {
-        session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching MICS data from WUENIC database..."))
-        # Use mics_vaccines checkboxes instead of indicators picker
-        selected_vaccines <- input$mics_vaccines %||% character(0)
-        data <- fetch_wuenic_mics_data(
-          indicators = selected_vaccines,
-          countries = input$countries,
-          evidence_type = "Record or Recall",
-          source_filter = "MICS",
-          use_latest_only = FALSE  # Get full time series
-        )
       } else if(input$data_source == "unwpp") {
         session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching UNWPP data..."))
         data <- fetch_unwpp_data(input$indicators, input$countries, input$start_year, input$end_year)
@@ -607,17 +555,10 @@ output$country_selector <- renderUI({
 
       # Add to cart if requested
       if(!is.null(input$add_to_cart) && input$add_to_cart == TRUE && nrow(data) > 0) {
-        # Get the indicators for labeling (handle MICS WUENIC special case)
-        selected_indicators <- if(input$data_source == "mics_wuenic") {
-          input$mics_vaccines %||% character(0)
-        } else {
-          input$indicators %||% character(0)
-        }
-
         # Generate dataset label
         dataset_label <- generate_dataset_label(
           source = input$data_source,
-          indicators = selected_indicators,
+          indicators = input$indicators,
           countries = input$countries
         )
 
@@ -627,7 +568,7 @@ output$country_selector <- renderUI({
           label = dataset_label,
           source = input$data_source,
           timestamp = Sys.time(),
-          indicators = selected_indicators,
+          indicators = input$indicators,
           countries = input$countries,
           n_records = nrow(data),
           data = data
@@ -710,23 +651,15 @@ output$country_selector <- renderUI({
       source_label <- switch(input$data_source,
                             "dhs" = "DHS",
                             "mics" = "UNICEF SDMX API",
-                            "mics_wuenic" = "WUENIC",
                             "unwpp" = "UNWPP",
                             toupper(input$data_source))
-
-      # Get indicator count (different for MICS WUENIC which uses checkboxes)
-      indicator_count <- if(input$data_source == "mics_wuenic") {
-        length(input$mics_vaccines %||% character(0))
-      } else {
-        length(input$indicators %||% character(0))
-      }
 
       paste(
         "Total Records:", nrow(values$fetched_data), "\n",
         "Columns:", ncol(values$fetched_data), "\n",
         "Data Source:", source_label, "\n",
         "Countries:", length(input$countries), "\n",
-        "Indicators:", indicator_count
+        "Indicators:", length(input$indicators %||% character(0))
       )
     } else {
       "No data available"

@@ -9,7 +9,7 @@
 # ========================================
 
 #' Generate a human-readable label for a dataset
-#' @param source Data source ("dhs", "mics", "mics_wuenic", "unwpp")
+#' @param source Data source ("dhs", "mics", "unwpp")
 #' @param indicators Vector of indicator IDs
 #' @param countries Vector of country codes
 #' @return A concise label string
@@ -18,7 +18,6 @@ generate_dataset_label <- function(source, indicators, countries) {
   source_label <- switch(source,
                         "dhs" = "DHS",
                         "mics" = "MICS",
-                        "mics_wuenic" = "MICS-WUENIC",
                         "unwpp" = "UNWPP",
                         toupper(source))
 

@@ -261,7 +261,12 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
       ),
       admin_area_1_iso = REF_AREA,
       indicator_id = INDICATOR,
-      indicator_label = if("INDICATOR_LABEL" %in% names(df)) INDICATOR_LABEL else INDICATOR,
+      indicator_label = if("INDICATOR_LABEL" %in% names(df)) INDICATOR_LABEL else INDICATOR
+    ) %>%
+    filter(!is.na(value)) %>%
+    # Use rowwise for auto-generation fallback
+    rowwise() %>%
+    mutate(
       indicator_common_id = case_when(
         # Mortality
         indicator_id == "CME_MRM0" ~ "nmr",          # Neonatal mortality rate
@@ -299,7 +304,7 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
         TRUE ~ get_or_generate_common_id(indicator_id, indicator_label, "MICS")
       )
     ) %>%
-    filter(!is.na(value)) %>%
+    ungroup() %>%
     mutate(
       # Convert country codes to names, with special handling for Côte d'Ivoire
       admin_area_1 = case_when(
@@ -986,8 +991,6 @@ clean_survey_data <- function(raw_data, data_source, selected_countries = NULL, 
     return(clean_dhs_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else if(data_source == "mics") {
     return(clean_mics_data(raw_data, selected_countries, apply_fastr_standardization = apply_fastr_standardization))
-  } else if(data_source == "mics_wuenic") {
-    return(clean_mics_wuenic_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else if(data_source == "unwpp") {
     return(clean_unwpp_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else {

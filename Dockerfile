@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y \
 RUN R -e "install.packages(c('shiny', 'shinydashboard', 'DT', 'dplyr', 'httr', 'jsonlite', 'countrycode', 'data.table', 'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', 'shinyBS', 'stringr', 'shinyjs', 'readxl', 'rsdmx'), repos='https://cloud.r-project.org/', dependencies=TRUE)"
 
 # Install rdhs separately (requires libsodium-dev)
-RUN R -e "install.packages('rdhs', repos='https://cloud.r-project.org/', dependencies=TRUE)"
+RUN R -e "install.packages('rdhs', repos='https://cloud.r-project.org/', dependencies=TRUE)" && \
+    R -e "if (!require('rdhs', quietly = TRUE)) { stop('rdhs installation failed') }"
 
 # Create app directory
 RUN mkdir -p /app
