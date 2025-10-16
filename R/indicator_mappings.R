@@ -33,6 +33,9 @@ FAVORITE_DHS_LABELS <- list(
   "CH_VACC_C_MSL2" = "measles2",
   "CH_VACC_C_ROT1" = "rotavirus1",
   "CH_VACC_C_ROT2" = "rotavirus2",
+  "CH_VACS_C_OP1" = "polio1",
+  "CH_VACS_C_OP2" = "polio2",
+  "CH_VACS_C_OP3" = "polio3",
 
   # Child Health
   "ML_FEVT_C_ADV" = "fever_treatment",
@@ -75,6 +78,8 @@ FAVORITE_WUENIC_LABELS <- list(
   "DTP3" = "penta3",
   "MCV1" = "measles1",
   "MCV2" = "measles2",
+  "POL1" = "polio1",
+  "POL2" = "polio2",
   "POL3" = "polio3",
   "HepB3" = "hepb3",
   "Hib3" = "hib3",
@@ -117,6 +122,8 @@ AUTO_LABEL_PATTERNS <- list(
   list(pattern = "(?i)Measles.*1st|MCV1", label = "measles1"),
   list(pattern = "(?i)Measles.*2nd|MCV2", label = "measles2"),
   list(pattern = "(?i)BCG", label = "bcg"),
+  list(pattern = "(?i)Polio.*1|POL1", label = "polio1"),
+  list(pattern = "(?i)Polio.*2|POL2", label = "polio2"),
   list(pattern = "(?i)Polio.*3|POL3", label = "polio3"),
   list(pattern = "(?i)Rotavirus", label = "rotavirus"),
   list(pattern = "(?i)Pneumococcal|PCV", label = "pcv"),

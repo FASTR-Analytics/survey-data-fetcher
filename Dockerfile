@@ -1,7 +1,7 @@
 # Use R base image
 FROM r-base:4.3.1
 
-# Cache bust: 2025-10-16-v2
+# Cache bust: 2025-10-16-v3
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
@@ -18,8 +18,12 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install R packages (combining to reduce layers)
-RUN R -e "install.packages(c('shiny', 'shinydashboard', 'DT', 'dplyr', 'rdhs', 'httr', 'jsonlite', 'countrycode', 'data.table', 'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', 'shinyBS', 'stringr', 'shinyjs', 'readxl', 'rsdmx'), repos='https://cloud.r-project.org/', dependencies=TRUE)"
+# Install R packages in two stages - first core packages
+RUN R -e "install.packages(c('shiny', 'shinydashboard', 'DT', 'dplyr', 'httr', 'jsonlite', 'countrycode', 'data.table', 'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', 'shinyBS', 'stringr', 'shinyjs', 'readxl', 'rsdmx'), repos='https://cloud.r-project.org/', dependencies=TRUE)"
+
+# Install rdhs separately with explicit validation
+RUN R -e "install.packages('rdhs', repos='https://cloud.r-project.org/', dependencies=TRUE)" && \
+    R -e "if (!require('rdhs', quietly = TRUE)) { stop('rdhs package failed to install') }"
 
 # Create app directory
 RUN mkdir -p /app
