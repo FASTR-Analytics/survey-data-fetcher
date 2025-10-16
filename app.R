@@ -956,13 +956,14 @@ output$country_selector <- renderUI({
   # Update plot selectors when cleaned data changes
   observe({
     req(values$cleaned_data)
-    
+
     if(nrow(values$cleaned_data) > 0) {
-      # Get unique indicators with readable names
+      # Get unique indicators with readable names and source
       indicator_choices <- values$cleaned_data %>%
-        select(indicator_id, indicator_common_id) %>%
+        select(indicator_id, indicator_common_id, source) %>%
         distinct() %>%
-        {setNames(.$indicator_id, .$indicator_common_id)}
+        mutate(display_name = paste0(indicator_common_id, " (", toupper(source), ")")) %>%
+        {setNames(.$indicator_id, .$display_name)}
       
       # Create geographic area choices that handle both national and subnational data
       geo_areas <- values$cleaned_data %>%
@@ -998,7 +999,7 @@ output$country_selector <- renderUI({
       updateSelectInput(session, "comparison_country",
                         choices = geo_choices)
       
-      # Update comparison indicators with readable names too
+      # Update comparison indicators with same choices (already includes source)
       updateSelectInput(session, "comparison_indicators",
                         choices = indicator_choices,
                         selected = names(indicator_choices)[1:min(3, length(indicator_choices))])
