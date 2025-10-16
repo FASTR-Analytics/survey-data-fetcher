@@ -12,6 +12,61 @@
 # INDICATOR MAPPING
 # ========================================
 
+#' Auto-generate a common ID for indicators not in the predefined mapping
+#' @param indicator_id The original indicator ID
+#' @param label The indicator label/name (optional)
+#' @param source The data source (DHS, MICS, WUENIC, UNWPP)
+#' @return A standardized common_id string
+get_or_generate_common_id <- function(indicator_id, label = NULL, source = "unknown") {
+  # Convert to lowercase and remove special characters for consistency
+  clean_id <- tolower(gsub("[^a-z0-9_]", "_", indicator_id))
+
+  # If label is provided and informative, try to create a more meaningful ID
+  if(!is.null(label) && nchar(label) > 0) {
+    # Extract key words from label to create a meaningful ID
+    label_clean <- tolower(label)
+
+    # Common patterns to create semantic IDs
+    if(grepl("bcg", label_clean)) return("bcg")
+    if(grepl("dtp|penta", label_clean)) {
+      if(grepl("1", label_clean)) return("penta1")
+      if(grepl("2", label_clean)) return("penta2")
+      if(grepl("3", label_clean)) return("penta3")
+      return("penta")
+    }
+    if(grepl("polio|pol", label_clean)) {
+      if(grepl("1", label_clean)) return("polio1")
+      if(grepl("2", label_clean)) return("polio2")
+      if(grepl("3", label_clean)) return("polio3")
+      return("polio")
+    }
+    if(grepl("measles|mcv|rcv", label_clean)) {
+      if(grepl("2", label_clean)) return("measles2")
+      return("measles1")
+    }
+    if(grepl("rotavirus|rota", label_clean)) {
+      if(grepl("1", label_clean)) return("rotavirus1")
+      if(grepl("2", label_clean)) return("rotavirus2")
+      return("rotavirus")
+    }
+    if(grepl("anc", label_clean)) {
+      if(grepl("4", label_clean)) return("anc4")
+      return("anc1")
+    }
+    if(grepl("delivery|institutional", label_clean)) return("delivery")
+    if(grepl("pnc|postnatal", label_clean)) return("pnc1")
+    if(grepl("family.*plan|contraceptive", label_clean)) return("fp")
+    if(grepl("infant.*mort|imr", label_clean)) return("imr")
+    if(grepl("neonatal.*mort|nmr", label_clean)) return("nmr")
+    if(grepl("under.*five|u5mr", label_clean)) return("u5mr")
+    if(grepl("maternal.*mort|mmr", label_clean)) return("mmr")
+    if(grepl("total.*fertil|tfr", label_clean)) return("tfr")
+  }
+
+  # Fallback: use cleaned indicator ID
+  return(clean_id)
+}
+
 get_indicator_mapping <- function() {
   data.frame(
     original_id = c(
@@ -19,13 +74,14 @@ get_indicator_mapping <- function() {
       "rh_ancn_w_n4p",
       "rh_delp_c_dhf",
       "rh_pcmt_w_dy2",
+      "rh_pcmn_w_mot",  # PNC indicator (alternative ID)
       "rh_ancc_w_irn",
-      
+
       "ch_vacc_c_bcg",
       "ch_vacc_c_pt1",
       "ch_vacc_c_pt2",
       "ch_vacc_c_pt3",
-      
+
       "ch_vacc_c_msl",
       "ch_vacc_c_ms2",
       "ch_vacc_c_rt1",
@@ -33,7 +89,7 @@ get_indicator_mapping <- function() {
       "ch_vacc_c_op1",
       "ch_vacc_c_op2",
       "ch_vacc_c_op3",
-      
+
       "ml_iptp_w_spf", "ml_iptp_w_2sp", "ml_iptp_w_3sp",
       "cm_ecmt_c_imr", "cm_ecmr_c_nnr", "cm_pnmr_c_nsb",
       "fe_frty_w_npg", "fe_frtr_w_cbr", "fe_frtr_w_tfr",
@@ -41,7 +97,8 @@ get_indicator_mapping <- function() {
       "cn_miac_c_mmn", "cn_miac_c_dwm", "cn_miac_c_vas", "ch_diat_c_orz"
     ),
     common_id = c(
-      "anc1", "anc4", "delivery", "pnc1", "iron_anc",
+      "anc1", "anc4", "delivery", "pnc1", "pnc1",  # Both PNC variants map to pnc1
+      "iron_anc",
       "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
       "rotavirus1", "rotavirus2",
       "polio1", "polio2", "polio3",
@@ -61,9 +118,12 @@ get_indicator_mapping <- function() {
 
 clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
   if(nrow(df) == 0) return(data.frame())
-  
+
+  # Debug: Check available columns
+  message("DHS columns available: ", paste(names(df), collapse = ", "))
+
   mapping <- get_indicator_mapping()
-  
+
   # Define which indicators are percentages (should be converted to decimals)
   percentage_indicators <- c(
     "anc1", "anc4", "delivery", "pnc1", "iron_anc",
@@ -72,56 +132,31 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
     "iptp1", "iptp2", "iptp3", "fp",
     "deworming", "vitamina", "ors_zinc", "micronutrient"
   )
-  
+
   # Define rate indicators
   rate_indicators <- c("imr", "nmr", "crude_birth_rate", "total_fertility_rate")
-  
+
   # Define number indicators
   number_indicators <- c("stillbirth")
-  
+
   # Define survey count indicators
   survey_count_indicators <- c("women_repro_age")
-  
-  # Check if this is TRULY subnational data (geographic regions, not just disaggregated by age/sex/etc.)
-  is_subnational <- "CharacteristicCategory" %in% names(df) &&
-    any(!is.na(df$CharacteristicCategory) &
-          tolower(df$CharacteristicCategory) %in% c("region", "province", "state", "administrative region"))
-  
-  # Alternative check if CharacteristicCategory not available
-  if(!is_subnational && "CharacteristicLabel" %in% names(df)) {
-    # Only treat as subnational if CharacteristicLabel contains actual region names
-    # (not age groups like "0-4", sex like "Male", education like "Primary", etc.)
-    char_labels <- unique(df$CharacteristicLabel[!is.na(df$CharacteristicLabel)])
-    
-    # Geographic regions typically don't contain numbers or common demographic terms
-    geographic_patterns <- c("region", "province", "state", "district", "ashanti", "central", "northern",
-                             "southern", "eastern", "western", "volta", "brong", "upper")
-    non_geographic_patterns <- c("^[0-9]", "total", "male", "female", "primary", "secondary",
-                                 "urban", "rural", "poorest", "richest", "lowest", "highest")
-    
-    has_geographic <- any(grepl(paste(geographic_patterns, collapse = "|"), char_labels, ignore.case = TRUE))
-    has_non_geographic <- any(grepl(paste(non_geographic_patterns, collapse = "|"), char_labels, ignore.case = TRUE))
-    
-    # Only treat as subnational if it looks like geographic regions
-    is_subnational <- has_geographic && !has_non_geographic
-  }
-  
-  message("DHS data type detected: ", ifelse(is_subnational, "Subnational (Geographic)", "National (or non-geographic breakdown)"))
-  
+
   cleaned_data <- df %>%
     filter(!is.na(Value), IsPreferred == 1) %>%
-    # For truly subnational data, filter for meaningful geographic regions
-    {if(is_subnational) {
-      if("CharacteristicCategory" %in% names(.)) {
-        filter(., !is.na(CharacteristicCategory),
-               tolower(CharacteristicCategory) %in% c("region", "province", "state", "administrative region"))
-      } else {
-        filter(., !is.na(CharacteristicLabel), CharacteristicLabel != "Total")
-      }
-    } else .} %>%
     mutate(indicator_id = tolower(IndicatorId)) %>%
     left_join(mapping, by = c("indicator_id" = "original_id")) %>%
-    filter(!is.na(common_id)) %>%
+    # NEW: Auto-generate common_id for indicators not in mapping
+    rowwise() %>%
+    mutate(
+      indicator_label = if("Label" %in% names(df)) Label else NA_character_,
+      common_id = if(is.na(common_id)) {
+        get_or_generate_common_id(IndicatorId, indicator_label, "DHS")
+      } else {
+        common_id
+      }
+    ) %>%
+    ungroup() %>%
     mutate(
       # Convert percentages to decimals
       cleaned_value = ifelse(common_id %in% percentage_indicators, Value / 100, Value),
@@ -133,13 +168,32 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
         common_id %in% survey_count_indicators ~ "survey_count",
         TRUE ~ "other"
       ),
-      # Set admin_area_2 based on data type
-      admin_area_2 = if(is_subnational) {
-        # Clean up subnational area names (remove dots and extra spaces)
-        str_trim(str_remove(CharacteristicLabel, "^\\.*\\s*"))
-      } else {
-        "NATIONAL"  # For national data, always use NATIONAL regardless of other breakdowns
-      }
+      # Determine if this row is subnational based on its characteristics
+      is_row_subnational = case_when(
+        # If CharacteristicCategory exists and indicates geographic data
+        !is.na(CharacteristicCategory) &
+          tolower(CharacteristicCategory) %in% c("region", "province", "state", "administrative region") ~ TRUE,
+        # Otherwise, check CharacteristicLabel for geographic patterns
+        !is.na(CharacteristicLabel) & CharacteristicLabel != "Total" ~ {
+          label_lower <- tolower(CharacteristicLabel)
+          # Geographic patterns
+          has_geo <- grepl("region|province|state|district|ashanti|central|northern|southern|eastern|western|volta|brong|upper", label_lower)
+          # Non-geographic patterns that indicate national/demographic disaggregation
+          has_non_geo <- grepl("^[0-9]|total|male|female|primary|secondary|urban|rural|poorest|richest|lowest|highest", label_lower)
+          # Only subnational if has geographic terms AND no demographic terms
+          has_geo & !has_non_geo
+        },
+        # Default to national
+        TRUE ~ FALSE
+      ),
+      # Set admin_area_2 based on row-level determination
+      admin_area_2 = if_else(
+        is_row_subnational,
+        str_trim(str_remove(CharacteristicLabel, "^\\.*\\s*")),  # Clean up subnational area names
+        "NATIONAL"  # National data
+      ),
+      # Set source based on row-level determination
+      source_type = if_else(is_row_subnational, "DHS Sub-national", "DHS National")
     ) %>%
     transmute(
       admin_area_1 = CountryName,
@@ -149,13 +203,18 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
       indicator_common_id = as.character(common_id),      # Ensure string type
       indicator_type = indicator_type,
       survey_value = cleaned_value,
-      source = if(is_subnational) "DHS Sub-national" else "DHS National",
+      source = source_type,  # Use row-level determination
       source_detail = as.character(SurveyId),
       survey_type = "household",
       country_name = CountryName,
       iso2_code = countrycode(CountryName, "country.name", "iso2c", warn = FALSE),
       iso3_code = countrycode(CountryName, "country.name", "iso3c", warn = FALSE)
     )
+
+  # Log summary of data types
+  national_count <- sum(cleaned_data$admin_area_2 == "NATIONAL", na.rm = TRUE)
+  subnational_count <- sum(cleaned_data$admin_area_2 != "NATIONAL", na.rm = TRUE)
+  message("DHS cleaning completed: ", national_count, " national records, ", subnational_count, " subnational records")
 
   # Apply FASTR name standardization
   cleaned_data <- apply_fastr_name_standardization(cleaned_data, apply_standardization = apply_fastr_standardization)
@@ -202,16 +261,22 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
       ),
       admin_area_1_iso = REF_AREA,
       indicator_id = INDICATOR,
+      indicator_label = if("INDICATOR_LABEL" %in% names(df)) INDICATOR_LABEL else INDICATOR
+    ) %>%
+    filter(!is.na(value)) %>%
+    # Use rowwise for auto-generation fallback
+    rowwise() %>%
+    mutate(
       indicator_common_id = case_when(
         # Mortality
         indicator_id == "CME_MRM0" ~ "nmr",          # Neonatal mortality rate
         indicator_id == "CME_MRY0T4" ~ "imr",        # Infant mortality rate (0-4 years)
-        
+
         # Population estimates
         indicator_id == "DM_POP_GRT" ~ "popgrowth",  # Population growth rate
         indicator_id == "DM_POP_TOT" ~ "poptot",     # Total population
         indicator_id == "DM_POP_U5" ~ "popu5",       # Under-5 population
-        
+
         # Immunization
         indicator_id == "IM_BCG" ~ "bcg",            # BCG vaccine
         indicator_id == "IM_HEPBB" ~ "hepb",         # Hepatitis B
@@ -219,7 +284,7 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
         indicator_id == "IM_HIB3" ~ "hib3",          # Hib3
         indicator_id == "IM_DTP1" ~ "penta1",        # DTP1 (Penta1)
         indicator_id == "IM_DTP3" ~ "penta3",        # DTP3 (Penta3)
-        
+
         # Maternal and newborn care
         indicator_id == "MNCH_ANC1" ~ "anc1",        # ANC1
         indicator_id == "MNCH_ANC4" ~ "anc4",        # ANC4+
@@ -227,19 +292,19 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
         indicator_id == "MNCH_PNCMOM" ~ "pnc1",      # PNC (mother)
         indicator_id == "MNCH_IPTP" ~ "iptp3",       # IPTp3+ doses
         indicator_id == "MNCH_MMR" ~ "mmr",          # Maternal mortality ratio
-        
+
         # Diarrhoea treatment
         indicator_id == "MNCH_ORS" ~ "ors",          # ORS only
         indicator_id == "MNCH_ORSZINC" ~ "ors_zinc",  # ORS and Zinc
-        
+
         # Family planning and nutrition
         indicator_id == "MNCH_DEMAND_FP" ~ "fp",     # Family planning demand satisfied
-        
-        # Fallback
-        TRUE ~ NA_character_
+
+        # Fallback: use auto-generation
+        TRUE ~ get_or_generate_common_id(indicator_id, indicator_label, "MICS")
       )
     ) %>%
-    filter(!is.na(value), !is.na(indicator_common_id)) %>%
+    ungroup() %>%
     mutate(
       # Convert country codes to names, with special handling for Côte d'Ivoire
       admin_area_1 = case_when(
@@ -315,6 +380,7 @@ clean_mics_wuenic_data <- function(df, apply_fastr_standardization = TRUE) {
   cleaned_data <- df %>%
     mutate(
       year = as.integer(SurveyYear),
+      indicator_label = if("IndicatorLabel" %in% names(df)) IndicatorLabel else Indicator,
       # Map vaccine indicators to common IDs
       indicator_common_id = case_when(
         Indicator == "BCG" ~ "bcg",
@@ -333,7 +399,8 @@ clean_mics_wuenic_data <- function(df, apply_fastr_standardization = TRUE) {
         Indicator == "Hib3" ~ "hib3",
         Indicator == "YFV" ~ "yellow_fever",
         grepl("DTP3.*HepB3.*Hib3", Indicator) ~ "full_vaccination",
-        TRUE ~ tolower(Indicator)
+        # Fallback: use auto-generation
+        TRUE ~ get_or_generate_common_id(Indicator, indicator_label, "WUENIC")
       ),
       # Convert percentages to decimals
       survey_value = case_when(
@@ -377,24 +444,34 @@ clean_mics_wuenic_data <- function(df, apply_fastr_standardization = TRUE) {
 
 clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
   if (nrow(df) == 0) return(data.frame())
-  
+
+  # Debug: Check what columns and indicator values we actually have
+  message("UNWPP columns available: ", paste(names(df), collapse = ", "))
+  if("indicator_id" %in% names(df)) {
+    message("Unique indicator_id values: ", paste(unique(df$indicator_id), collapse = ", "))
+  }
+  if("indicatorDisplayName" %in% names(df)) {
+    message("Unique indicatorDisplayName values: ", paste(unique(df$indicatorDisplayName), collapse = ", "))
+  }
+
   # Base filtering like your legacy code
   base <- df %>%
     filter(
       variant == "Median",
       !is.na(value)
     )
-  
+
   message("Base records after median variant filter: ", nrow(base))
-  
-  # Crude birth rate - no sex filter needed
+
+  # Crude birth rate - use indicator_id instead of indicatorDisplayName
+  # Indicator 55 = Crude birth rate
   crudebr <- base %>%
-    filter(indicatorDisplayName == "Crude birth rate (births per 1,000 population)") %>%
+    filter(indicator_id == "55") %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo", 
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -405,26 +482,26 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Crude birth rate",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
   
   message("Crude birth rate records: ", nrow(crudebr))
-  
+
   # Total population (all ages) - requires "Both sexes"
+  # Indicator 49 = Total population by sex
   poptot <- base %>%
     filter(
-      indicatorDisplayName == "Total population by sex",
+      indicator_id == "49",
       sex == "Both sexes"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
-      admin_area_2 = "NATIONAL", 
+      admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
       indicator_id = indicatorDisplayName,
       indicator_common_id = "poptot",
@@ -433,53 +510,53 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Total population",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
   
   message("Total population records: ", nrow(poptot))
-  
+
   # Female population 15–49 - requires Female sex and 15-49 age
+  # Indicator 41 = Female population of reproductive age (15-49 years)
   womenrepage <- base %>%
     filter(
-      indicatorDisplayName == "Female population of reproductive age (15-49 years)",
+      indicator_id == "41",
       sex %in% c("Female", NA),
       ageLabel == "15-49"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire", 
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
       indicator_id = indicatorDisplayName,
-      indicator_common_id = "womenrepage", 
+      indicator_common_id = "womenrepage",
       indicator_type = "population_estimate",
       survey_value = as.numeric(value),
       source = "UNWPP",
       source_detail = "UNWPP - Female reproductive age population",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
   
   message("Women reproductive age records: ", nrow(womenrepage))
-  
+
   # Infant mortality rate - requires "Both sexes"
+  # Indicator 22 = Infant mortality rate (IMR)
   imr <- base %>%
     filter(
-      indicatorDisplayName == "Infant mortality rate (IMR)",
+      indicator_id == "22",
       sex == "Both sexes"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -487,55 +564,55 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       indicator_common_id = "imr",
       indicator_type = "rate",
       survey_value = as.numeric(value),
-      source = "UNWPP", 
+      source = "UNWPP",
       source_detail = "UNWPP - Infant mortality rate",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
   
   message("Infant mortality rate records: ", nrow(imr))
-  
+
   # Under-five mortality rate - requires "Both sexes"
+  # Indicator 24 = Under-five mortality rate (U5MR)
   u5mr <- base %>%
     filter(
-      indicatorDisplayName == "Under-five mortality rate (U5MR)",
-      sex == "Both sexes" 
+      indicator_id == "24",
+      sex == "Both sexes"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
       indicator_id = indicatorDisplayName,
-      indicator_common_id = "u5mr", 
+      indicator_common_id = "u5mr",
       indicator_type = "rate",
       survey_value = as.numeric(value),
       source = "UNWPP",
       source_detail = "UNWPP - Under-five mortality rate",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
   
   message("Under-five mortality rate records: ", nrow(u5mr))
-  
+
   # mCPR (modern contraceptive prevalence) - requires specific category
+  # Indicator 2 = CP Modern (modern contraceptive prevalence rate)
   mcpr <- base %>%
     filter(
-      indicatorDisplayName == "CP Modern",
+      indicator_id == "2",
       category == "All women"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -546,55 +623,56 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Modern contraceptive prevalence",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
   
   message("Modern contraceptive prevalence records: ", nrow(mcpr))
-  
+
   # Total number of live births
+  # Note: This indicator may not have a standard ID, checking if it exists
   livebirth <- base %>%
-    filter(indicatorDisplayName == "Total number of live births by sex") %>%
+    filter(grepl("live birth", indicatorDisplayName, ignore.case = TRUE) | indicator_id == "48") %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
       indicator_id = indicatorDisplayName,
       indicator_common_id = "livebirth",
-      indicator_type = "population_estimate", 
+      indicator_type = "population_estimate",
       survey_value = as.numeric(value),
       source = "UNWPP",
       source_detail = "UNWPP - Live births",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
   
   message("Live birth records: ", nrow(livebirth))
   
   # U1: age = 0 (calculated from age-disaggregated data)
+  # Indicator 47 should provide annual population by age
+  # If not available, this will return empty dataframe
   totu1pop_data <- base %>%
     filter(
-      indicatorDisplayName == "Annual population by 1-year age groups and by sex",
+      indicator_id == "47" | grepl("Annual population.*age", indicatorDisplayName, ignore.case = TRUE),
       ageLabel == "0",
       sex == "Both sexes"
     )
-  
+
   if(nrow(totu1pop_data) > 0) {
     totu1pop <- totu1pop_data %>%
-      group_by(location, iso2, timeLabel) %>%
+      group_by(country, country_name, timeLabel) %>%
       summarise(value = sum(value), .groups = "drop") %>%
       mutate(
         admin_area_1 = case_when(
-          location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-          location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo", 
-          TRUE ~ location
+          country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+          country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+          TRUE ~ country_name
         ),
         admin_area_2 = "NATIONAL",
         year = as.integer(timeLabel),
@@ -605,9 +683,8 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
         source = "UNWPP",
         source_detail = "UNWPP - Under-1 population",
         survey_type = "modeled",
-        country_name = admin_area_1,
-        iso2_code = iso2,
-        iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+        iso2_code = country,  # country is ISO2 from fetch function
+        iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
       )
   } else {
     totu1pop <- data.frame()
@@ -616,24 +693,34 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
   message("Under-1 population records: ", nrow(totu1pop))
   
   # U5: ages 0–4 (calculated from age-disaggregated data)
-  totu5pop_data <- base %>%
-    filter(
-      indicatorDisplayName == "Annual population by 1-year age groups and by sex",
-      ageLabel %in% as.character(0:4),
-      sex == "Both sexes"
-    )
-  
+  # Indicator 46 provides under-5 population directly, or calculate from age data
+  # First try indicator 46 (direct U5 population)
+  totu5pop_direct <- base %>%
+    filter(indicator_id == "46")
+
+  if(nrow(totu5pop_direct) > 0) {
+    totu5pop_data <- totu5pop_direct
+  } else {
+    # Fall back to calculating from age-disaggregated data
+    totu5pop_data <- base %>%
+      filter(
+        indicator_id == "47" | grepl("Annual population.*age", indicatorDisplayName, ignore.case = TRUE),
+        ageLabel %in% as.character(0:4),
+        sex == "Both sexes"
+      )
+  }
+
   if(nrow(totu5pop_data) > 0) {
     totu5pop <- totu5pop_data %>%
-      group_by(location, iso2, timeLabel) %>%
+      group_by(country, country_name, timeLabel) %>%
       summarise(value = sum(value), .groups = "drop") %>%
       mutate(
         admin_area_1 = case_when(
-          location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-          location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-          TRUE ~ location
+          country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+          country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+          TRUE ~ country_name
         ),
-        admin_area_2 = "NATIONAL", 
+        admin_area_2 = "NATIONAL",
         year = as.integer(timeLabel),
         indicator_id = "Annual population age 0-4",
         indicator_common_id = "totu5pop",
@@ -642,9 +729,8 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
         source = "UNWPP",
         source_detail = "UNWPP - Under-5 population",
         survey_type = "modeled",
-        country_name = admin_area_1,
-        iso2_code = iso2,
-        iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+        iso2_code = country,  # country is ISO2 from fetch function
+        iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
       )
   } else {
     totu5pop <- data.frame()
@@ -653,16 +739,17 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
   message("Under-5 population records: ", nrow(totu5pop))
 
   # Life Expectancy at Birth - Both sexes
+  # Indicator 61 = Life expectancy at birth
   lifeexp <- base %>%
     filter(
-      indicatorDisplayName == "Life expectancy at birth (years)",
+      indicator_id == "61",
       sex == "Both sexes"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -673,21 +760,21 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Life expectancy at birth",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
 
   message("Life expectancy records: ", nrow(lifeexp))
 
   # Total Fertility Rate - Female only
+  # Indicator 19 = Total fertility (children per woman)
   tfr <- base %>%
-    filter(indicatorDisplayName == "Total fertility (children per woman)") %>%
+    filter(indicator_id == "19") %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -698,24 +785,24 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Total fertility rate",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
 
   message("Total fertility rate records: ", nrow(tfr))
 
   # Median Age of Population - Both sexes
+  # Indicator 67 = Median age of the population
   medianage <- base %>%
     filter(
-      indicatorDisplayName == "Median age of the population (years)",
+      indicator_id == "67",
       sex == "Both sexes"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -726,24 +813,24 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Median age of population",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
 
   message("Median age records: ", nrow(medianage))
 
   # Adult Mortality (15-50) - Both sexes
+  # Indicator 62 = Probability of dying between age 15 and age 50
   adultmort <- base %>%
     filter(
-      indicatorDisplayName == "Probability of dying between age 15 and age 50 (per 1,000)",
+      indicator_id == "62",
       sex == "Both sexes"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -754,24 +841,24 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Adult mortality rate (15-50)",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
 
   message("Adult mortality records: ", nrow(adultmort))
 
   # Child Dependency Ratio - Both sexes
+  # Indicator 83 = Child dependency ratio
   childdep <- base %>%
     filter(
-      indicatorDisplayName == "Child dependency ratio (per 100 persons of working age)",
+      indicator_id == "83",
       sex == "Both sexes"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -782,24 +869,24 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Child dependency ratio",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
 
   message("Child dependency records: ", nrow(childdep))
 
   # Old-Age Dependency Ratio - Both sexes
+  # Indicator 84 = Old-age dependency ratio
   olddep <- base %>%
     filter(
-      indicatorDisplayName == "Old-age dependency ratio (per 100 persons of working age)",
+      indicator_id == "84",
       sex == "Both sexes"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -810,24 +897,24 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Old-age dependency ratio",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
 
   message("Old-age dependency records: ", nrow(olddep))
 
   # Total Dependency Ratio - Both sexes
+  # Indicator 86 = Total dependency ratio
   totdep <- base %>%
     filter(
-      indicatorDisplayName == "Total dependency ratio (per 100 persons of working age)",
+      indicator_id == "86",
       sex == "Both sexes"
     ) %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -838,21 +925,21 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Total dependency ratio",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
 
   message("Total dependency records: ", nrow(totdep))
 
   # Sex Ratio of Total Population
+  # Indicator 72 = Sex ratio of the total population
   sexratio <- base %>%
-    filter(indicatorDisplayName == "Sex ratio of the total population (males per 100 females)") %>%
+    filter(indicator_id == "72") %>%
     mutate(
       admin_area_1 = case_when(
-        location == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        location == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
-        TRUE ~ location
+        country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
+        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
@@ -863,9 +950,8 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       source = "UNWPP",
       source_detail = "UNWPP - Sex ratio of total population",
       survey_type = "modeled",
-      country_name = admin_area_1,
-      iso2_code = iso2,
-      iso3_code = countrycode(iso2, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = country,
+      iso3_code = countrycode(country, "iso2c", "iso3c", warn = FALSE)
     )
 
   message("Sex ratio records: ", nrow(sexratio))
@@ -905,8 +991,6 @@ clean_survey_data <- function(raw_data, data_source, selected_countries = NULL, 
     return(clean_dhs_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else if(data_source == "mics") {
     return(clean_mics_data(raw_data, selected_countries, apply_fastr_standardization = apply_fastr_standardization))
-  } else if(data_source == "mics_wuenic") {
-    return(clean_mics_wuenic_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else if(data_source == "unwpp") {
     return(clean_unwpp_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else {

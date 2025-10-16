@@ -5,6 +5,53 @@
 # Purpose: All functions for fetching data from DHS, MICS, and UNWPP APIs
 
 # ========================================
+# DATASET LABELING HELPER
+# ========================================
+
+#' Generate a human-readable label for a dataset
+#' @param source Data source ("dhs", "mics", "unwpp")
+#' @param indicators Vector of indicator IDs
+#' @param countries Vector of country codes
+#' @return A concise label string
+generate_dataset_label <- function(source, indicators, countries) {
+  # Source label
+  source_label <- switch(source,
+                        "dhs" = "DHS",
+                        "mics" = "MICS",
+                        "unwpp" = "UNWPP",
+                        toupper(source))
+
+  # Indicator summary
+  n_indicators <- length(indicators)
+  indicator_summary <- if(n_indicators == 1) {
+    # Try to get a short readable name
+    indicators[1]
+  } else {
+    paste0(n_indicators, " indicators")
+  }
+
+  # Country summary
+  n_countries <- length(countries)
+  country_summary <- if(n_countries == 1) {
+    countries[1]
+  } else if(n_countries <= 3) {
+    paste(countries, collapse = ", ")
+  } else {
+    paste0(n_countries, " countries")
+  }
+
+  # Combine into label
+  label <- paste0(source_label, " | ", indicator_summary, " | ", country_summary)
+
+  # Truncate if too long
+  if(nchar(label) > 80) {
+    label <- paste0(substr(label, 1, 77), "...")
+  }
+
+  return(label)
+}
+
+# ========================================
 # DHS FAVORITE INDICATORS CONFIGURATION
 # ========================================
 
