@@ -21,7 +21,7 @@ library(shinycssloaders)
 library(shinyBS)
 library(stringr)
 library(shinyjs)
-library(readxl)  # For WUENIC MICS data parser
+library(readxl)  # For WUENIC data parser
 
 # Load environment variables
 readRenviron(".Renviron")
@@ -99,7 +99,7 @@ server <- function(input, output, session) {
 
     metadata <- switch(input$data_source,
                        "dhs" = fetch_dhs_metadata(),
-                       "mics" = fetch_mics_metadata(),
+                       "unicef" = fetch_unicef_metadata(),
                        "unwpp" = fetch_unwpp_metadata())
 
     # Debug: Check metadata right after fetching
@@ -110,7 +110,7 @@ server <- function(input, output, session) {
     
     countries <- switch(input$data_source,
                         "dhs" = fetch_dhs_countries(),
-                        "mics" = fetch_mics_countries(),
+                        "unicef" = fetch_unicef_countries(),
                         "unwpp" = fetch_unwpp_countries())
     values$countries <- countries
   })
@@ -338,19 +338,19 @@ output$country_selector <- renderUI({
                            !(all_selected == length(unlist(favorites_list, use.names = FALSE)) && all_selected > 0)))
   }, ignoreNULL = FALSE, ignoreInit = TRUE)
   
-  observeEvent(input$select_mics_maternal, {
-    mics_maternal <- c("MNCH_ANC1", "MNCH_ANC4", "MNCH_INSTDEL", "MNCH_PNCMOM")
-    updatePickerInput(session, "indicators", selected = mics_maternal)
+  observeEvent(input$select_unicef_maternal, {
+    unicef_maternal <- c("MNCH_ANC1", "MNCH_ANC4", "MNCH_INSTDEL", "MNCH_PNCMOM")
+    updatePickerInput(session, "indicators", selected = unicef_maternal)
   })
-  
-  observeEvent(input$select_mics_vaccines, {
-    mics_vaccines <- c("IM_BCG", "IM_DTP1", "IM_DTP3")
-    updatePickerInput(session, "indicators", selected = mics_vaccines)
+
+  observeEvent(input$select_unicef_vaccines, {
+    unicef_vaccines <- c("IM_BCG", "IM_DTP1", "IM_DTP3")
+    updatePickerInput(session, "indicators", selected = unicef_vaccines)
   })
-  
-  observeEvent(input$select_mics_mortality, {
-    mics_mortality <- c("CME_MRM0", "CME_MRY0T4")
-    updatePickerInput(session, "indicators", selected = mics_mortality)
+
+  observeEvent(input$select_unicef_mortality, {
+    unicef_mortality <- c("CME_MRM0", "CME_MRY0T4")
+    updatePickerInput(session, "indicators", selected = unicef_mortality)
   })
 
   # ========================================
@@ -540,9 +540,9 @@ output$country_selector <- renderUI({
       if(input$data_source == "dhs") {
         session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching DHS data..."))
         data <- fetch_dhs_data(input$indicators, input$countries, input$breakdown)
-      } else if(input$data_source == "mics") {
+      } else if(input$data_source == "unicef") {
         session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching UNICEF SDMX data..."))
-        data <- fetch_mics_data(input$indicators, input$countries)
+        data <- fetch_unicef_data(input$indicators, input$countries)
       } else if(input$data_source == "unwpp") {
         session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching UNWPP data..."))
         data <- fetch_unwpp_data(input$indicators, input$countries, input$start_year, input$end_year)
@@ -650,7 +650,7 @@ output$country_selector <- renderUI({
       # Get proper data source label
       source_label <- switch(input$data_source,
                             "dhs" = "DHS",
-                            "mics" = "UNICEF SDMX API",
+                            "unicef" = "UNICEF SDMX API",
                             "unwpp" = "UNWPP",
                             toupper(input$data_source))
 

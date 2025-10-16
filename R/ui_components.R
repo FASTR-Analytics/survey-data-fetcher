@@ -181,7 +181,7 @@ create_help_tab <- function() {
 
               h4("Getting Started"),
               tags$ol(
-                tags$li("Choose your data source (DHS, MICS, or UNWPP) from the sidebar"),
+                tags$li("Choose your data source (DHS, UNICEF, or UNWPP) from the sidebar"),
                 tags$li("Select indicators using quick favorites or browse all available options"),
                 tags$li("Choose your countries of interest"),
                 tags$li("Click 'Fetch Data' and wait for the API to retrieve your data"),
@@ -230,12 +230,12 @@ create_indicator_selection_box <- function() {
       )
     ),
     
-    # Favorites Mode - MICS
+    # Favorites Mode - UNICEF
     conditionalPanel(
-      condition = "input.data_source == 'mics' && input.indicator_mode == 'favorites'",
+      condition = "input.data_source == 'unicef' && input.indicator_mode == 'favorites'",
       div(
-        h5(icon("star"), "Quick Select MICS Favorites"),
-        create_mics_favorite_buttons(),
+        h5(icon("star"), "Quick Select UNICEF Favorites"),
+        create_unicef_favorite_buttons(),
         hr()
       )
     ),
@@ -369,13 +369,13 @@ create_dhs_favorite_buttons <- function() {
   )
 }
 
-create_mics_favorite_buttons <- function() {
+create_unicef_favorite_buttons <- function() {
   div(style = "margin-bottom: 15px;",
-      actionButton("select_mics_maternal", "Maternal Health",
+      actionButton("select_unicef_maternal", "Maternal Health",
                    class = "btn-sm btn-outline-info", style = "margin: 2px;"),
-      actionButton("select_mics_vaccines", "Child Immunization",
+      actionButton("select_unicef_vaccines", "Child Immunization",
                    class = "btn-sm btn-outline-info", style = "margin: 2px;"),
-      actionButton("select_mics_mortality", "Child Mortality",
+      actionButton("select_unicef_mortality", "Child Mortality",
                    class = "btn-sm btn-outline-info", style = "margin: 2px;")
   )
 }
@@ -434,7 +434,7 @@ create_app_sidebar <- function() {
         radioButtons("data_source", NULL,
                      choices = list(
                        "DHS - Demographic & Health Surveys" = "dhs",
-                       "UNICEF SDMX API" = "mics",
+                       "UNICEF SDMX API" = "unicef",
                        "UN World Population Prospects" = "unwpp"
                      ),
                      selected = "dhs")
