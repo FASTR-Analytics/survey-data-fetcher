@@ -1088,11 +1088,11 @@ output$country_selector <- renderUI({
     
     plot_data <- filter_data(indicator_data, input$plot_countries) %>%
       mutate(
-        # Create display name for legend using country_name
+        # Create display name for legend using country_name and source
         geo_label = if_else(
           admin_area_2 == "NATIONAL" | is.na(admin_area_2),
-          country_name,  # Use country_name instead of admin_area_1
-          paste(country_name, "-", admin_area_2)  # Use country_name for subnational too
+          paste0(country_name, " (", toupper(source), ")"),  # Include source for national
+          paste0(country_name, " - ", admin_area_2, " (", toupper(source), ")")  # Include source for subnational
         )
       ) %>%
       arrange(.data$year)
