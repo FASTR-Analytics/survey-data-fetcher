@@ -223,14 +223,14 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
 }
 
 # ========================================
-# MICS DATA CLEANING
+# UNICEF DATA CLEANING
 # ========================================
 
-clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardization = TRUE) {
+clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standardization = TRUE) {
   if(nrow(df) == 0) return(data.frame())
 
   # Debug: Check what columns we actually have
-  message("MICS columns available: ", paste(names(df), collapse = ", "))
+  message("UNICEF columns available: ", paste(names(df), collapse = ", "))
 
   # Debug: Check what countries are actually in the data
   if("REF_AREA" %in% names(df)) {
@@ -301,7 +301,7 @@ clean_mics_data <- function(df, selected_countries = NULL, apply_fastr_standardi
         indicator_id == "MNCH_DEMAND_FP" ~ "fp",     # Family planning demand satisfied
 
         # Fallback: use auto-generation
-        TRUE ~ get_or_generate_common_id(indicator_id, indicator_label, "MICS")
+        TRUE ~ get_or_generate_common_id(indicator_id, indicator_label, "UNICEF")
       )
     ) %>%
     ungroup() %>%
@@ -989,8 +989,8 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
 clean_survey_data <- function(raw_data, data_source, selected_countries = NULL, apply_fastr_standardization = TRUE) {
   if(data_source == "dhs") {
     return(clean_dhs_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
-  } else if(data_source == "mics") {
-    return(clean_mics_data(raw_data, selected_countries, apply_fastr_standardization = apply_fastr_standardization))
+  } else if(data_source == "unicef") {
+    return(clean_unicef_data(raw_data, selected_countries, apply_fastr_standardization = apply_fastr_standardization))
   } else if(data_source == "unwpp") {
     return(clean_unwpp_data(raw_data, apply_fastr_standardization = apply_fastr_standardization))
   } else {

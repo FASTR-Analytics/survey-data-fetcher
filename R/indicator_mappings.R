@@ -56,7 +56,7 @@ FAVORITE_DHS_LABELS <- list(
   "ML_NETP_H_MII" = "itn_use"
 )
 
-FAVORITE_MICS_LABELS <- list(
+FAVORITE_UNICEF_LABELS <- list(
   # UNICEF SDMX indicator mappings
   "CME_MRM0" = "nmr",
   "CME_MRY0T4" = "imr",
@@ -168,7 +168,7 @@ AUTO_LABEL_PATTERNS <- list(
 #'
 #' @param indicator_id Original indicator ID from source
 #' @param indicator_label Human-readable label
-#' @param source Data source (DHS, MICS, WUENIC, UNWPP)
+#' @param source Data source (DHS, UNICEF, WUENIC, UNWPP)
 #' @return Standardized common indicator ID
 #'
 get_or_generate_common_id <- function(indicator_id, indicator_label = NULL, source = "unknown") {
@@ -185,8 +185,8 @@ get_or_generate_common_id <- function(indicator_id, indicator_label = NULL, sour
   # Step 1: Check if it's in curated favorites
   favorite_lookup <- switch(tolower(source),
     "dhs" = FAVORITE_DHS_LABELS,
-    "mics" = FAVORITE_MICS_LABELS,
-    "unicef" = FAVORITE_MICS_LABELS,
+    "mics" = FAVORITE_UNICEF_LABELS,  # Keep "mics" for backwards compatibility
+    "unicef" = FAVORITE_UNICEF_LABELS,
     "wuenic" = FAVORITE_WUENIC_LABELS,
     "unwpp" = FAVORITE_UNWPP_LABELS,
     list()  # Default empty list

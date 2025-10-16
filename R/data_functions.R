@@ -17,7 +17,7 @@ generate_dataset_label <- function(source, indicators, countries) {
   # Source label
   source_label <- switch(source,
                         "dhs" = "DHS",
-                        "mics" = "MICS",
+                        "unicef" = "UNICEF",
                         "unwpp" = "UNWPP",
                         toupper(source))
 
@@ -160,7 +160,7 @@ get_fallback_countries <- function(source) {
     arrange(country_name)
 }
 
-fetch_mics_countries <- function() {
+fetch_unicef_countries <- function() {
   tryCatch({
     # Try to fetch from UNICEF SDMX API first
     ref_area_codelist <- readSDMX("https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/codelist/UNICEF/CL_UNICEF_REF_AREA/1.0")
@@ -181,10 +181,10 @@ fetch_mics_countries <- function() {
       arrange(country_name)
     
   }, error = function(e) {
-    message("MICS API unavailable, using curated MICS countries list")
-    
-    # Curated list of countries that actually have MICS data, ensuring CI is included
-    mics_countries <- data.frame(
+    message("UNICEF API unavailable, using curated UNICEF countries list")
+
+    # Curated list of countries that actually have UNICEF data, ensuring CI is included
+    unicef_countries <- data.frame(
       country_code = c("AF", "BD", "BJ", "BF", "BI", "KH", "CM", "CF", "TD", "KM",
                        "CD", "CI", "DJ", "EG", "ER", "ET", "GM", "GH", "GN", "GW",
                        "HT", "KE", "LS", "LR", "MG", "MW", "ML", "MR", "MZ", "NP",
@@ -205,8 +205,8 @@ fetch_mics_countries <- function() {
       ) %>%
       filter(!is.na(country_name)) %>%
       arrange(country_name)
-    
-    return(mics_countries)
+
+    return(unicef_countries)
   })
 }
 
@@ -293,7 +293,7 @@ fetch_dhs_metadata <- function() {
   })
 }
 
-fetch_mics_metadata <- function() {
+fetch_unicef_metadata <- function() {
   tryCatch({
     # Fetch indicator metadata from UNICEF SDMX API
     codelist_url <- "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/codelist/UNICEF/CL_UNICEF_INDICATOR"
@@ -301,15 +301,15 @@ fetch_mics_metadata <- function() {
     indicators_df <- as.data.frame(codelist)
 
     # Debug: Check what columns we actually have
-    message("MICS API columns available: ", paste(names(indicators_df), collapse = ", "))
+    message("UNICEF API columns available: ", paste(names(indicators_df), collapse = ", "))
     message("Number of indicators from API: ", nrow(indicators_df))
 
     # Define favorite indicators (our current core set)
     favorite_indicators <- c("CME_MRM0", "CME_MRY0T4", "IM_BCG", "IM_DTP1", "IM_DTP3",
                             "MNCH_ANC1", "MNCH_ANC4", "MNCH_INSTDEL", "MNCH_PNCMOM", "MNCH_ORSZINC")
 
-    # Filter for MICS-relevant indicators based on common MICS survey topics
-    mics_relevant_prefixes <- c(
+    # Filter for UNICEF-relevant indicators based on common UNICEF survey topics
+    unicef_relevant_prefixes <- c(
       "CME_",     # Child Mortality
       "IM_",      # Immunization
       "MNCH_",    # Maternal, Newborn and Child Health
@@ -328,7 +328,7 @@ fetch_mics_metadata <- function() {
 
     # Filter and process the indicators data
     result_df <- indicators_df %>%
-      filter(grepl(paste(mics_relevant_prefixes, collapse = "|"), !!sym(id_col))) %>%
+      filter(grepl(paste(unicef_relevant_prefixes, collapse = "|"), !!sym(id_col))) %>%
       mutate(
         IndicatorId = !!sym(id_col),
         Label = !!sym(name_col),
@@ -345,7 +345,7 @@ fetch_mics_metadata <- function() {
     return(result_df)
 
   }, error = function(e) {
-    message("Error fetching MICS metadata from API, using fallback data: ", e$message)
+    message("Error fetching UNICEF metadata from API, using fallback data: ", e$message)
 
     # Fallback to hardcoded core indicators if API fails
     data.frame(
@@ -464,11 +464,11 @@ fetch_unwpp_metadata <- function() {
 get_all_indicators_lookup <- function() {
   # Fetch metadata from all sources
   dhs_metadata <- tryCatch(fetch_dhs_metadata(), error = function(e) data.frame())
-  mics_metadata <- tryCatch(fetch_mics_metadata(), error = function(e) data.frame())
+  unicef_metadata <- tryCatch(fetch_unicef_metadata(), error = function(e) data.frame())
   unwpp_metadata <- tryCatch(fetch_unwpp_metadata(), error = function(e) data.frame())
 
   # Combine all metadata into a lookup table
-  all_metadata <- bind_rows(dhs_metadata, mics_metadata, unwpp_metadata)
+  all_metadata <- bind_rows(dhs_metadata, unicef_metadata, unwpp_metadata)
 
   # Create a simple lookup table with essential fields
   # Handle different column names across data sources
@@ -592,11 +592,11 @@ fetch_dhs_data <- function(indicators, countries, breakdown = "national") {
   }
 }
 
-fetch_mics_data <- function(indicators, countries = NULL) {
+fetch_unicef_data <- function(indicators, countries = NULL) {
   tryCatch({
     # Build country filter for SDMX URL
     if(!is.null(countries) && length(countries) > 0) {
-      # Convert ISO2 to ISO3 for MICS SDMX API
+      # Convert ISO2 to ISO3 for UNICEF SDMX API
       iso3_countries <- countrycode(countries, "iso2c", "iso3c", warn = FALSE)
       iso3_countries <- iso3_countries[!is.na(iso3_countries)]
 
@@ -613,19 +613,19 @@ fetch_mics_data <- function(indicators, countries = NULL) {
       message("Fetching UNICEF data for all countries")
     }
 
-    mics_url <- paste0(
+    unicef_url <- paste0(
       "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,GLOBAL_DATAFLOW,1.0/",
       country_filter, ".",
       paste(indicators, collapse = "+"),
       "..?startPeriod=2010&endPeriod=2024"
     )
 
-    message("Fetching UNICEF data from: ", mics_url)
-    mics_sdmx <- readSDMX(mics_url)
-    mics_data <- as.data.frame(mics_sdmx)
+    message("Fetching UNICEF data from: ", unicef_url)
+    unicef_sdmx <- readSDMX(unicef_url)
+    unicef_data <- as.data.frame(unicef_sdmx)
 
-    message("Successfully fetched ", nrow(mics_data), " UNICEF records for selected countries")
-    return(mics_data)
+    message("Successfully fetched ", nrow(unicef_data), " UNICEF records for selected countries")
+    return(unicef_data)
     
   }, error = function(e) {
     message("Error fetching UNICEF data: ", e$message)
@@ -633,7 +633,7 @@ fetch_mics_data <- function(indicators, countries = NULL) {
     data.frame(
       Message = paste("UNICEF API Error:", e$message, "- Please try again or use DHS/UNWPP"),
       Error_Details = as.character(e$message),
-      URL_Attempted = mics_url,
+      URL_Attempted = unicef_url,
       stringsAsFactors = FALSE
     )
   })
