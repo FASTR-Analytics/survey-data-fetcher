@@ -254,14 +254,20 @@ clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standar
     filter(!is.na(OBS_VALUE)) %>%
     mutate(
       year = as.integer(TIME_PERIOD),
-      # Simplified value calculation
-      value = case_when(
-        !is.na(UNIT_MULTIPLIER) & UNIT_MULTIPLIER == "3" ~ as.numeric(OBS_VALUE) * 1000,
-        TRUE ~ as.numeric(OBS_VALUE)
-      ),
       admin_area_1_iso = REF_AREA,
       indicator_id = INDICATOR,
       indicator_label = if("INDICATOR_LABEL" %in% names(df)) INDICATOR_LABEL else INDICATOR
+    ) %>%
+    # Calculate value - check if UNIT_MULTIPLIER exists first
+    mutate(
+      value = if("UNIT_MULTIPLIER" %in% names(df)) {
+        case_when(
+          !is.na(UNIT_MULTIPLIER) & UNIT_MULTIPLIER == "3" ~ as.numeric(OBS_VALUE) * 1000,
+          TRUE ~ as.numeric(OBS_VALUE)
+        )
+      } else {
+        as.numeric(OBS_VALUE)
+      }
     ) %>%
     filter(!is.na(value)) %>%
     # Use rowwise for auto-generation fallback
