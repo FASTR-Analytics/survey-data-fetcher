@@ -1,7 +1,6 @@
 # Use R base image
 FROM r-base:4.3.1
 
-# Cache bust: 2025-10-16-v3
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
