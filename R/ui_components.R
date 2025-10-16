@@ -97,14 +97,14 @@ create_processing_tab <- function() {
           fluidRow(
             box(
               title = "Clean & Process Data", status = "success", solidHeader = TRUE, width = 12,
-              
+
               fluidRow(
                 column(6,
-                       h4("Clean Data"),
+                       h4("Clean Latest Fetch"),
                        conditionalPanel(
                          condition = "output.has_data",
                          div(
-                           p("Apply standard cleaning and standardization to your fetched data."),
+                           p("Apply standard cleaning and standardization to your latest fetched data."),
                            div(style = "margin-bottom: 15px;",
                                checkboxInput("apply_fastr_standardization",
                                            "Apply FASTR name standardization",
@@ -114,12 +114,20 @@ create_processing_tab <- function() {
                                    icon("info-circle", style = "margin-right: 5px;"),
                                    "Standardizes country and province names for FASTR Analytics Platform compatibility")
                            ),
-                           actionButton("clean_data", "Clean Data",
+                           actionButton("clean_data", "Clean Latest Data",
                                         class = "btn-success btn-lg",
-                                        icon = icon("magic"))
+                                        icon = icon("magic")),
+                           br(), br(),
+                           actionButton("clean_cart_data", "Clean All Cart Data",
+                                        class = "btn-primary btn-lg",
+                                        icon = icon("shopping-cart"),
+                                        style = "margin-top: 10px;"),
+                           div(class = "alert alert-warning", style = "margin-top: 10px; padding: 8px; font-size: 12px;",
+                               icon("info-circle", style = "margin-right: 5px;"),
+                               "Clean All Cart Data will clean and combine ALL datasets in your cart, preserving both national and subnational data.")
                          )
                        ),
-                       
+
                        conditionalPanel(
                          condition = "!output.has_data",
                          div(class = "alert alert-info",
@@ -129,7 +137,8 @@ create_processing_tab <- function() {
                 ),
                 column(6,
                        h4("Processing Status"),
-                       uiOutput("cleaning_status")
+                       uiOutput("cleaning_status"),
+                       uiOutput("cart_cleaning_status")
                 )
               )
             )

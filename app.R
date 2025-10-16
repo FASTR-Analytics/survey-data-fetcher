@@ -601,15 +601,57 @@ output$country_selector <- renderUI({
       }
 
       session$sendCustomMessage("updateProgress", list(percent = 85, text = "Processing retrieved data..."))
+
+      # Always update legacy storage for backward compatibility
       values$fetched_data <- data
-      
+
+      # Add to cart if requested
+      if(!is.null(input$add_to_cart) && input$add_to_cart == TRUE && nrow(data) > 0) {
+        # Get the indicators for labeling (handle MICS WUENIC special case)
+        selected_indicators <- if(input$data_source == "mics_wuenic") {
+          input$mics_vaccines %||% character(0)
+        } else {
+          input$indicators %||% character(0)
+        }
+
+        # Generate dataset label
+        dataset_label <- generate_dataset_label(
+          source = input$data_source,
+          indicators = selected_indicators,
+          countries = input$countries
+        )
+
+        # Add to collection
+        values$fetch_collection[[as.character(values$next_dataset_id)]] <- list(
+          id = values$next_dataset_id,
+          label = dataset_label,
+          source = input$data_source,
+          timestamp = Sys.time(),
+          indicators = selected_indicators,
+          countries = input$countries,
+          n_records = nrow(data),
+          data = data
+        )
+
+        values$next_dataset_id <- values$next_dataset_id + 1
+
+        message("Added dataset to cart: ", dataset_label, " (ID: ", values$next_dataset_id - 1, ")")
+      }
+
       if(nrow(data) > 0) {
         session$sendCustomMessage("updateProgress", list(percent = 100, text = paste("Successfully fetched", nrow(data), "records!")))
+
+        # Update status message to show cart status if applicable
+        cart_message <- if(!is.null(input$add_to_cart) && input$add_to_cart == TRUE) {
+          paste0(" Added to cart (", length(values$fetch_collection), " datasets total).")
+        } else {
+          ""
+        }
 
         output$status_message <- renderUI({
           div(class = "alert alert-success",
               icon("check"),
-              paste(" Successfully fetched", nrow(data), "records from", toupper(input$data_source), "!"))
+              paste0(" Successfully fetched ", nrow(data), " records from ", toupper(input$data_source), "!", cart_message))
         })
 
         showNotification(paste("Successfully fetched", nrow(data), "records!"), type = "message", duration = 5)
@@ -713,7 +755,112 @@ output$country_selector <- renderUI({
     nrow(values$fetched_data) > 0
   })
   outputOptions(output, "has_data", suspendWhenHidden = FALSE)
-  
+
+  # ========================================
+  # CART MANAGEMENT
+  # ========================================
+
+  # Render cart table
+  output$cart_table <- DT::renderDataTable({
+    if(length(values$fetch_collection) == 0) {
+      return(data.frame(Message = "Cart is empty. Add data by checking 'Add to cart' before fetching."))
+    }
+
+    # Convert collection to data frame
+    cart_df <- data.frame(
+      ID = sapply(values$fetch_collection, function(x) x$id),
+      Label = sapply(values$fetch_collection, function(x) x$label),
+      Source = sapply(values$fetch_collection, function(x) toupper(x$source)),
+      Records = sapply(values$fetch_collection, function(x) x$n_records),
+      Timestamp = sapply(values$fetch_collection, function(x) {
+        format(x$timestamp, "%Y-%m-%d %H:%M")
+      }),
+      stringsAsFactors = FALSE
+    )
+
+    DT::datatable(
+      cart_df,
+      selection = "multiple",
+      options = list(
+        pageLength = 10,
+        dom = 't',
+        ordering = TRUE
+      ),
+      rownames = FALSE
+    )
+  })
+
+  # Cart summary
+  output$cart_summary <- renderUI({
+    total_datasets <- length(values$fetch_collection)
+    total_records <- sum(sapply(values$fetch_collection, function(x) x$n_records))
+
+    HTML(paste0(
+      "<strong>", total_datasets, "</strong> dataset", if(total_datasets != 1) "s" else "", "<br>",
+      "<strong>", format(total_records, big.mark = ","), "</strong> total records"
+    ))
+  })
+
+  # Remove selected from cart
+  observeEvent(input$remove_selected_from_cart, {
+    selected_rows <- input$cart_table_rows_selected
+
+    if(is.null(selected_rows) || length(selected_rows) == 0) {
+      showNotification("Please select datasets to remove", type = "warning")
+      return()
+    }
+
+    # Get IDs of datasets in the table (sorted by how they appear)
+    cart_ids <- names(values$fetch_collection)
+    ids_to_remove <- cart_ids[selected_rows]
+
+    # Remove from collection
+    values$fetch_collection[ids_to_remove] <- NULL
+
+    showNotification(paste("Removed", length(ids_to_remove), "dataset(s) from cart"),
+                    type = "message")
+  })
+
+  # Clear all cart
+  observeEvent(input$clear_cart, {
+    if(length(values$fetch_collection) == 0) {
+      showNotification("Cart is already empty", type = "warning")
+      return()
+    }
+
+    values$fetch_collection <- list()
+    values$next_dataset_id <- 1
+    showNotification("Cart cleared", type = "message")
+  })
+
+  # Download all cart data as CSV
+  output$download_cart_csv <- downloadHandler(
+    filename = function() {
+      paste0("cart_all_data_", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      if(length(values$fetch_collection) == 0) {
+        # Write empty file with message
+        write.csv(data.frame(Message = "Cart is empty"), file, row.names = FALSE)
+        return()
+      }
+
+      # Combine all datasets from cart
+      all_data <- lapply(values$fetch_collection, function(dataset) {
+        dataset$data %>%
+          mutate(
+            cart_dataset_id = dataset$id,
+            cart_dataset_label = dataset$label,
+            cart_dataset_source = toupper(dataset$source),
+            cart_timestamp = format(dataset$timestamp, "%Y-%m-%d %H:%M:%S")
+          )
+      })
+
+      combined_data <- bind_rows(all_data)
+      write.csv(combined_data, file, row.names = FALSE)
+    }
+  )
+
   # ========================================
   # CLEANING CONFIGURATION INTERFACE
   # ========================================
@@ -766,11 +913,81 @@ output$country_selector <- renderUI({
             icon("times"),
             paste("Cleaning error:", e$message))
       })
-      
+
       showNotification(paste("Cleaning error:", e$message), type = "error")
     })
   })
-  
+
+  # Clean all cart data
+  observeEvent(input$clean_cart_data, {
+    if(length(values$fetch_collection) == 0) {
+      showNotification("Cart is empty. Please add data to cart first.", type = "warning")
+      return()
+    }
+
+    output$cart_cleaning_status <- renderUI({
+      div(class = "alert alert-info",
+          icon("spinner", class = "fa-spin"),
+          paste(" Cleaning", length(values$fetch_collection), "dataset(s) from cart... Please wait."))
+    })
+
+    tryCatch({
+      # Clean each dataset in the cart
+      cleaned_datasets <- lapply(values$fetch_collection, function(dataset) {
+        clean_survey_data(dataset$data, dataset$source,
+                         selected_countries = NULL,
+                         apply_fastr_standardization = input$apply_fastr_standardization)
+      })
+
+      # Filter out empty cleaned datasets
+      non_empty <- cleaned_datasets[sapply(cleaned_datasets, nrow) > 0]
+
+      if(length(non_empty) == 0) {
+        output$cart_cleaning_status <- renderUI({
+          div(class = "alert alert-warning",
+              icon("exclamation-triangle"),
+              " No data remained after cleaning all cart datasets.")
+        })
+        return()
+      }
+
+      # Combine all cleaned datasets
+      combined_cleaned <- bind_rows(non_empty)
+
+      # Store in cleaned_data for visualization
+      values$cleaned_data <- combined_cleaned
+
+      # Report summary
+      total_raw_records <- sum(sapply(values$fetch_collection, function(x) x$n_records))
+      national_count <- sum(combined_cleaned$admin_area_2 == "NATIONAL", na.rm = TRUE)
+      subnational_count <- sum(combined_cleaned$admin_area_2 != "NATIONAL", na.rm = TRUE)
+
+      output$cart_cleaning_status <- renderUI({
+        div(class = "alert alert-success",
+            icon("check"),
+            HTML(paste0(
+              "Successfully cleaned ", length(non_empty), " dataset(s)!<br>",
+              "<strong>", nrow(combined_cleaned), "</strong> total records ",
+              "(", total_raw_records, " raw → ", nrow(combined_cleaned), " cleaned)<br>",
+              "<strong>", national_count, "</strong> national + ",
+              "<strong>", subnational_count, "</strong> subnational"
+            )))
+      })
+
+      showNotification(paste("Cleaned", nrow(combined_cleaned), "records from", length(non_empty), "datasets!"),
+                      type = "message")
+
+    }, error = function(e) {
+      output$cart_cleaning_status <- renderUI({
+        div(class = "alert alert-danger",
+            icon("times"),
+            paste("Cart cleaning error:", e$message))
+      })
+
+      showNotification(paste("Cart cleaning error:", e$message), type = "error")
+    })
+  })
+
   output$cleaned_data_table <- DT::renderDataTable({
     req(values$cleaned_data)
 
