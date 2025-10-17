@@ -8,6 +8,7 @@ library(shiny)
 library(shinydashboard)
 library(DT)
 library(dplyr)
+library(rlang)  # For %||% operator
 library(rdhs)
 library(rsdmx)
 library(httr)
