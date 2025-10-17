@@ -1,5 +1,5 @@
-# Use R base image
-FROM r-base:4.3.1
+# Use rocker/shiny-verse which includes tidyverse packages already installed
+FROM rocker/shiny-verse:4.3.1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -14,15 +14,26 @@ RUN apt-get update && apt-get install -y \
     libtiff5-dev \
     libjpeg-dev \
     libsodium-dev \
+    libgit2-dev \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install R packages in two stages - first core packages
-RUN R -e "install.packages(c('shiny', 'shinydashboard', 'DT', 'dplyr', 'httr', 'jsonlite', 'countrycode', 'data.table', 'plotly', 'shinyWidgets', 'RCurl', 'shinycssloaders', 'shinyBS', 'stringr', 'shinyjs', 'readxl', 'rsdmx'), repos='https://cloud.r-project.org/', dependencies=TRUE)"
+# Set CRAN repo to use binary packages (faster installation)
+RUN echo "options(repos = c(CRAN = 'https://packagemanager.posit.co/cran/__linux__/jammy/latest'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site
 
-# Install rdhs separately with explicit validation
-RUN R -e "install.packages('rdhs', repos='https://cloud.r-project.org/', dependencies=TRUE)" && \
-    R -e "if (!require('rdhs', quietly = TRUE)) { stop('rdhs package failed to install') }"
+# Install R packages in groups to improve caching and error handling
+# shinydashboard, DT, dplyr, httr, jsonlite are commonly available as binaries
+RUN R -e "install.packages(c('shinydashboard', 'DT', 'httr', 'jsonlite', 'countrycode', 'data.table'), Ncpus = 2)"
+
+# Install plotting and UI packages
+RUN R -e "install.packages(c('plotly', 'shinyWidgets', 'shinycssloaders', 'shinyBS', 'shinyjs'), Ncpus = 2)"
+
+# Install data/file handling packages
+RUN R -e "install.packages(c('RCurl', 'stringr', 'readxl', 'rsdmx'), Ncpus = 2)"
+
+# Install rdhs separately with explicit validation and error output
+RUN R -e "install.packages('rdhs', Ncpus = 2)" && \
+    R -e "if (!require('rdhs', quietly = TRUE)) { message('rdhs installation check failed'); q(status = 1) }"
 
 # Create app directory
 RUN mkdir -p /app
