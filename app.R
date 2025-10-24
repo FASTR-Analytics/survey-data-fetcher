@@ -124,19 +124,37 @@ server <- function(input, output, session) {
                  icon("exclamation-triangle"),
                  " No indicators available. Please check your connection."))
     }
-    
-    choices <- setNames(values$metadata$IndicatorId, values$metadata$display_label)
-    
-    if("is_favorite" %in% names(values$metadata)) {
-      favorite_ids <- values$metadata$IndicatorId[values$metadata$is_favorite]
-      names(choices)[values$metadata$IndicatorId %in% favorite_ids] <-
-        paste("[FAVORITE]", names(choices)[values$metadata$IndicatorId %in% favorite_ids])
+
+    # Determine which indicators to show based on mode
+    indicator_mode <- input$indicator_mode %||% "favorites"
+
+    if(indicator_mode == "favorites" && "is_favorite" %in% names(values$metadata)) {
+      # Filter to show only favorites
+      filtered_metadata <- values$metadata %>% filter(is_favorite == TRUE)
+
+      if(nrow(filtered_metadata) == 0) {
+        # No favorites defined, show all with warning
+        filtered_metadata <- values$metadata
+        message("No favorites defined for this data source, showing all indicators")
+      }
+    } else {
+      # Browse mode - show all indicators
+      filtered_metadata <- values$metadata
     }
-    
+
+    choices <- setNames(filtered_metadata$IndicatorId, filtered_metadata$display_label)
+
+    # Mark favorites in browse mode
+    if(indicator_mode == "browse" && "is_favorite" %in% names(filtered_metadata)) {
+      favorite_ids <- filtered_metadata$IndicatorId[filtered_metadata$is_favorite %in% TRUE]
+      names(choices)[filtered_metadata$IndicatorId %in% favorite_ids] <-
+        paste("[⭐]", names(choices)[filtered_metadata$IndicatorId %in% favorite_ids])
+    }
+
     tagList(
       div(id = "selection_counter", style = "margin-bottom: 10px;",
           textOutput("indicator_count")),
-      
+
       pickerInput("indicators", "Select Indicators:",
                   choices = choices,
                   multiple = TRUE,
@@ -155,8 +173,18 @@ server <- function(input, output, session) {
   })
   
   output$indicator_count <- renderText({
+    req(values$metadata)
     selected_count <- length(input$indicators %||% 0)
-    total_count <- nrow(values$metadata)
+
+    # Calculate total based on current mode
+    indicator_mode <- input$indicator_mode %||% "favorites"
+
+    if(indicator_mode == "favorites" && "is_favorite" %in% names(values$metadata)) {
+      total_count <- sum(values$metadata$is_favorite == TRUE, na.rm = TRUE)
+      if(total_count == 0) total_count <- nrow(values$metadata)  # Fallback if no favorites
+    } else {
+      total_count <- nrow(values$metadata)
+    }
 
     if(selected_count == 0) {
       "No indicators selected"
