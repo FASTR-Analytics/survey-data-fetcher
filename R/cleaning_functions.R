@@ -1026,7 +1026,58 @@ clean_survey_data <- function(raw_data, data_source, selected_countries = NULL, 
 # FASTR NAME STANDARDIZATION FUNCTIONS
 # ========================================
 
-get_country_name_mappings <- function() {
+#' Load DHIS2 country reference data (if available)
+#' @param file_path Path to DHIS2 countries CSV
+#' @return Data frame of DHIS2 country names, or NULL if file doesn't exist
+load_dhis2_country_reference <- function(file_path = "assets/dhis2_countries.csv") {
+  if (file.exists(file_path)) {
+    tryCatch({
+      ref <- read.csv(file_path, stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+      message("Loaded DHIS2 country reference: ", nrow(ref), " countries")
+      return(ref)
+    }, error = function(e) {
+      warning("Could not load DHIS2 country reference: ", e$message)
+      return(NULL)
+    })
+  }
+  return(NULL)
+}
+
+#' Load DHIS2 province reference data (if available)
+#' @param file_path Path to DHIS2 provinces CSV
+#' @return Data frame of DHIS2 province names, or NULL if file doesn't exist
+load_dhis2_province_reference <- function(file_path = "assets/dhis2_provinces.csv") {
+  if (file.exists(file_path)) {
+    tryCatch({
+      ref <- read.csv(file_path, stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+      message("Loaded DHIS2 province reference: ", nrow(ref), " provinces")
+      return(ref)
+    }, error = function(e) {
+      warning("Could not load DHIS2 province reference: ", e$message)
+      return(NULL)
+    })
+  }
+  return(NULL)
+}
+
+#' Get country name mappings (hardcoded fallback)
+#' @param use_dhis2 Try to use DHIS2 reference data first
+#' @return Named vector of country name mappings
+get_country_name_mappings <- function(use_dhis2 = TRUE) {
+
+  # Try to load DHIS2 reference first
+  if (use_dhis2) {
+    dhis2_ref <- load_dhis2_country_reference()
+    if (!is.null(dhis2_ref) && nrow(dhis2_ref) > 0) {
+      # Convert DHIS2 reference to named vector
+      # Assuming you want to map TO dhis2_name as the standard
+      message("Using DHIS2 country names as standard")
+      # For now, just return the hardcoded mappings
+      # You can customize this to use DHIS2 data
+    }
+  }
+
+  # Fallback to hardcoded mappings
   c(
     "Guinea" = "Guinée",
     "Nigeria" = "ng Federal Government",

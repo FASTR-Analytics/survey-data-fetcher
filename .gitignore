@@ -7,3 +7,6 @@ packrat/
 renv/
 .Rproj.user/
 docker-compose.yml
+
+# DHIS2 credentials and configuration (keep templates only)
+config/dhis2_instances.yaml

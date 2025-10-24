@@ -90,6 +90,18 @@ Quick-select buttons for common indicator groups:
 - Built-in data validation
 - Comprehensive error handling
 
+## DHIS2 Integration
+
+**NEW:** Fetch organization unit hierarchies from DHIS2 to standardize admin area names!
+
+The app now includes tools to:
+- Connect to DHIS2 instances via API
+- Fetch country, province, and district names
+- Build reference datasets for name standardization
+- Align survey data with DHIS2 naming conventions
+
+See `DHIS2_INTEGRATION.md` and `config/DHIS2_SETUP.md` for setup instructions.
+
 ## Contributing
 
 This is a FASTR Analytics internal tool. For issues or feature requests, please contact the development team.

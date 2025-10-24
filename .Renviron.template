@@ -1,0 +1,56 @@
+# ========================================
+# ENVIRONMENT VARIABLES TEMPLATE
+# ========================================
+# Copy this file to .Renviron (without .template) and fill in your credentials
+# IMPORTANT: .Renviron is in .gitignore and should NEVER be committed to git!
+
+# ========================================
+# EXISTING API KEYS
+# ========================================
+
+# DHS API Key (required for DHS data source)
+DHS_API_KEY=your_dhs_api_key_here
+
+# ========================================
+# DHIS2 CREDENTIALS
+# ========================================
+
+# Single instance setup (Basic Authentication)
+DHIS2_USERNAME=your_username
+DHIS2_PASSWORD=your_password
+
+# Single instance setup (Personal Access Token - RECOMMENDED)
+DHIS2_PAT=d2pat_yourTokenHere
+
+# DHIS2 instance URL (if you have a default instance)
+DHIS2_URL=https://your-dhis2-instance.org
+
+# ========================================
+# MULTIPLE DHIS2 INSTANCES
+# ========================================
+# For country-specific instances, use instance-specific variables
+
+# Senegal
+DHIS2_SENEGAL_URL=https://dhis2.sante.gouv.sn
+DHIS2_SENEGAL_USERNAME=your_username
+DHIS2_SENEGAL_PASSWORD=your_password
+DHIS2_SENEGAL_PAT=d2pat_senegalToken
+
+# Nigeria
+DHIS2_NIGERIA_URL=https://dhis2.ng
+DHIS2_NIGERIA_USERNAME=your_username
+DHIS2_NIGERIA_PASSWORD=your_password
+DHIS2_NIGERIA_PAT=d2pat_nigeriaToken
+
+# Add more instances as needed following the pattern:
+# DHIS2_COUNTRYNAME_URL=
+# DHIS2_COUNTRYNAME_PAT=
+
+# ========================================
+# USAGE NOTES
+# ========================================
+# 1. Copy this file: cp .Renviron.template .Renviron
+# 2. Edit .Renviron and add your actual credentials
+# 3. Restart R/RStudio after editing .Renviron
+# 4. Access in R with: Sys.getenv("VARIABLE_NAME")
+# 5. NEVER commit .Renviron to git!

@@ -1,0 +1,71 @@
+# ========================================
+# DHIS2 INSTANCES CONFIGURATION
+# ========================================
+# This file configures multiple DHIS2 instances for fetching org unit references
+#
+# Usage:
+#   1. Copy this file to dhis2_instances.yaml
+#   2. Update URLs and credentials for your DHIS2 instances
+#   3. Source this config in R with yaml::read_yaml()
+#
+# Security Note:
+#   - Do NOT commit credentials to git!
+#   - Use environment variables for sensitive data
+#   - Add dhis2_instances.yaml to .gitignore
+
+# Example configuration for multiple country instances
+instances:
+  # DHIS2 Demo/Training Instance (publicly accessible)
+  demo:
+    url: "https://play.dhis2.org/dev"
+    username: "admin"
+    password: "district"
+    use_pat: false
+    enabled: true
+    description: "DHIS2 demo instance for testing"
+
+  # Country-specific instance example (Senegal)
+  senegal:
+    url: "https://dhis2.sante.gouv.sn"  # Replace with actual URL
+    use_pat: true  # Recommended for production
+    # Option 1: Direct credentials (NOT recommended for production)
+    # username: "your_username"
+    # password: "your_password"
+    # Option 2: Environment variables (recommended)
+    # Set DHIS2_SENEGAL_PAT in your .Renviron file
+    pat_token: "${DHIS2_SENEGAL_PAT}"
+    enabled: false  # Set to true when ready to use
+    description: "Senegal DHIS2 instance"
+    country_name: "Sénégal"  # How this country appears in your data
+
+  # Another country example (Nigeria)
+  nigeria:
+    url: "https://dhis2.ng"  # Replace with actual URL
+    use_pat: true
+    pat_token: "${DHIS2_NIGERIA_PAT}"
+    enabled: false
+    description: "Nigeria DHIS2 instance"
+    country_name: "Nigeria"
+
+  # Add more instances as needed
+  # country_name:
+  #   url: "https://dhis2.example.org"
+  #   use_pat: true
+  #   pat_token: "${DHIS2_COUNTRY_PAT}"
+  #   enabled: false
+  #   description: "Country description"
+  #   country_name: "Country Name"
+
+# Configuration for what to fetch
+settings:
+  # Which org unit levels to fetch (1=country, 2=province, 3=district, 4=facility)
+  levels: [1, 2, 3]
+
+  # Output directory for reference CSV files
+  output_dir: "assets"
+
+  # Whether to create combined reference files from all instances
+  create_combined: true
+
+  # Whether to include level names from DHIS2 metadata
+  fetch_level_metadata: true
