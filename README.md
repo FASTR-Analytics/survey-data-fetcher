@@ -92,15 +92,13 @@ Quick-select buttons for common indicator groups:
 
 ## DHIS2 Integration
 
-**NEW:** Fetch organization unit hierarchies from DHIS2 to standardize admin area names!
+**NEW:** The app can use DHIS2 organization unit hierarchies to standardize admin area names!
 
-The app now includes tools to:
-- Connect to DHIS2 instances via API
-- Fetch country, province, and district names
-- Build reference datasets for name standardization
-- Align survey data with DHIS2 naming conventions
+A separate tool (`../dhis2_reference_builder/`) fetches organization units from DHIS2 and creates reference CSV files that this app uses automatically when cleaning data.
 
-See `DHIS2_INTEGRATION.md` and `config/DHIS2_SETUP.md` for setup instructions.
+**For users:** No setup needed - the app automatically uses DHIS2 reference files if available.
+
+**For administrators:** See `../dhis2_reference_builder/README.md` for instructions on fetching DHIS2 organization units.
 
 ## Contributing
 
