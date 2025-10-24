@@ -216,6 +216,23 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
   subnational_count <- sum(cleaned_data$admin_area_2 != "NATIONAL", na.rm = TRUE)
   message("DHS cleaning completed: ", national_count, " national records, ", subnational_count, " subnational records")
 
+  # Apply Senegal-specific year-based province name standardization
+  # Handles administrative boundary changes over time (2005 reorganization)
+  cleaned_data <- cleaned_data %>%
+    mutate(
+      admin_area_2 = str_squish(admin_area_2),
+      admin_area_2 = case_when(
+        # Senegal provinces with year-based naming (2005 boundary changes)
+        admin_area_2 == "Kaolack (2005)" & as.numeric(year) <= 2005 ~ "DRS Kaolack",
+        admin_area_2 == "Kolda (2005)" & as.numeric(year) <= 2005 ~ "DRS Kolda",
+        admin_area_2 == "Tambacounda (2005)" & as.numeric(year) <= 2005 ~ "DRS Tambacounda",
+        admin_area_2 == "Kaolack (2010)" & as.numeric(year) > 2005 ~ "DRS Kaolack",
+        admin_area_2 == "Kolda (2010)" & as.numeric(year) > 2005 ~ "DRS Kolda",
+        admin_area_2 == "Tambacounda (2010)" & as.numeric(year) > 2005 ~ "DRS Tambacounda",
+        TRUE ~ admin_area_2
+      )
+    )
+
   # Apply FASTR name standardization
   cleaned_data <- apply_fastr_name_standardization(cleaned_data, apply_standardization = apply_fastr_standardization)
 
