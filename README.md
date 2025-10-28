@@ -90,6 +90,16 @@ Quick-select buttons for common indicator groups:
 - Built-in data validation
 - Comprehensive error handling
 
+## DHIS2 Integration
+
+**NEW:** The app can use DHIS2 organization unit hierarchies to standardize admin area names!
+
+A separate tool (`../dhis2_reference_builder/`) fetches organization units from DHIS2 and creates reference CSV files that this app uses automatically when cleaning data.
+
+**For users:** No setup needed - the app automatically uses DHIS2 reference files if available.
+
+**For administrators:** See `../dhis2_reference_builder/README.md` for instructions on fetching DHIS2 organization units.
+
 ## Contributing
 
 This is a FASTR Analytics internal tool. For issues or feature requests, please contact the development team.
