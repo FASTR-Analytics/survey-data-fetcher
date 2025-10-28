@@ -129,6 +129,7 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
     "anc1", "anc4", "delivery", "pnc1", "iron_anc",
     "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
     "rotavirus1", "rotavirus2", "polio1", "polio2", "polio3",
+    "fully_immunized",
     "iptp1", "iptp2", "iptp3", "fp",
     "deworming", "vitamina", "ors_zinc", "micronutrient"
   )
