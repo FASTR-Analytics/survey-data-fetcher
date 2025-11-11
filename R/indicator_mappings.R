@@ -23,7 +23,7 @@ FAVORITE_DHS_LABELS <- list(
   "RH_ANCP_W_IRN" = "iron_anc",
 
   # Immunization
-  "CH_VACC_C_BAS" = "basic_immunization",
+  "CH_VACC_C_BAS" = "fully_immunized",
   "CH_VACC_C_NON" = "no_immunization",
   "CH_VACC_C_BCG" = "bcg",
   "CH_VACC_C_DP1" = "penta1",

@@ -43,6 +43,9 @@ rsync -av --delete \
   --exclude='DEPLOY.md' \
   --exclude='*.log' \
   --exclude='.DS_Store' \
+  --exclude='assets/*.geojson' \
+  --exclude='assets/*.csv' \
+  --exclude='assets/*.png' \
   "$DEV_DIR/" "$DEPLOY_DIR/"
 
 echo -e "${GREEN}✓${NC} Files synced"

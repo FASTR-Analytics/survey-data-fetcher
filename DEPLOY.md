@@ -41,13 +41,16 @@ The script automatically syncs:
 - ✅ `app.R` - Main app file
 - ✅ `R/` - All function files
 - ✅ `www/` - CSS and static files
-- ✅ `assets/` - Data files
+- ✅ `assets/` - Directory structure (large files excluded)
 
 And excludes:
 - ❌ `.git/` - Git history
 - ❌ `*.Rproj` - RStudio files
 - ❌ `test_*.R` - Test files
 - ❌ Temporary files
+- ❌ `assets/*.geojson` - Large GeoJSON files (>10MB)
+- ❌ `assets/*.csv` - Large CSV files
+- ❌ `assets/*.png` - Image files
 
 ### HuggingFace URLs
 

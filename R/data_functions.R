@@ -81,6 +81,7 @@ get_dhs_favorites <- function() {
       "FE_FRTR_W_TFR"   # Total fertility rate
     ),
     "Child Vaccinations" = c(
+      "CH_VACC_C_BAS",  # Fully immunized
       "CH_VACC_C_BCG",  # BCG
       "CH_VACC_C_PT1",  # Penta1
       "CH_VACC_C_PT2",  # Penta2
