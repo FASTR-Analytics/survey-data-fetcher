@@ -9,6 +9,38 @@ A Shiny application for fetching, cleaning, and integrating health survey data f
 - **GitHub Integration**: Pull the latest database, validate new data, and push updates directly to GitHub
 - **Collaborative Workflow**: Multiple users can contribute to the unified survey database
 
+## Architecture
+
+```mermaid
+flowchart TD
+    subgraph sources[Data Sources]
+        DHS[DHS API]
+        UNICEF[UNICEF SDMX]
+        UNWPP[UNWPP API]
+    end
+
+    subgraph app[Survey Data Fetcher]
+        FETCH[Fetch Data]
+        CLEAN[Clean & Standardize]
+        VALIDATE[Validate Names]
+        DEDUP[Check Duplicates]
+    end
+
+    subgraph output[GitHub Repository]
+        SURVEY[survey_data_unified.csv]
+        POP[population_estimates_only.csv]
+    end
+
+    DHS --> FETCH
+    UNICEF --> FETCH
+    UNWPP --> FETCH
+    FETCH --> CLEAN
+    CLEAN --> VALIDATE
+    VALIDATE --> DEDUP
+    DEDUP --> SURVEY
+    DEDUP --> POP
+```
+
 ## Data Flow
 
 1. **Fetch** - Select data source, indicators, and countries
