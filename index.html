@@ -279,17 +279,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#data-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -545,41 +534,6 @@
 <li><strong>GitHub Integration</strong>: Pull the latest database, validate new data, and push updates directly to GitHub</li>
 <li><strong>Collaborative Workflow</strong>: Multiple users can contribute to the unified survey database</li>
 </ul>
-<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
-│                    Survey Data Fetcher App                   │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────┐   ┌──────────┐   ┌──────────┐                │
-│  │   DHS    │   │  UNICEF  │   │  UNWPP   │                │
-│  │   API    │   │   SDMX   │   │   API    │                │
-│  └────┬─────┘   └────┬─────┘   └────┬─────┘                │
-│       │              │              │                       │
-│       └──────────────┼──────────────┘                       │
-│                      ▼                                       │
-│            ┌─────────────────┐                              │
-│            │  Data Cleaning  │                              │
-│            │ &amp; Standardization│                              │
-│            └────────┬────────┘                              │
-│                     ▼                                        │
-│            ┌─────────────────┐                              │
-│            │   Validation    │                              │
-│            │ (Name Matching) │                              │
-│            └────────┬────────┘                              │
-│                     ▼                                        │
-│            ┌─────────────────┐                              │
-│            │ Duplicate Check │                              │
-│            └────────┬────────┘                              │
-│                     ▼                                        │
-│  ┌─────────────────────────────────────────┐               │
-│  │            GitHub Push                   │               │
-│  │  ┌─────────────────┐ ┌────────────────┐ │               │
-│  │  │survey_data_     │ │population_     │ │               │
-│  │  │unified.csv      │ │estimates_only  │ │               │
-│  │  └─────────────────┘ └────────────────┘ │               │
-│  └─────────────────────────────────────────┘               │
-└─────────────────────────────────────────────────────────────┘
-</code></pre></div>
 <h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Fetch</strong> - Select data source, indicators, and countries</li>
