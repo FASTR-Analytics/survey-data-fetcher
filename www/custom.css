@@ -1,36 +1,56 @@
 /* ========================================
-   FASTR CLEAN THEME - VERSION 3.2
+   FASTR CLEAN THEME - GOLD ACCENT
    ========================================
-   Clean, minimal design with FASTR teal #0f706d as accent
-   Fixed: Header alignment, button colors, progress indicators, green alert backgrounds
+   Inspired by citiespeoplelove.co
+   Clean, minimal design with warm gold accent
 */
 
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  --fastr-teal: #0f706d;
-  --fastr-teal-light: #1a8b86;
-  --text-dark: #2c3e50;
-  --text-medium: #7f8c8d;
-  --text-light: #95a5a6;
+  --gold: #e0b641;
+  --gold-light: #f0d078;
+  --gold-dark: #c99d2c;
+  --text-dark: #1a1a1a;
+  --text-medium: #4a4a4a;
+  --text-light: #8a8a8a;
   --bg-white: #ffffff;
-  --bg-light: #f8f9fa;
-  --bg-medium: #e9ecef;
-  --border-light: #dee2e6;
+  --bg-cream: #fafaf8;
+  --bg-light: #f5f5f3;
+  --border-light: #e5e5e5;
+  --border-medium: #d0d0d0;
 }
 
 /* ========================================
-   BASIC RESETS
+   BASIC RESETS & TYPOGRAPHY
    ======================================== */
 * {
   box-sizing: border-box;
 }
 
+body, .content-wrapper {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  color: var(--text-dark) !important;
+  line-height: 1.6 !important;
+  letter-spacing: -0.011em !important;
+  font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04' !important;
+  background: var(--bg-light) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-dark) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+
 /* ========================================
-   HEADER - CLEAN WHITE WITH ALIGNED TEAL BORDER
+   HEADER - CLEAN WHITE WITH GOLD BORDER
    ======================================== */
 .main-header {
   background: var(--bg-white) !important;
-  border-bottom: 3px solid var(--fastr-teal) !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+  border-bottom: 3px solid var(--gold) !important;
+  box-shadow: none !important;
 }
 
 .main-header .navbar {
@@ -41,50 +61,80 @@
 
 .main-header .logo {
   background: var(--bg-white) !important;
-  color: var(--fastr-teal) !important;
-  border-right: none !important;
+  color: var(--text-dark) !important;
+  border-right: 1px solid var(--border-light) !important;
   border-bottom: none !important;
-  font-weight: 700 !important;
-  font-size: 18px !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  letter-spacing: -0.01em !important;
 }
 
 .main-header .navbar .nav > li > a {
   color: var(--text-dark) !important;
 }
 
+.skin-blue .main-header > .logo {
+  background: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+}
+
+.skin-blue .main-header .navbar {
+  background: var(--bg-white) !important;
+}
+
 /* ========================================
-   SIDEBAR - CLEAN GRAY
+   SIDEBAR - MINIMAL WHITE
    ======================================== */
 .main-sidebar {
-  background: var(--bg-light) !important;
+  background: var(--bg-white) !important;
   border-right: 1px solid var(--border-light) !important;
 }
 
+.skin-blue .main-sidebar {
+  background: var(--bg-white) !important;
+}
+
 .sidebar-menu > li > a {
-  color: var(--text-dark) !important;
-  padding: 12px 15px !important;
+  color: var(--text-medium) !important;
+  padding: 14px 20px !important;
   border-left: 3px solid transparent !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.15s ease !important;
+  font-weight: 400 !important;
 }
 
 .sidebar-menu > li:hover > a {
-  background: var(--bg-white) !important;
-  border-left: 3px solid var(--fastr-teal-light) !important;
+  background: var(--bg-cream) !important;
+  color: var(--text-dark) !important;
+  border-left: 3px solid var(--gold-light) !important;
 }
 
 .sidebar-menu > li.active > a {
-  background: var(--bg-white) !important;
-  color: var(--fastr-teal) !important;
-  border-left: 4px solid var(--fastr-teal) !important;
+  background: var(--bg-cream) !important;
+  color: var(--text-dark) !important;
+  border-left: 3px solid var(--gold) !important;
   font-weight: 600 !important;
 }
 
-.sidebar-menu > li > a > .fa {
+.skin-blue .sidebar-menu > li > a {
   color: var(--text-medium) !important;
 }
 
+.skin-blue .sidebar-menu > li.active > a {
+  background: var(--bg-cream) !important;
+  color: var(--text-dark) !important;
+}
+
+.sidebar-menu > li > a > .fa {
+  color: var(--text-light) !important;
+  width: 20px !important;
+}
+
 .sidebar-menu > li.active > a > .fa {
-  color: var(--fastr-teal) !important;
+  color: var(--gold-dark) !important;
+}
+
+.sidebar-menu > li:hover > a > .fa {
+  color: var(--gold) !important;
 }
 
 /* ========================================
@@ -95,72 +145,49 @@
 }
 
 /* ========================================
-   BOXES - CLEAN WHITE WITH MINIMAL BORDERS
+   BOXES - CLEAN WHITE WITH GOLD ACCENT
    ======================================== */
 .box {
   background: var(--bg-white) !important;
   border: 1px solid var(--border-light) !important;
-  border-radius: 6px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-  margin-bottom: 20px !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  margin-bottom: 24px !important;
 }
 
 .box-header {
   background: var(--bg-white) !important;
   color: var(--text-dark) !important;
-  border-bottom: 2px solid var(--fastr-teal) !important;
-  padding: 15px !important;
+  border-bottom: 2px solid var(--gold) !important;
+  padding: 16px 20px !important;
   font-weight: 600 !important;
-  border-radius: 6px 6px 0 0 !important;
+  border-radius: 4px 4px 0 0 !important;
 }
 
 .box-title {
   color: var(--text-dark) !important;
   font-weight: 600 !important;
-  font-size: 16px !important;
+  font-size: 15px !important;
+  letter-spacing: -0.01em !important;
+}
+
+.box-body {
+  padding: 20px !important;
 }
 
 /* ========================================
-   RADIO BUTTONS - SIMPLE AND VISIBLE
-   ======================================== */
-input[type="radio"] {
-  width: 18px !important;
-  height: 18px !important;
-  margin: 0 10px 0 0 !important;
-  opacity: 1 !important;
-  position: relative !important;
-  display: inline-block !important;
-  accent-color: var(--fastr-teal) !important;
-  cursor: pointer !important;
-}
-
-.radio {
-  margin-bottom: 10px !important;
-  display: block !important;
-}
-
-.radio label {
-  color: var(--text-dark) !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  display: flex !important;
-  align-items: center !important;
-  margin: 0 !important;
-  padding: 8px 0 !important;
-}
-
-/* ========================================
-   BUTTONS - CONSISTENT FASTR TEAL THEME
+   BUTTONS - GOLD ACCENT
    ======================================== */
 .btn-primary,
 .btn-success {
-  background: var(--fastr-teal) !important;
-  border-color: var(--fastr-teal) !important;
-  color: var(--bg-white) !important;
-  font-weight: 500 !important;
-  border-radius: 4px !important;
-  padding: 8px 16px !important;
-  transition: all 0.2s ease !important;
+  background: var(--gold) !important;
+  border: none !important;
+  color: var(--text-dark) !important;
+  font-weight: 600 !important;
+  border-radius: 3px !important;
+  padding: 10px 20px !important;
+  transition: all 0.15s ease !important;
+  letter-spacing: 0 !important;
 }
 
 .btn-primary:hover,
@@ -169,22 +196,42 @@ input[type="radio"] {
 .btn-success:hover,
 .btn-success:focus,
 .btn-success:active {
-  background: var(--fastr-teal-light) !important;
-  border-color: var(--fastr-teal-light) !important;
-  color: var(--bg-white) !important;
+  background: var(--gold-dark) !important;
+  color: var(--text-dark) !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 2px 4px rgba(15, 112, 109, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(224, 182, 65, 0.3) !important;
 }
 
 .btn-info {
-  background: var(--bg-medium) !important;
-  border-color: var(--bg-medium) !important;
+  background: var(--bg-cream) !important;
+  border: 1px solid var(--border-medium) !important;
   color: var(--text-dark) !important;
+  font-weight: 500 !important;
+}
+
+.btn-info:hover {
+  background: var(--bg-light) !important;
+  border-color: var(--border-medium) !important;
 }
 
 .btn-warning {
   background: var(--text-medium) !important;
-  border-color: var(--text-medium) !important;
+  border: none !important;
+  color: var(--bg-white) !important;
+}
+
+.btn-warning:hover {
+  background: var(--text-dark) !important;
+}
+
+.btn-danger {
+  background: var(--bg-white) !important;
+  border: 1px solid #c0392b !important;
+  color: #c0392b !important;
+}
+
+.btn-danger:hover {
+  background: #c0392b !important;
   color: var(--bg-white) !important;
 }
 
@@ -193,27 +240,64 @@ input[type="radio"] {
    ======================================== */
 .form-control {
   border: 1px solid var(--border-light) !important;
-  border-radius: 4px !important;
+  border-radius: 3px !important;
   color: var(--text-dark) !important;
+  padding: 10px 12px !important;
+  transition: border-color 0.15s ease !important;
 }
 
 .form-control:focus {
-  border-color: var(--fastr-teal) !important;
-  box-shadow: 0 0 0 0.2rem rgba(15, 112, 109, 0.25) !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(224, 182, 65, 0.15) !important;
+  outline: none !important;
+}
+
+/* Select inputs */
+.selectize-input {
+  border: 1px solid var(--border-light) !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+
+.selectize-input.focus {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(224, 182, 65, 0.15) !important;
+}
+
+.selectize-dropdown {
+  border: 1px solid var(--border-light) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.selectize-dropdown .active {
+  background: var(--gold-light) !important;
+  color: var(--text-dark) !important;
 }
 
 /* ========================================
-   TYPOGRAPHY
+   RADIO BUTTONS & CHECKBOXES
    ======================================== */
-body, .content-wrapper {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  color: var(--text-dark) !important;
-  line-height: 1.5 !important;
+input[type="radio"],
+input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 10px 0 0 !important;
+  accent-color: var(--gold) !important;
+  cursor: pointer !important;
 }
 
-h1, h2, h3, h4, h5, h6 {
+.radio, .checkbox {
+  margin-bottom: 10px !important;
+}
+
+.radio label, .checkbox label {
   color: var(--text-dark) !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 6px 0 !important;
 }
 
 /* ========================================
@@ -224,112 +308,125 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .table thead th {
-  background: var(--bg-light) !important;
+  background: var(--gold) !important;
   color: var(--text-dark) !important;
-  border-bottom: 2px solid var(--border-light) !important;
+  border-bottom: none !important;
   font-weight: 600 !important;
+  padding: 12px 16px !important;
+}
+
+.table tbody tr:nth-child(even) {
+  background: var(--bg-cream) !important;
+}
+
+.table tbody td {
+  border-color: var(--border-light) !important;
+  padding: 10px 16px !important;
+}
+
+/* DataTables */
+.dataTables_wrapper {
+  color: var(--text-dark) !important;
+}
+
+.dataTables_filter input {
+  border: 1px solid var(--border-light) !important;
+  border-radius: 3px !important;
+  padding: 6px 10px !important;
+}
+
+.dataTables_filter input:focus {
+  border-color: var(--gold) !important;
+  outline: none !important;
 }
 
 /* ========================================
-   ALERTS - CONSISTENT FASTR THEME
+   ALERTS & NOTIFICATIONS
    ======================================== */
 .alert-info {
-  background: rgba(15, 112, 109, 0.1) !important;
-  border: 1px solid var(--fastr-teal) !important;
-  border-left: 4px solid var(--fastr-teal) !important;
+  background: rgba(224, 182, 65, 0.1) !important;
+  border: 1px solid var(--border-light) !important;
+  border-left: 4px solid var(--gold) !important;
   color: var(--text-dark) !important;
+  border-radius: 3px !important;
 }
 
 .alert-success {
-  background: rgba(15, 112, 109, 0.1) !important;
-  border: 1px solid var(--fastr-teal) !important;
-  border-left: 4px solid var(--fastr-teal) !important;
+  background: rgba(224, 182, 65, 0.15) !important;
+  border: 1px solid var(--gold) !important;
+  border-left: 4px solid var(--gold) !important;
   color: var(--text-dark) !important;
+  border-radius: 3px !important;
 }
 
 .alert-warning {
-  background: rgba(243, 156, 18, 0.1) !important;
-  border: 1px solid #f39c12 !important;
-  border-left: 4px solid #f39c12 !important;
+  background: rgba(224, 182, 65, 0.2) !important;
+  border: 1px solid var(--gold-dark) !important;
+  border-left: 4px solid var(--gold-dark) !important;
   color: var(--text-dark) !important;
+  border-radius: 3px !important;
 }
 
 .alert-danger {
-  background: rgba(231, 76, 60, 0.1) !important;
-  border: 1px solid #e74c3c !important;
-  border-left: 4px solid #e74c3c !important;
+  background: rgba(192, 57, 43, 0.1) !important;
+  border: 1px solid #c0392b !important;
+  border-left: 4px solid #c0392b !important;
   color: var(--text-dark) !important;
+  border-radius: 3px !important;
+}
+
+/* Shiny notifications */
+.shiny-notification {
+  border-left: 4px solid var(--gold) !important;
+  background-color: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.shiny-notification.shiny-notification-message {
+  background-color: var(--bg-white) !important;
+  border-left-color: var(--gold) !important;
+}
+
+.shiny-notification.shiny-notification-warning {
+  background-color: var(--bg-white) !important;
+  border-left-color: var(--gold-dark) !important;
+}
+
+.shiny-notification.shiny-notification-error {
+  background-color: var(--bg-white) !important;
+  border-left-color: #c0392b !important;
 }
 
 /* ========================================
-   CLEAN UP ANY REMAINING ISSUES
+   PROGRESS INDICATORS
    ======================================== */
-.skin-blue .main-header > .logo {
-  background: var(--bg-white) !important;
-  color: var(--fastr-teal) !important;
-}
-
-.skin-blue .main-header .navbar {
-  background: var(--bg-white) !important;
-}
-
-.skin-blue .main-sidebar {
-  background: var(--bg-light) !important;
-}
-
-.skin-blue .sidebar-menu > li > a {
-  color: var(--text-dark) !important;
-}
-
-.skin-blue .sidebar-menu > li.active > a {
-  background: var(--bg-white) !important;
-  color: var(--fastr-teal) !important;
-}
-
-/* ========================================
-   PROGRESS INDICATORS & LOADING STATES
-   ======================================== */
-
-/* Progress bars */
 .progress {
-  background-color: var(--bg-medium) !important;
-  border-radius: 4px !important;
-  height: 8px !important;
-  margin: 10px 0 !important;
+  background-color: var(--bg-light) !important;
+  border-radius: 3px !important;
+  height: 6px !important;
+  margin: 12px 0 !important;
+  overflow: hidden !important;
 }
 
 .progress-bar {
-  background-color: var(--fastr-teal) !important;
+  background-color: var(--gold) !important;
   transition: width 0.3s ease !important;
 }
 
-/* Spinners and loading indicators */
 .spinner-border,
 .fa-spin {
-  color: var(--fastr-teal) !important;
-}
-
-/* Loading overlay */
-.loading-overlay {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background: rgba(255, 255, 255, 0.8) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  z-index: 1000 !important;
+  color: var(--gold) !important;
 }
 
 .loading-spinner {
-  border: 3px solid var(--bg-medium) !important;
-  border-top: 3px solid var(--fastr-teal) !important;
+  border: 3px solid var(--bg-light) !important;
+  border-top: 3px solid var(--gold) !important;
   border-radius: 50% !important;
-  width: 40px !important;
-  height: 40px !important;
-  animation: spin 1s linear infinite !important;
+  width: 36px !important;
+  height: 36px !important;
+  animation: spin 0.8s linear infinite !important;
 }
 
 @keyframes spin {
@@ -337,103 +434,181 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: rotate(360deg); }
 }
 
-/* Button loading states */
-.btn.loading {
-  position: relative !important;
-  color: transparent !important;
+/* ========================================
+   TABS & NAVIGATION
+   ======================================== */
+.nav-tabs {
+  border-bottom: 1px solid var(--border-light) !important;
 }
 
-.btn.loading::after {
-  content: "" !important;
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: 16px !important;
-  height: 16px !important;
-  border: 2px solid transparent !important;
-  border-top: 2px solid var(--bg-white) !important;
-  border-radius: 50% !important;
-  animation: spin 1s linear infinite !important;
+.nav-tabs > li > a {
+  color: var(--text-medium) !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  padding: 12px 20px !important;
+  margin-bottom: -1px !important;
+  transition: all 0.15s ease !important;
 }
 
-/* Status messages */
+.nav-tabs > li > a:hover {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+  border-bottom-color: var(--gold-light) !important;
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid var(--gold) !important;
+  font-weight: 600 !important;
+}
+
+/* ========================================
+   BADGES & LABELS
+   ======================================== */
+.badge-success,
+.label-success {
+  background-color: var(--gold) !important;
+  color: var(--text-dark) !important;
+}
+
+.badge-primary,
+.label-primary {
+  background-color: var(--text-dark) !important;
+  color: var(--bg-white) !important;
+}
+
+.badge-info,
+.label-info {
+  background-color: var(--bg-light) !important;
+  color: var(--text-dark) !important;
+  border: 1px solid var(--border-light) !important;
+}
+
+/* ========================================
+   LINKS
+   ======================================== */
+a {
+  color: var(--text-dark) !important;
+  text-decoration: underline !important;
+  text-decoration-color: var(--gold) !important;
+  text-underline-offset: 2px !important;
+  transition: all 0.15s ease !important;
+}
+
+a:hover {
+  text-decoration: none !important;
+  color: var(--gold-dark) !important;
+}
+
+/* Sidebar links override */
+.sidebar-menu a {
+  text-decoration: none !important;
+}
+
+/* Button links override */
+.btn {
+  text-decoration: none !important;
+}
+
+/* ========================================
+   GOLD HIGHLIGHT SECTIONS
+   ======================================== */
+.highlight-section {
+  background: var(--gold) !important;
+  padding: 24px !important;
+  margin: 20px 0 !important;
+  border-radius: 4px !important;
+}
+
+.highlight-section h3,
+.highlight-section p {
+  color: var(--text-dark) !important;
+  margin: 0 !important;
+}
+
+/* ========================================
+   STATUS MESSAGES
+   ======================================== */
 .status-message {
-  background: var(--bg-light) !important;
-  border-left: 4px solid var(--fastr-teal) !important;
-  padding: 12px 16px !important;
-  margin: 10px 0 !important;
-  border-radius: 0 4px 4px 0 !important;
+  background: var(--bg-cream) !important;
+  border-left: 4px solid var(--gold) !important;
+  padding: 14px 18px !important;
+  margin: 12px 0 !important;
+  border-radius: 0 3px 3px 0 !important;
   color: var(--text-dark) !important;
 }
 
 .status-message.success {
-  border-left-color: var(--fastr-teal) !important;
-  background: rgba(15, 112, 109, 0.05) !important;
+  border-left-color: var(--gold) !important;
 }
 
 .status-message.error {
-  border-left-color: #e74c3c !important;
-  background: rgba(231, 76, 60, 0.05) !important;
+  border-left-color: #c0392b !important;
 }
 
 .status-message.warning {
-  border-left-color: #f39c12 !important;
-  background: rgba(243, 156, 18, 0.05) !important;
+  border-left-color: var(--gold-dark) !important;
 }
 
 /* ========================================
-   OVERRIDE ALL GREEN ELEMENTS
+   WELLPANEL & INFO BOXES
    ======================================== */
-
-/* Bootstrap success classes */
-.bg-success,
-.text-success,
-.border-success {
-  background-color: rgba(15, 112, 109, 0.1) !important;
-  color: var(--fastr-teal) !important;
-  border-color: var(--fastr-teal) !important;
+.well {
+  background: var(--bg-cream) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
 }
 
-/* Success badges and labels */
-.badge-success,
-.label-success {
-  background-color: var(--fastr-teal) !important;
-  color: var(--bg-white) !important;
+.info-box {
+  background: var(--bg-white) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
 }
 
-/* Override any remaining green backgrounds */
-*[style*="background-color: #28a745"],
-*[style*="background-color: #5cb85c"],
-*[style*="background-color: green"],
-*[style*="background: #28a745"],
-*[style*="background: #5cb85c"],
-*[style*="background: green"] {
-  background-color: rgba(15, 112, 109, 0.1) !important;
-  background: rgba(15, 112, 109, 0.1) !important;
-}
-
-/* Shiny notification overrides */
-.shiny-notification {
-  border-left: 4px solid var(--fastr-teal) !important;
-  background-color: var(--bg-white) !important;
+.info-box-icon {
+  background: var(--gold) !important;
   color: var(--text-dark) !important;
 }
 
-.shiny-notification.shiny-notification-message {
-  background-color: rgba(15, 112, 109, 0.1) !important;
-}
-
-.shiny-notification.shiny-notification-warning {
-  background-color: rgba(243, 156, 18, 0.1) !important;
-  border-left-color: #f39c12 !important;
-}
-
-.shiny-notification.shiny-notification-error {
-  background-color: rgba(231, 76, 60, 0.1) !important;
-  border-left-color: #e74c3c !important;
-}
-
 /* ========================================
-   JAVASCRIPT FOR PROGRESS HANDLING
+   MISC OVERRIDES
    ======================================== */
+
+/* Remove any remaining teal colors */
+.bg-success,
+.text-success,
+.border-success {
+  background-color: rgba(224, 182, 65, 0.15) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--gold) !important;
+}
+
+/* Clean scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light);
+}
+
+/* Smooth transitions on interactive elements */
+button, .btn, a, input, select, .selectize-input {
+  transition: all 0.15s ease !important;
+}
