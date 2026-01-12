@@ -1,0 +1,856 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the FASTR Survey Data Fetcher application">
+      
+      
+        <meta name="author" content="FASTR Analytics">
+      
+      
+      
+        <link rel="prev" href="../fetching-data/">
+      
+      
+        <link rel="next" href="../database-integration/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Cleaning & Processing - FASTR Survey Data Fetcher</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cleaning-processing" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FASTR Survey Data Fetcher" class="md-header__button md-logo" aria-label="FASTR Survey Data Fetcher" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FASTR Survey Data Fetcher
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Cleaning & Processing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FASTR Survey Data Fetcher" class="md-nav__button md-logo" aria-label="FASTR Survey Data Fetcher" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FASTR Survey Data Fetcher
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fetching-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fetching Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cleaning & Processing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cleaning & Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleaning-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleaning Steps
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cleaning Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-column-standardization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Column Standardization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-percentage-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Percentage Normalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-indicator-id-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Indicator ID Mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fastr-name-standardization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FASTR Name Standardization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FASTR Name Standardization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#country-name-mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Country Name Mappings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#province-name-mappings-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Province Name Mappings (Examples)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-clean-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Clean Data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to Clean Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clean-latest-fetch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clean Latest Fetch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clean-all-cart-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clean All Cart Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Format
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../indicators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Indicator Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="cleaning-processing">Cleaning &amp; Processing<a class="headerlink" href="#cleaning-processing" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The cleaning process standardizes data from different sources into a unified format compatible with the FASTR Analytics Platform.</p>
+<h2 id="cleaning-steps">Cleaning Steps<a class="headerlink" href="#cleaning-steps" title="Permanent link">&para;</a></h2>
+<h3 id="1-column-standardization">1. Column Standardization<a class="headerlink" href="#1-column-standardization" title="Permanent link">&para;</a></h3>
+<p>All data is transformed to a consistent column structure:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>admin_area_1</code></td>
+<td>Country name</td>
+<td>"Nigeria"</td>
+</tr>
+<tr>
+<td><code>admin_area_2</code></td>
+<td>Province/region or "NATIONAL"</td>
+<td>"Lagos" or "NATIONAL"</td>
+</tr>
+<tr>
+<td><code>year</code></td>
+<td>Integer year</td>
+<td>2023</td>
+</tr>
+<tr>
+<td><code>indicator_id</code></td>
+<td>Original indicator code</td>
+<td>"RH_ANCP_W_SKP"</td>
+</tr>
+<tr>
+<td><code>indicator_common_id</code></td>
+<td>Standardized ID</td>
+<td>"anc1"</td>
+</tr>
+<tr>
+<td><code>indicator_type</code></td>
+<td>Type of measure</td>
+<td>"percent", "rate", "number"</td>
+</tr>
+<tr>
+<td><code>survey_value</code></td>
+<td>Numeric value</td>
+<td>0.85</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>Data source</td>
+<td>"DHS", "MICS", "UNWPP"</td>
+</tr>
+<tr>
+<td><code>source_detail</code></td>
+<td>Specific source ID</td>
+<td>"NG2018DHS"</td>
+</tr>
+<tr>
+<td><code>survey_type</code></td>
+<td>Survey category</td>
+<td>"household", "modeled"</td>
+</tr>
+<tr>
+<td><code>country_name</code></td>
+<td>Full country name</td>
+<td>"Nigeria"</td>
+</tr>
+<tr>
+<td><code>iso2_code</code></td>
+<td>ISO2 country code</td>
+<td>"NG"</td>
+</tr>
+<tr>
+<td><code>iso3_code</code></td>
+<td>ISO3 country code</td>
+<td>"NGA"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-percentage-normalization">2. Percentage Normalization<a class="headerlink" href="#2-percentage-normalization" title="Permanent link">&para;</a></h3>
+<p>All percentage values are converted to <strong>0-1 decimal scale</strong>:</p>
+<ul>
+<li>Input: <code>85%</code> or <code>85</code></li>
+<li>Output: <code>0.85</code></li>
+</ul>
+<p>This ensures consistency across sources that may report percentages differently.</p>
+<h3 id="3-indicator-id-mapping">3. Indicator ID Mapping<a class="headerlink" href="#3-indicator-id-mapping" title="Permanent link">&para;</a></h3>
+<p>Original indicator IDs are mapped to standardized <code>indicator_common_id</code> values:</p>
+<div class="highlight"><pre><span></span><code>DHS:    RH_ANCP_W_SKP  → anc1
+UNICEF: MNCH_ANC1      → anc1
+MICS:   MNCH_ANC1      → anc1
+</code></pre></div>
+<p>See <a href="../indicators/">Indicator Reference</a> for complete mappings.</p>
+<hr />
+<h2 id="fastr-name-standardization">FASTR Name Standardization<a class="headerlink" href="#fastr-name-standardization" title="Permanent link">&para;</a></h2>
+<p>When <strong>"Apply FASTR name standardization"</strong> is checked, country and province names are harmonized to match the FASTR Analytics Platform naming conventions.</p>
+<h3 id="country-name-mappings">Country Name Mappings<a class="headerlink" href="#country-name-mappings" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Original</th>
+<th>Standardized</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Guinea</td>
+<td>Guinée</td>
+</tr>
+<tr>
+<td>Cote d'Ivoire</td>
+<td>Côte d'Ivoire</td>
+</tr>
+<tr>
+<td>Democratic Republic of the Congo</td>
+<td>DRC</td>
+</tr>
+</tbody>
+</table>
+<h3 id="province-name-mappings-examples">Province Name Mappings (Examples)<a class="headerlink" href="#province-name-mappings-examples" title="Permanent link">&para;</a></h3>
+<p><strong>Nigeria:</strong>
+<div class="highlight"><pre><span></span><code>Abia → ab Abia State
+Lagos → la Lagos State
+</code></pre></div></p>
+<p><strong>Senegal:</strong>
+<div class="highlight"><pre><span></span><code>Dakar → DRS Dakar
+Thiès → DRS Thiès
+</code></pre></div></p>
+<p><strong>Guinea:</strong>
+<div class="highlight"><pre><span></span><code>Conakry → DSV Conakry
+Boké → DPS Boké
+</code></pre></div></p>
+<p>These mappings ensure compatibility with DHIS2 naming conventions used in the FASTR platform.</p>
+<hr />
+<h2 id="how-to-clean-data">How to Clean Data<a class="headerlink" href="#how-to-clean-data" title="Permanent link">&para;</a></h2>
+<h3 id="clean-latest-fetch">Clean Latest Fetch<a class="headerlink" href="#clean-latest-fetch" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to <strong>"Clean &amp; Process"</strong> tab</li>
+<li>Ensure <strong>"Apply FASTR name standardization"</strong> is checked</li>
+<li>Click <strong>"Clean Latest Data"</strong></li>
+<li>View results in "Cleaned Data Preview"</li>
+</ol>
+<h3 id="clean-all-cart-data">Clean All Cart Data<a class="headerlink" href="#clean-all-cart-data" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Accumulate multiple datasets in your cart</li>
+<li>Go to <strong>"Clean &amp; Process"</strong> tab</li>
+<li>Click <strong>"Clean All Cart Data"</strong></li>
+<li>All datasets are cleaned and combined</li>
+</ol>
+<hr />
+<h2 id="output-format">Output Format<a class="headerlink" href="#output-format" title="Permanent link">&para;</a></h2>
+<p>After cleaning, data is ready for:</p>
+<ul>
+<li><strong>Visualization</strong> in the app</li>
+<li><strong>Download</strong> as CSV</li>
+<li><strong>Integration</strong> into the unified database</li>
+</ul>
+<p>Example cleaned row:</p>
+<div class="highlight"><pre><span></span><code>admin_area_1,admin_area_2,year,indicator_id,indicator_common_id,indicator_type,survey_value,source,source_detail,survey_type,country_name,iso2_code,iso3_code
+Nigeria,la Lagos State,2018,RH_ANCP_W_SKP,anc1,percent,0.92,DHS Sub-national,NG2018DHS,household,Nigeria,NG,NGA
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

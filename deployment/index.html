@@ -1,0 +1,941 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the FASTR Survey Data Fetcher application">
+      
+      
+        <meta name="author" content="FASTR Analytics">
+      
+      
+      
+        <link rel="prev" href="../indicators/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Deployment - FASTR Survey Data Fetcher</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#deployment" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FASTR Survey Data Fetcher" class="md-header__button md-logo" aria-label="FASTR Survey Data Fetcher" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FASTR Survey Data Fetcher
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Deployment
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FASTR Survey Data Fetcher" class="md-nav__button md-logo" aria-label="FASTR Survey Data Fetcher" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FASTR Survey Data Fetcher
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fetching-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fetching Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cleaning-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cleaning & Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../indicators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Indicator Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hugging-face-spaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hugging Face Spaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hugging Face Spaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#live-url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live URL
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dockerfile-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dockerfile Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-a-new-space" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Up a New Space
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting Up a New Space">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-create-the-space" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Create the Space
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-push-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Push Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-add-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Add Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-the-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating the Deployment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Updating the Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Local
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remote-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remote Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build Logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#package-installation-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Package installation fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app-crashes-on-startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        App crashes on startup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#github-push-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub push fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local Development
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Local Development">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-with-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run with Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-without-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run without Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h1>
+<h2 id="hugging-face-spaces">Hugging Face Spaces<a class="headerlink" href="#hugging-face-spaces" title="Permanent link">&para;</a></h2>
+<p>The app is deployed as a Docker-based Hugging Face Space.</p>
+<h3 id="live-url">Live URL<a class="headerlink" href="#live-url" title="Permanent link">&para;</a></h3>
+<p><strong><a href="https://huggingface.co/spaces/CIJBoulange/survey-data-fetcher">https://huggingface.co/spaces/CIJBoulange/survey-data-fetcher</a></strong></p>
+<hr />
+<h2 id="dockerfile-configuration">Dockerfile Configuration<a class="headerlink" href="#dockerfile-configuration" title="Permanent link">&para;</a></h2>
+<p>The app uses <code>rocker/shiny-verse</code> as the base image:</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Base image with R and tidyverse</span>
+<span class="k">FROM</span><span class="w"> </span><span class="s">rocker/shiny-verse:4.3.1</span>
+
+<span class="c"># System dependencies</span>
+<span class="k">RUN</span><span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libcurl4-openssl-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libssl-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libxml2-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libsodium-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libgit2-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>git
+
+<span class="c"># R packages - Core</span>
+<span class="k">RUN</span><span class="w"> </span>R<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;install.packages(c(&#39;shinydashboard&#39;, &#39;DT&#39;, &#39;httr&#39;,</span>
+<span class="w">          </span><span class="s1">&#39;jsonlite&#39;</span>,<span class="w"> </span><span class="s1">&#39;countrycode&#39;</span>,<span class="w"> </span><span class="s1">&#39;data.table&#39;</span><span class="o">))</span><span class="s2">&quot;</span>
+
+<span class="c"># R packages - UI</span>
+<span class="k">RUN</span><span class="w"> </span>R<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;install.packages(c(&#39;plotly&#39;, &#39;shinyWidgets&#39;,</span>
+<span class="w">          </span><span class="s1">&#39;shinycssloaders&#39;</span>,<span class="w"> </span><span class="s1">&#39;shinyBS&#39;</span>,<span class="w"> </span><span class="s1">&#39;shinyjs&#39;</span><span class="o">))</span><span class="s2">&quot;</span>
+
+<span class="c"># R packages - Data handling</span>
+<span class="k">RUN</span><span class="w"> </span>R<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;install.packages(c(&#39;RCurl&#39;, &#39;stringr&#39;, &#39;readxl&#39;,</span>
+<span class="w">          </span><span class="s1">&#39;rsdmx&#39;</span>,<span class="w"> </span><span class="s1">&#39;stringdist&#39;</span>,<span class="w"> </span><span class="s1">&#39;base64enc&#39;</span><span class="o">))</span><span class="s2">&quot;</span>
+
+<span class="c"># R packages - DHS</span>
+<span class="k">RUN</span><span class="w"> </span>R<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;install.packages(&#39;rdhs&#39;)&quot;</span>
+
+<span class="c"># Copy app files</span>
+<span class="k">COPY</span><span class="w"> </span>app.R<span class="w"> </span>/app/
+<span class="k">COPY</span><span class="w"> </span>R/<span class="w"> </span>/app/R/
+<span class="k">COPY</span><span class="w"> </span>www/<span class="w"> </span>/app/www/
+<span class="k">COPY</span><span class="w"> </span>assets/<span class="w"> </span>/app/assets/
+
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+<span class="k">EXPOSE</span><span class="w"> </span><span class="s">3838</span>
+
+<span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-e&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;shiny::runApp(host=&#39;0.0.0.0&#39;, port=3838)&quot;</span><span class="p">]</span>
+</code></pre></div>
+<hr />
+<h2 id="setting-up-a-new-space">Setting Up a New Space<a class="headerlink" href="#setting-up-a-new-space" title="Permanent link">&para;</a></h2>
+<h3 id="1-create-the-space">1. Create the Space<a class="headerlink" href="#1-create-the-space" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to <a href="https://huggingface.co/new-space">huggingface.co/new-space</a></li>
+<li>Choose:</li>
+<li><strong>Space name</strong>: <code>survey-data-fetcher</code></li>
+<li><strong>SDK</strong>: Docker</li>
+<li><strong>Visibility</strong>: Public or Private</li>
+</ol>
+<h3 id="2-push-code">2. Push Code<a class="headerlink" href="#2-push-code" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Clone the space</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://huggingface.co/spaces/YOUR_USERNAME/survey-data-fetcher
+
+<span class="c1"># Copy files</span>
+cp<span class="w"> </span>-r<span class="w"> </span>/path/to/survey_data_fetcher/*<span class="w"> </span>survey-data-fetcher/
+
+<span class="c1"># Push</span>
+<span class="nb">cd</span><span class="w"> </span>survey-data-fetcher
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Initial deployment&quot;</span>
+git<span class="w"> </span>push
+</code></pre></div>
+<h3 id="3-add-secrets">3. Add Secrets<a class="headerlink" href="#3-add-secrets" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to Space <strong>Settings</strong></li>
+<li>Find <strong>"Variables and secrets"</strong></li>
+<li>Add:</li>
+<li><strong>Name</strong>: <code>GITHUB_TOKEN</code></li>
+<li><strong>Value</strong>: Your GitHub personal access token</li>
+</ol>
+<hr />
+<h2 id="updating-the-deployment">Updating the Deployment<a class="headerlink" href="#updating-the-deployment" title="Permanent link">&para;</a></h2>
+<h3 id="from-local">From Local<a class="headerlink" href="#from-local" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/path/to/survey_data_fetcher
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Update description&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>huggingface<span class="w"> </span>main
+</code></pre></div>
+<h3 id="remote-configuration">Remote Configuration<a class="headerlink" href="#remote-configuration" title="Permanent link">&para;</a></h3>
+<p>You should have two remotes:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>remote<span class="w"> </span>-v
+<span class="c1"># origin     https://github.com/FASTR-Analytics/survey-data-fetcher.git</span>
+<span class="c1"># huggingface https://huggingface.co/spaces/CIJBoulange/survey-data-fetcher</span>
+</code></pre></div>
+<hr />
+<h2 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h2>
+<h3 id="build-logs">Build Logs<a class="headerlink" href="#build-logs" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Go to your Space page</li>
+<li>Click on <strong>"Building"</strong> or check the <strong>Logs</strong> tab</li>
+<li>Watch for errors during package installation</li>
+</ul>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<h4 id="package-installation-fails">Package installation fails<a class="headerlink" href="#package-installation-fails" title="Permanent link">&para;</a></h4>
+<p>Check the Dockerfile has all required packages:</p>
+<div class="highlight"><pre><span></span><code><span class="k">RUN</span><span class="w"> </span>R<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;install.packages(c(&#39;stringdist&#39;, &#39;base64enc&#39;))&quot;</span>
+</code></pre></div>
+<h4 id="app-crashes-on-startup">App crashes on startup<a class="headerlink" href="#app-crashes-on-startup" title="Permanent link">&para;</a></h4>
+<p>Check the logs for missing libraries:</p>
+<div class="highlight"><pre><span></span><code>Error in library(stringdist) : there is no package called &#39;stringdist&#39;
+</code></pre></div>
+<h4 id="github-push-fails">GitHub push fails<a class="headerlink" href="#github-push-fails" title="Permanent link">&para;</a></h4>
+<p>Verify the <code>GITHUB_TOKEN</code> secret:</p>
+<ol>
+<li>Token has <code>repo</code> or <code>contents:write</code> permission</li>
+<li>Token has access to <code>FASTR-Analytics/modules</code></li>
+<li>Secret name is exactly <code>GITHUB_TOKEN</code></li>
+</ol>
+<hr />
+<h2 id="local-development">Local Development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h2>
+<h3 id="run-with-docker">Run with Docker<a class="headerlink" href="#run-with-docker" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>survey_data_fetcher
+docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>survey-fetcher<span class="w"> </span>.
+docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">3838</span>:3838<span class="w"> </span>survey-fetcher
+</code></pre></div>
+<p>Open: http://localhost:3838</p>
+<h3 id="run-without-docker">Run without Docker<a class="headerlink" href="#run-without-docker" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>survey_data_fetcher
+R<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;shiny::runApp(host=&#39;0.0.0.0&#39;, port=3838)&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="file-structure">File Structure<a class="headerlink" href="#file-structure" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>survey_data_fetcher/
+├── app.R                    # Main Shiny app
+├── Dockerfile               # Docker configuration
+├── R/
+│   ├── cleaning_functions.R # Data cleaning
+│   ├── data_functions.R     # API fetching
+│   ├── indicator_mappings.R # ID mappings
+│   ├── integration_functions.R # GitHub sync
+│   └── ui_components.R      # UI modules
+├── www/
+│   ├── custom.css           # Styling
+│   └── progress.js          # Progress indicators
+├── assets/                  # Geographic data
+├── docs/                    # This documentation
+└── mkdocs.yml              # MkDocs config
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
