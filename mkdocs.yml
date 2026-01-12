@@ -5,7 +5,7 @@ site_author: FASTR Analytics
 theme:
   name: material
   icon:
-    logo: material/chart-box-outline
+    logo: material/database-sync
   palette:
     primary: teal
     accent: amber
