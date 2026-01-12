@@ -446,6 +446,7 @@ create_app_sidebar <- function() {
       menuItem("Results", tabName = "results", icon = icon("chart-line")),
       menuItem("Clean & Process", tabName = "processing", icon = icon("magic")),
       menuItem("Visualizations", tabName = "visualize", icon = icon("chart-bar")),
+      menuItem("Database Integration", tabName = "integration", icon = icon("database")),
       menuItem("Help & Info", tabName = "help", icon = icon("question-circle"))
     )
   )
@@ -461,7 +462,7 @@ create_visualization_tab <- function() {
           fluidRow(
             box(
               title = "Indicator Trends", status = "primary", solidHeader = TRUE, width = 12,
-              
+
               conditionalPanel(
                 condition = "output.has_cleaned_data",
                 fluidRow(
@@ -470,34 +471,34 @@ create_visualization_tab <- function() {
                          div(class = "alert alert-info", style = "margin-bottom: 15px;",
                              icon("info-circle"),
                              " Select your options below, then click 'Generate Plot' to create your visualization."),
-                         
+
                          selectInput("plot_indicator", "Select Indicator:",
                                     choices = NULL),
-                         
+
                          selectInput("plot_countries", "Select Geographic Areas:",
                                     choices = NULL,
                                     multiple = TRUE),
-                         
+
                          checkboxInput("show_trend", "Add Trend Line", value = FALSE),
-                         
+
                          br(),
                          actionButton("generate_plot", "Generate Plot",
                                      class = "btn-primary btn-block btn-lg",
                                      style = "font-weight: bold;")
                   ),
-                  
+
                   column(8,
                          h5("Time Series Chart"),
                          div(id = "plot-placeholder", class = "well text-center", style = "height: 480px; line-height: 480px; background: #f9f9f9; border: 2px dashed #ddd; margin-bottom: 20px;",
                              icon("chart-line", style = "font-size: 48px; color: #ccc; margin-right: 15px;"),
-                             span("Select options and click 'Generate Plot' to create your time series visualization", 
+                             span("Select options and click 'Generate Plot' to create your time series visualization",
                                   style = "color: #999; font-size: 16px; vertical-align: middle;")
                          ),
                          withSpinner(plotlyOutput("time_series_plot", height = "500px"), type = 6)
                   )
                 )
               ),
-              
+
               conditionalPanel(
                 condition = "!output.has_cleaned_data",
                 div(class = "alert alert-info",
@@ -506,11 +507,11 @@ create_visualization_tab <- function() {
               )
             )
           ),
-          
+
           fluidRow(
             box(
               title = "Multi-Indicator Comparison", status = "info", solidHeader = TRUE, width = 12,
-              
+
               conditionalPanel(
                 condition = "output.has_cleaned_data",
                 fluidRow(
@@ -519,35 +520,185 @@ create_visualization_tab <- function() {
                          div(class = "alert alert-info", style = "margin-bottom: 15px;",
                              icon("info-circle"),
                              " Choose one geographic area and multiple indicators to compare them over time."),
-                         
+
                          selectInput("comparison_country", "Select Geographic Area:",
                                     choices = NULL),
-                         
+
                          selectInput("comparison_indicators", "Select Indicators:",
                                     choices = NULL,
                                     multiple = TRUE),
-                         
+
                          radioButtons("comparison_scale", "Y-axis Scale:",
                                      choices = list(
                                        "Free Scale (Separate Charts)" = "free",
                                        "Fixed Scale (One Chart)" = "fixed"
                                      ),
                                      selected = "free"),
-                         
+
                          br(),
                          actionButton("generate_comparison", "Generate Comparison",
                                      class = "btn-info btn-block btn-lg",
                                      style = "font-weight: bold;")
                   ),
-                  
+
                   column(8,
                          h5("Multi-Indicator Chart"),
                          div(id = "comparison-placeholder", class = "well text-center", style = "height: 480px; line-height: 480px; background: #f9f9f9; border: 2px dashed #ddd; margin-bottom: 20px;",
                              icon("chart-bar", style = "font-size: 48px; color: #ccc; margin-right: 15px;"),
-                             span("Select options and click 'Generate Comparison' to create your multi-indicator chart", 
+                             span("Select options and click 'Generate Comparison' to create your multi-indicator chart",
                                   style = "color: #999; font-size: 16px; vertical-align: middle;")
                          ),
                          withSpinner(plotlyOutput("comparison_plot", height = "500px"), type = 6)
+                  )
+                )
+              )
+            )
+          )
+  )
+}
+
+# ========================================
+# DATABASE INTEGRATION TAB
+# ========================================
+
+create_integration_tab <- function() {
+  tabItem(tabName = "integration",
+          # Introduction and GitHub Status
+          fluidRow(
+            box(
+              title = "Database Integration (GitHub Sync)", status = "primary", solidHeader = TRUE, width = 12,
+              div(class = "alert alert-info",
+                  icon("github"),
+                  " This tab syncs with GitHub: pulls the latest database, validates your data, then pushes updates back. ",
+                  "Follow the steps below: pull from GitHub, validate names, check duplicates, then push to GitHub."
+              ),
+              fluidRow(
+                column(6,
+                       h5("Step 0: Pull Latest from GitHub"),
+                       p("Pull the current database from GitHub before making changes."),
+                       actionButton("pull_from_github", "Pull Latest from GitHub",
+                                   class = "btn-primary btn-lg",
+                                   icon = icon("cloud-download-alt")),
+                       br(), br(),
+                       uiOutput("github_pull_status")
+                ),
+                column(6,
+                       h5("GitHub Repository"),
+                       div(class = "well",
+                           p(strong("Repo:"), " FASTR-Analytics/modules"),
+                           p(strong("Branch:"), " main"),
+                           p(strong("Survey DB:"), " survey_data_unified.csv"),
+                           p(strong("Population DB:"), " population_estimates_only.csv")
+                       )
+                )
+              ),
+              conditionalPanel(
+                condition = "!output.has_cleaned_data",
+                div(class = "alert alert-warning",
+                    icon("exclamation-triangle"),
+                    " Please clean your data first in the 'Clean & Process' tab before integration.")
+              )
+            )
+          ),
+
+          # Step 1: Name Validation
+          fluidRow(
+            box(
+              title = "Step 1: Validate Admin Area Names", status = "warning", solidHeader = TRUE, width = 12, collapsible = TRUE,
+
+              conditionalPanel(
+                condition = "output.has_cleaned_data",
+                fluidRow(
+                  column(4,
+                         p("Check if admin area names in your data match the existing database."),
+                         actionButton("validate_names", "Validate Admin Area Names",
+                                     class = "btn-warning btn-lg",
+                                     icon = icon("check-circle")),
+                         br(), br(),
+                         uiOutput("validation_status")
+                  ),
+                  column(8,
+                         h5("Unmatched Admin Areas"),
+                         p("For each unmatched area, select the correct name from the database or choose 'IGNORE' to skip those records."),
+                         uiOutput("unmatched_areas_ui"),
+                         conditionalPanel(
+                           condition = "output.has_unmatched_areas",
+                           hr(),
+                           actionButton("apply_corrections", "Apply Corrections & Continue",
+                                       class = "btn-success btn-lg",
+                                       icon = icon("check"))
+                         )
+                  )
+                )
+              )
+            )
+          ),
+
+          # Step 2: Duplicate Detection
+          fluidRow(
+            box(
+              title = "Step 2: Check for Duplicates", status = "info", solidHeader = TRUE, width = 12, collapsible = TRUE,
+
+              conditionalPanel(
+                condition = "output.has_cleaned_data",
+                fluidRow(
+                  column(4,
+                         p("Check your validated data against the existing database for duplicates."),
+                         actionButton("check_duplicates", "Check for Duplicates",
+                                     class = "btn-info btn-lg",
+                                     icon = icon("clone")),
+                         br(), br(),
+                         verbatimTextOutput("duplicate_summary")
+                  ),
+                  column(8,
+                         h5("Duplicate Records Found"),
+                         p("Records with the same country, admin area, year, and indicator. Choose action for each."),
+                         DT::dataTableOutput("duplicates_table"),
+                         br(),
+                         h5("New Records to Add"),
+                         DT::dataTableOutput("new_records_preview")
+                  )
+                )
+              )
+            )
+          ),
+
+          # Step 3: Append and Push to GitHub
+          fluidRow(
+            box(
+              title = "Step 3: Append & Push to GitHub", status = "success", solidHeader = TRUE, width = 12, collapsible = TRUE,
+
+              conditionalPanel(
+                condition = "output.has_cleaned_data",
+                fluidRow(
+                  column(6,
+                         h4("Final Summary"),
+                         verbatimTextOutput("integration_summary"),
+                         hr(),
+                         checkboxInput("push_to_github", "Push changes to GitHub", value = TRUE),
+                         div(class = "alert alert-info", style = "padding: 8px; font-size: 12px;",
+                             icon("info-circle"),
+                             " Requires GITHUB_TOKEN in .Renviron file (HF Spaces: set as secret)"),
+                         br(),
+                         actionButton("append_to_database", "Append & Push to GitHub",
+                                     class = "btn-success btn-lg",
+                                     icon = icon("cloud-upload-alt")),
+                         br(), br(),
+                         uiOutput("append_status")
+                  ),
+                  column(6,
+                         h4("GitHub Push Status"),
+                         div(class = "well",
+                             p(strong("Target Repo:"), " FASTR-Analytics/modules"),
+                             p(strong("Files to update:")),
+                             tags$ul(
+                               tags$li("survey_data_unified.csv"),
+                               tags$li("population_estimates_only.csv")
+                             ),
+                             p(style = "font-size: 12px; color: #666;",
+                               "Changes will be committed with a timestamped message.")
+                         ),
+                         uiOutput("github_token_status")
                   )
                 )
               )

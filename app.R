@@ -32,6 +32,7 @@ source("R/indicator_mappings.R")
 source("R/data_functions.R")
 source("R/cleaning_functions.R")
 source("R/ui_components.R")
+source("R/integration_functions.R")
 
 # ========================================
 # UI DEFINITION (ULTRA CLEAN)
@@ -57,7 +58,8 @@ ui <- dashboardPage(
       create_metadata_tab(),
       create_results_tab(),
       create_processing_tab(),
-      create_visualization_tab(), 
+      create_visualization_tab(),
+      create_integration_tab(),
       create_help_tab()
     )
   )
@@ -78,7 +80,13 @@ server <- function(input, output, session) {
     # NEW: Collection-based storage for multi-fetch sessions
     fetch_collection = list(),      # List of fetched datasets
     cleaned_collection = list(),    # List of cleaned datasets
-    next_dataset_id = 1             # Auto-increment ID for datasets
+    next_dataset_id = 1,            # Auto-increment ID for datasets
+    # Database integration
+    survey_db = NULL,               # Existing survey database
+    pop_db = NULL,                  # Existing population database
+    validation_result = NULL,       # Name validation results
+    validated_data = NULL,          # Data after name corrections
+    duplicate_analysis = NULL       # Duplicate detection results
   )
 
   # Initialize indicator lookup table for better plotting labels
@@ -1387,6 +1395,350 @@ output$country_selector <- renderUI({
           )
       }
     })
+  })
+
+  # ========================================
+  # DATABASE INTEGRATION - SERVER LOGIC
+  # ========================================
+
+  # Check for GitHub token
+  github_token <- reactive({
+    token <- Sys.getenv("GITHUB_TOKEN")
+    if (token == "") token <- NULL
+    return(token)
+  })
+
+  # GitHub token status
+  output$github_token_status <- renderUI({
+    if (!is.null(github_token()) && github_token() != "") {
+      div(class = "alert alert-success", style = "padding: 8px;",
+          icon("check-circle"),
+          " GitHub token found - ready to push")
+    } else {
+      div(class = "alert alert-danger", style = "padding: 8px;",
+          icon("times-circle"),
+          " GitHub token not found - set GITHUB_TOKEN in .Renviron or HF secrets")
+    }
+  })
+
+  # Pull from GitHub button
+  observeEvent(input$pull_from_github, {
+    output$github_pull_status <- renderUI({
+      div(class = "alert alert-info",
+          icon("spinner", class = "fa-spin"),
+          " Pulling latest data from GitHub...")
+    })
+
+    # Pull survey database
+    values$survey_db <- load_survey_database(use_github = TRUE)
+    values$pop_db <- load_population_database(use_github = TRUE)
+
+    if (!is.null(values$survey_db) && !is.null(values$pop_db)) {
+      output$github_pull_status <- renderUI({
+        div(class = "alert alert-success",
+            icon("check"),
+            HTML(paste0(
+              " Successfully pulled from GitHub!<br>",
+              "Survey records: ", nrow(values$survey_db), "<br>",
+              "Population records: ", nrow(values$pop_db)
+            ))
+        )
+      })
+      showNotification(
+        paste("Pulled", nrow(values$survey_db), "survey and",
+              nrow(values$pop_db), "population records from GitHub"),
+        type = "message"
+      )
+    } else {
+      output$github_pull_status <- renderUI({
+        div(class = "alert alert-warning",
+            icon("exclamation-triangle"),
+            " Could not pull from GitHub. Check your connection.")
+      })
+    }
+  })
+
+  # Validate admin area names
+  observeEvent(input$validate_names, {
+    req(values$cleaned_data)
+
+    # Load fresh databases
+    values$survey_db <- load_survey_database()
+    values$pop_db <- load_population_database()
+
+    # Validate admin areas
+    validation_result <- validate_admin_areas(values$cleaned_data, values$survey_db)
+
+    values$validation_result <- validation_result
+
+    if (validation_result$all_matched) {
+      values$validated_data <- values$cleaned_data
+      showNotification("All admin area names match the database!", type = "message")
+    } else {
+      showNotification(
+        paste("Found", nrow(validation_result$unmatched), "unmatched admin area(s). Select corrections below."),
+        type = "warning"
+      )
+    }
+  })
+
+  # Validation status UI
+  output$validation_status <- renderUI({
+    if (is.null(values$validation_result)) {
+      return(div(class = "alert alert-secondary",
+                 "Click 'Validate Admin Area Names' to check your data."))
+    }
+
+    if (values$validation_result$all_matched) {
+      return(div(class = "alert alert-success",
+                 icon("check"),
+                 " All admin area names match! Proceed to duplicate check."))
+    } else {
+      return(div(class = "alert alert-warning",
+                 icon("exclamation-triangle"),
+                 paste(" Found", nrow(values$validation_result$unmatched),
+                       "unmatched area(s). Select corrections on the right.")))
+    }
+  })
+
+  # Unmatched areas UI with dropdowns
+  output$unmatched_areas_ui <- renderUI({
+    if (is.null(values$validation_result) || values$validation_result$all_matched) {
+      return(NULL)
+    }
+
+    unmatched <- values$validation_result$unmatched
+
+    dropdown_list <- lapply(1:nrow(unmatched), function(i) {
+      row <- unmatched[i, ]
+      input_id <- paste0("area_select_", i)
+
+      div(
+        style = "margin-bottom: 15px; padding: 12px; background-color: #f8f9fa; border-radius: 5px; border-left: 4px solid #ffc107;",
+        h5(style = "margin-top: 0;", paste0(row$country_name, " - ", row$admin_area_2)),
+        p(style = "margin-bottom: 8px;", strong("Years:"), row$years, " | ", strong("Records:"), row$n_records),
+        selectInput(
+          inputId = input_id,
+          label = "Select correct name or IGNORE:",
+          choices = row$db_options[[1]],
+          selected = "IGNORE",
+          width = "100%"
+        )
+      )
+    })
+
+    do.call(tagList, dropdown_list)
+  })
+
+  # Check if there are unmatched areas
+  output$has_unmatched_areas <- reactive({
+    !is.null(values$validation_result) &&
+    !values$validation_result$all_matched &&
+    !is.null(values$validation_result$unmatched) &&
+    nrow(values$validation_result$unmatched) > 0
+  })
+  outputOptions(output, "has_unmatched_areas", suspendWhenHidden = FALSE)
+
+  # Apply corrections
+  observeEvent(input$apply_corrections, {
+    req(values$validation_result, values$cleaned_data)
+
+    unmatched <- values$validation_result$unmatched
+
+    corrections <- data.frame(
+      iso3_code = unmatched$iso3_code,
+      original_name = unmatched$admin_area_2,
+      selected_name = sapply(1:nrow(unmatched), function(i) {
+        input[[paste0("area_select_", i)]]
+      }),
+      stringsAsFactors = FALSE
+    )
+
+    # Apply corrections
+    values$validated_data <- apply_name_corrections(values$cleaned_data, corrections)
+
+    # Count corrections vs ignores
+    n_corrected <- sum(corrections$selected_name != "IGNORE")
+    n_ignored <- sum(corrections$selected_name == "IGNORE")
+
+    showNotification(
+      paste("Applied", n_corrected, "correction(s) and ignored", n_ignored, "area(s)."),
+      type = "message"
+    )
+
+    # Clear validation state so UI updates
+    values$validation_result <- list(all_matched = TRUE, unmatched = NULL)
+  })
+
+  # Check for duplicates
+  observeEvent(input$check_duplicates, {
+    # Use validated_data if available, otherwise cleaned_data
+    data_to_check <- if (!is.null(values$validated_data) && nrow(values$validated_data) > 0) {
+      values$validated_data
+    } else if (!is.null(values$cleaned_data) && nrow(values$cleaned_data) > 0) {
+      values$cleaned_data
+    } else {
+      showNotification("No data available to check. Please clean data first.", type = "warning")
+      return(NULL)
+    }
+
+    # Load fresh databases
+    values$survey_db <- load_survey_database()
+    values$pop_db <- load_population_database()
+
+    # Combine databases for duplicate check
+    survey_typed <- if (!is.null(values$survey_db)) {
+      values$survey_db %>% dplyr::mutate(iso3_code = as.character(iso3_code))
+    } else {
+      data.frame()
+    }
+
+    pop_typed <- if (!is.null(values$pop_db)) {
+      values$pop_db %>% dplyr::mutate(iso3_code = as.character(iso3_code))
+    } else {
+      data.frame()
+    }
+
+    existing_combined <- dplyr::bind_rows(survey_typed, pop_typed)
+
+    values$duplicate_analysis <- detect_duplicates(data_to_check, existing_combined)
+
+    showNotification(
+      paste("Found", nrow(values$duplicate_analysis$duplicates), "duplicate(s) and",
+            nrow(values$duplicate_analysis$new_records), "new record(s)."),
+      type = "message"
+    )
+  })
+
+  # Duplicate summary
+  output$duplicate_summary <- renderPrint({
+    if (is.null(values$duplicate_analysis)) {
+      cat("Click 'Check for Duplicates' to analyze your data.\n")
+      return()
+    }
+
+    cat("=== DUPLICATE CHECK RESULTS ===\n\n")
+    cat("Duplicate records:", nrow(values$duplicate_analysis$duplicates), "\n")
+    cat("New records to add:", nrow(values$duplicate_analysis$new_records), "\n")
+  })
+
+  # Duplicates table
+  output$duplicates_table <- DT::renderDataTable({
+    if (is.null(values$duplicate_analysis) || nrow(values$duplicate_analysis$duplicates) == 0) {
+      return(data.frame(Message = "No duplicates found."))
+    }
+
+    values$duplicate_analysis$duplicates %>%
+      dplyr::select(admin_area_1, admin_area_2, year, indicator_common_id,
+                   new_value = survey_value, existing_value, pct_diff, action)
+  }, options = list(pageLength = 10, scrollX = TRUE), rownames = FALSE,
+     editable = list(target = "cell", disable = list(columns = c(0:6))))
+
+  # Handle duplicate action edits
+  observeEvent(input$duplicates_table_cell_edit, {
+    info <- input$duplicates_table_cell_edit
+    values$duplicate_analysis$duplicates[info$row, "action"] <- info$value
+  })
+
+  # New records preview
+  output$new_records_preview <- DT::renderDataTable({
+    if (is.null(values$duplicate_analysis) || nrow(values$duplicate_analysis$new_records) == 0) {
+      return(data.frame(Message = "No new records to add."))
+    }
+
+    values$duplicate_analysis$new_records %>%
+      dplyr::select(admin_area_1, admin_area_2, year, indicator_common_id, survey_value, source) %>%
+      head(50)
+  }, options = list(pageLength = 5, scrollX = TRUE), rownames = FALSE)
+
+  # Integration summary
+  output$integration_summary <- renderPrint({
+    if (is.null(values$duplicate_analysis)) {
+      cat("Please complete the validation and duplicate check steps first.\n")
+      return()
+    }
+
+    cat("=== READY TO APPEND ===\n\n")
+    cat("New records to add:", nrow(values$duplicate_analysis$new_records), "\n")
+
+    if (nrow(values$duplicate_analysis$duplicates) > 0) {
+      cat("\nDuplicate actions:\n")
+      print(table(values$duplicate_analysis$duplicates$action))
+    }
+
+    cat("\nClick 'Append to Database' to finalize.\n")
+  })
+
+  # Append to database and push to GitHub
+  observeEvent(input$append_to_database, {
+    req(values$duplicate_analysis)
+
+    if (nrow(values$duplicate_analysis$new_records) == 0 &&
+        !any(values$duplicate_analysis$duplicates$action != "keep_existing")) {
+      showNotification("No records to add.", type = "warning")
+      return()
+    }
+
+    # Check for GitHub token if pushing
+    if (input$push_to_github && (is.null(github_token()) || github_token() == "")) {
+      showNotification(
+        "GitHub token not found. Set GITHUB_TOKEN in .Renviron or HF Spaces secrets.",
+        type = "error",
+        duration = 10
+      )
+      return()
+    }
+
+    output$append_status <- renderUI({
+      div(class = "alert alert-info",
+          icon("spinner", class = "fa-spin"),
+          if(input$push_to_github) " Appending and pushing to GitHub..." else " Appending to local database...")
+    })
+
+    result <- append_to_databases(
+      new_records = values$duplicate_analysis$new_records,
+      duplicates = values$duplicate_analysis$duplicates,
+      survey_db = values$survey_db,
+      pop_db = values$pop_db,
+      create_backup = FALSE,  # Skip local backup for cloud deployment
+      push_to_github = input$push_to_github,
+      github_token = github_token()
+    )
+
+    if (result$success) {
+      # Update local copies
+      values$survey_db <- result$updated_survey_db
+      values$pop_db <- result$updated_pop_db
+
+      output$append_status <- renderUI({
+        div(class = "alert alert-success",
+            icon("check-circle"),
+            HTML(paste0(
+              "<strong>Success!</strong><br>",
+              "Survey records added: ", result$survey_added, "<br>",
+              "Population records added: ", result$pop_added, "<br>",
+              "Total survey database: ", result$survey_total, " records<br>",
+              "Total population database: ", result$pop_total, " records",
+              if(input$push_to_github) "<br><strong>Changes pushed to GitHub!</strong>" else ""
+            ))
+        )
+      })
+
+      showNotification(result$message, type = "message", duration = 10)
+
+      # Clear the analysis to prevent accidental re-append
+      values$duplicate_analysis <- NULL
+      values$validated_data <- NULL
+
+    } else {
+      output$append_status <- renderUI({
+        div(class = "alert alert-danger",
+            icon("times-circle"),
+            paste("Error:", result$message))
+      })
+
+      showNotification(result$message, type = "error")
+    }
   })
 }
 
