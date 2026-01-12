@@ -9,105 +9,110 @@ app_port: 3838
 
 # FASTR Survey Data Fetcher
 
-A Shiny web application for fetching and processing survey data from multiple international sources.
+A Shiny web application for fetching, cleaning, and integrating health survey data from multiple international sources into the FASTR Analytics Platform.
+
+**[📖 Full Documentation](https://fastr-analytics.github.io/survey-data-fetcher/)** | **[🚀 Live App](https://huggingface.co/spaces/CIJBoulange/survey-data-fetcher)**
 
 ## Features
 
-- **Multiple Data Sources**: DHS, MICS, and UN World Population Prospects
-- **Interactive Interface**: Clean, responsive design with favorite indicator shortcuts
-- **Data Processing**: Built-in cleaning and standardization functions
-- **Export Options**: Download data in CSV or RDS formats
-- **Real-time Status**: Progress indicators and error handling
+- **Multi-Source Data Fetching**: Connect to DHS, UNICEF (MICS/WUENIC), and UN World Population Prospects APIs
+- **Data Cleaning & Standardization**: Automatically harmonize data for FASTR compatibility
+- **GitHub Integration**: Pull the latest database, validate new data, and push updates directly to GitHub
+- **Collaborative Workflow**: Multiple users can contribute to the unified survey database
+- **Visualizations**: Interactive time series and multi-indicator comparison charts
 
 ## Data Sources
 
-- **DHS**: Demographic & Health Surveys from 90+ countries
-- **MICS**: Multiple Indicator Cluster Surveys (UNICEF)
-- **UNWPP**: UN World Population Prospects
+| Source | Description | Geographic Level |
+|--------|-------------|------------------|
+| **DHS** | Demographic & Health Surveys from 90+ countries | National + Subnational |
+| **UNICEF** | MICS surveys, WUENIC immunization estimates, UN IGME mortality | National |
+| **UNWPP** | UN World Population Prospects | National |
 
-## Installation
+## Quick Start
 
-1. Clone this repository
-2. Install required R packages:
-```r
-install.packages(c(
-  "shiny", "shinydashboard", "DT", "dplyr", "rdhs", 
-  "rsdmx", "httr", "jsonlite", "countrycode", "data.table",
-  "plotly", "shinyWidgets", "RCurl", "shinycssloaders", 
-  "shinyBS", "stringr", "shinyjs"
-))
+### Run on Hugging Face (No Installation)
+
+Visit: **https://huggingface.co/spaces/CIJBoulange/survey-data-fetcher**
+
+### Run Locally
+
+```bash
+# Clone
+git clone https://github.com/FASTR-Analytics/survey-data-fetcher.git
+cd survey-data-fetcher
+
+# Install R packages
+R -e "install.packages(c('shiny', 'shinydashboard', 'DT', 'dplyr', 'rdhs',
+      'rsdmx', 'httr', 'jsonlite', 'countrycode', 'plotly', 'shinyWidgets',
+      'shinycssloaders', 'stringdist', 'base64enc'))"
+
+# Run
+R -e "shiny::runApp()"
 ```
 
-3. Create a `.Renviron` file with your API credentials:
+## Workflow
+
 ```
-DHS_API_KEY=your_dhs_api_key_here
-# Add other API keys as needed
+1. Fetch Data     →  Select source, indicators, countries
+2. Clean Data     →  Apply FASTR standardization
+3. Validate       →  Check admin area names against database
+4. Check Dupes    →  Identify existing records
+5. Push to GitHub →  Append to unified database
 ```
 
-4. Run the app:
-```r
-shiny::runApp()
+## Database Integration
+
+The app syncs with the FASTR-Analytics/modules repository:
+
+| Database | Contents |
+|----------|----------|
+| `survey_data_unified.csv` | Survey indicators (anc1, penta1, bcg, u5mr, etc.) |
+| `population_estimates_only.csv` | Population estimates (poptot, livebirth, etc.) |
+
+### Setup GitHub Token
+
+For pushing data to GitHub, set the `GITHUB_TOKEN` environment variable:
+
+**Local:** Add to `.Renviron`:
 ```
+GITHUB_TOKEN=ghp_your_token_here
+```
+
+**Hugging Face:** Add as a secret in Space Settings.
 
 ## Project Structure
 
 ```
 survey_data_fetcher/
-├── app.R                 # Main application file
+├── app.R                    # Main Shiny application
+├── Dockerfile               # Docker configuration
+├── mkdocs.yml              # Documentation config
 ├── R/
-│   ├── ui_components.R   # Modular UI functions
-│   ├── data_functions.R  # Data fetching functions
-│   └── cleaning_functions.R # Data processing functions
-├── www/
-│   └── custom.css        # Application styling
-└── .Renviron            # API credentials (not in git)
+│   ├── ui_components.R      # Modular UI functions
+│   ├── data_functions.R     # API fetching
+│   ├── cleaning_functions.R # Data standardization
+│   ├── indicator_mappings.R # ID mappings
+│   └── integration_functions.R # GitHub sync
+├── docs/                    # MkDocs documentation
+├── www/                     # CSS and JS assets
+└── assets/                  # Geographic reference data
 ```
 
-## Usage
+## Documentation
 
-1. **Select Data Source**: Choose between DHS, MICS, or UNWPP
-2. **Choose Indicators**: Use favorites shortcuts or browse all available indicators
-3. **Select Countries**: Pick countries of interest
-4. **Fetch Data**: Click to retrieve data with real-time progress
-5. **Process & Export**: Clean data and download in preferred format
+Full documentation available at: **https://fastr-analytics.github.io/survey-data-fetcher/**
 
-## Key Features
-
-### Favorite Indicators
-Quick-select buttons for common indicator groups:
-- ANC & Maternal Health
-- Child Vaccinations  
-- IPTp (Malaria Prevention)
-- Mortality & Fertility
-
-### Smart Country Selection
-- Live search and filtering
-- Regional groupings
-- Support for both national and subnational data (DHS)
-
-### Data Quality
-- Standardized indicator IDs across sources
-- Built-in data validation
-- Comprehensive error handling
-
-## DHIS2 Integration
-
-**NEW:** The app can use DHIS2 organization unit hierarchies to standardize admin area names!
-
-A separate tool (`../dhis2_reference_builder/`) fetches organization units from DHIS2 and creates reference CSV files that this app uses automatically when cleaning data.
-
-**For users:** No setup needed - the app automatically uses DHIS2 reference files if available.
-
-**For administrators:** See `../dhis2_reference_builder/README.md` for instructions on fetching DHIS2 organization units.
+- [Getting Started](https://fastr-analytics.github.io/survey-data-fetcher/getting-started/)
+- [Data Sources](https://fastr-analytics.github.io/survey-data-fetcher/data-sources/)
+- [Database Integration](https://fastr-analytics.github.io/survey-data-fetcher/database-integration/)
+- [Indicator Reference](https://fastr-analytics.github.io/survey-data-fetcher/indicators/)
+- [Deployment Guide](https://fastr-analytics.github.io/survey-data-fetcher/deployment/)
 
 ## Contributing
 
-This is a FASTR Analytics internal tool. For issues or feature requests, please contact the development team.
+This is a FASTR Analytics tool. For issues or feature requests, please contact the development team or open an issue on GitHub.
 
 ## License
 
-Internal use only - FASTR Analytics
-
----
-
-**Note**: This application requires valid API credentials for data sources. Contact your administrator for access.
+Internal use - FASTR Analytics
