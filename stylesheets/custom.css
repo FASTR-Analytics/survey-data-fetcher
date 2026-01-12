@@ -1,0 +1,275 @@
+/* ========================================
+   FASTR DOCS - CITIES PEOPLE LOVE STYLE
+   Clean, minimal with warm gold accent
+   ======================================== */
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --gold: #e0b641;
+  --gold-light: #f0d078;
+  --gold-dark: #c99d2c;
+  --text-dark: #1a1a1a;
+  --text-medium: #4a4a4a;
+  --text-light: #6a6a6a;
+  --bg-white: #ffffff;
+  --bg-cream: #fafaf8;
+  --border-light: #e5e5e5;
+}
+
+/* Typography - Inter */
+body,
+.md-typeset {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--text-dark);
+  letter-spacing: -0.011em;
+  font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04';
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-dark);
+}
+
+/* Override Material theme colors */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--text-dark);
+  --md-primary-bg-color: var(--bg-white);
+  --md-accent-fg-color: var(--gold);
+}
+
+/* Header - Clean white with gold underline */
+.md-header {
+  background: var(--bg-white);
+  border-bottom: 2px solid var(--gold);
+  box-shadow: none;
+}
+
+.md-header__title {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  filter: none;
+}
+
+/* Navigation */
+.md-nav__link {
+  color: var(--text-medium);
+  font-weight: 400;
+}
+
+.md-nav__link:hover {
+  color: var(--text-dark);
+}
+
+.md-nav__link--active,
+.md-nav__link--active:hover {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.md-nav__item--active > .md-nav__link {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+/* Sidebar */
+.md-sidebar {
+  background: var(--bg-white);
+}
+
+.md-sidebar__scrollwrap {
+  border-right: 1px solid var(--border-light);
+}
+
+/* Content area */
+.md-content {
+  background: var(--bg-white);
+}
+
+.md-typeset {
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* Links - underline that removes on hover */
+.md-typeset a {
+  color: var(--text-dark);
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-underline-offset: 3px;
+  transition: all 0.2s ease;
+}
+
+.md-typeset a:hover {
+  text-decoration: none;
+  color: var(--gold-dark);
+}
+
+/* Code blocks */
+.md-typeset code {
+  background: var(--bg-cream);
+  border: 1px solid var(--border-light);
+  color: var(--text-dark);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+}
+
+.md-typeset pre {
+  background: var(--bg-cream);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+}
+
+.md-typeset pre code {
+  border: none;
+  background: transparent;
+}
+
+/* Tables - clean with gold header accent */
+.md-typeset table:not([class]) {
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--gold);
+  color: var(--text-dark);
+  font-weight: 600;
+  border-bottom: none;
+}
+
+.md-typeset table:not([class]) td {
+  border-color: var(--border-light);
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background: var(--bg-cream);
+}
+
+/* Admonitions - gold accent */
+.md-typeset .admonition,
+.md-typeset details {
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--gold);
+  border-radius: 4px;
+  background: var(--bg-white);
+  box-shadow: none;
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary {
+  background: var(--bg-cream);
+  border-bottom: 1px solid var(--border-light);
+  font-weight: 600;
+}
+
+.md-typeset .admonition-title::before,
+.md-typeset summary::before {
+  background-color: var(--gold);
+}
+
+/* Warning admonition */
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-left-color: var(--gold);
+}
+
+/* Info admonition */
+.md-typeset .admonition.info,
+.md-typeset details.info {
+  border-left-color: var(--gold);
+}
+
+/* Buttons */
+.md-typeset .md-button {
+  background: var(--gold);
+  border: none;
+  color: var(--text-dark);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.md-typeset .md-button:hover {
+  background: var(--gold-dark);
+  transform: translateY(-1px);
+}
+
+/* Search */
+.md-search__input {
+  background: var(--bg-cream);
+  border: 1px solid var(--border-light);
+}
+
+.md-search__input::placeholder {
+  color: var(--text-light);
+}
+
+/* Footer */
+.md-footer {
+  background: var(--text-dark);
+}
+
+.md-footer-meta {
+  background: var(--text-dark);
+}
+
+/* Tabs */
+.md-typeset .tabbed-labels > label {
+  color: var(--text-medium);
+  border-bottom: 2px solid transparent;
+}
+
+.md-typeset .tabbed-labels > label:hover {
+  color: var(--text-dark);
+}
+
+.md-typeset .tabbed-labels > .tabbed-input:checked + label {
+  color: var(--text-dark);
+  border-bottom-color: var(--gold);
+}
+
+/* Horizontal rules */
+.md-typeset hr {
+  border-color: var(--border-light);
+}
+
+/* Blockquotes */
+.md-typeset blockquote {
+  border-left: 4px solid var(--gold);
+  background: var(--bg-cream);
+  padding: 1rem;
+  color: var(--text-medium);
+}
+
+/* Table of contents */
+.md-nav--secondary .md-nav__link--active {
+  color: var(--text-dark);
+}
+
+.md-nav--secondary .md-nav__link--active::before {
+  background: var(--gold);
+}
+
+/* Gold highlight sections */
+.highlight-box {
+  background: var(--gold);
+  padding: 2rem;
+  margin: 2rem 0;
+  border-radius: 4px;
+}
+
+.highlight-box h2,
+.highlight-box h3,
+.highlight-box p {
+  color: var(--text-dark);
+}
