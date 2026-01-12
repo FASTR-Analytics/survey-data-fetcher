@@ -566,8 +566,9 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
       # Generate detailed commit message
       commit_msg <- generate_commit_message(records_to_add, commit_notes)
 
-      # Push survey database
-      if (nrow(new_survey_data) > 0 || nrow(updates) > 0) {
+      # Push survey database (if there's new data or updates)
+      has_survey_updates <- exists("updates") && nrow(updates) > 0
+      if (nrow(new_survey_data) > 0 || has_survey_updates) {
         github_results$survey <- push_database_to_github(
           data = updated_survey_db,
           file_path = "survey_data_unified.csv",
