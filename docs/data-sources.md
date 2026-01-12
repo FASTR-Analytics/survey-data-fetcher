@@ -80,6 +80,11 @@ The UN Population Division provides demographic estimates and projections.
 - **API**: UN Data API
 - **Documentation**: [population.un.org/dataportal](https://population.un.org/dataportal/)
 
+!!! warning "API Token Required"
+    UNWPP requires an API token. Set `UNWPP_TOKEN` in your `.Renviron` file or as a Hugging Face secret.
+
+    Register at [population.un.org/dataportal](https://population.un.org/dataportal/) to get your token.
+
 ### Available Data
 
 - **Years**: 2000-2030 (estimates and projections)

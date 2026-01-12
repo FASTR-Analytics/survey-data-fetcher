@@ -58,14 +58,25 @@ No installation required - just open in your browser.
 
 ## Environment Variables
 
-For GitHub integration, set up a `.Renviron` file:
+Set up a `.Renviron` file with your API keys:
 
 ```bash
 # .Renviron
+
+# Required for UNWPP data fetching
+UNWPP_TOKEN=your_unwpp_api_token_here
+
+# Required for GitHub database integration
 GITHUB_TOKEN=ghp_your_personal_access_token_here
 ```
 
-Or on Hugging Face Spaces, add it as a secret in Settings.
+On Hugging Face Spaces, add these as secrets in Settings.
+
+### Getting a UNWPP Token
+
+1. Go to [population.un.org/dataportal](https://population.un.org/dataportal/)
+2. Register for an account
+3. Request API access to get your token
 
 ## First Steps
 

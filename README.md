@@ -70,16 +70,22 @@ The app syncs with the FASTR-Analytics/modules repository:
 | `survey_data_unified.csv` | Survey indicators (anc1, penta1, bcg, u5mr, etc.) |
 | `population_estimates_only.csv` | Population estimates (poptot, livebirth, etc.) |
 
-### Setup GitHub Token
+### Environment Variables
 
-For pushing data to GitHub, set the `GITHUB_TOKEN` environment variable:
+Set these in your `.Renviron` file (local) or as Hugging Face Spaces secrets:
 
-**Local:** Add to `.Renviron`:
+| Variable | Purpose | Required For |
+|----------|---------|--------------|
+| `UNWPP_TOKEN` | UN Population API access | Fetching UNWPP data |
+| `GITHUB_TOKEN` | GitHub repo write access | Pushing to database |
+
+**Local (.Renviron):**
 ```
-GITHUB_TOKEN=ghp_your_token_here
+UNWPP_TOKEN=your_unwpp_token_here
+GITHUB_TOKEN=ghp_your_github_token_here
 ```
 
-**Hugging Face:** Add as a secret in Space Settings.
+**Hugging Face:** Add as secrets in Space Settings.
 
 ## Project Structure
 
