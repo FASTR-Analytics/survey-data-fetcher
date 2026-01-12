@@ -9,44 +9,6 @@ A Shiny application for fetching, cleaning, and integrating health survey data f
 - **GitHub Integration**: Pull the latest database, validate new data, and push updates directly to GitHub
 - **Collaborative Workflow**: Multiple users can contribute to the unified survey database
 
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Survey Data Fetcher App                   │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────┐   ┌──────────┐   ┌──────────┐                │
-│  │   DHS    │   │  UNICEF  │   │  UNWPP   │                │
-│  │   API    │   │   SDMX   │   │   API    │                │
-│  └────┬─────┘   └────┬─────┘   └────┬─────┘                │
-│       │              │              │                       │
-│       └──────────────┼──────────────┘                       │
-│                      ▼                                       │
-│            ┌─────────────────┐                              │
-│            │  Data Cleaning  │                              │
-│            │ & Standardization│                              │
-│            └────────┬────────┘                              │
-│                     ▼                                        │
-│            ┌─────────────────┐                              │
-│            │   Validation    │                              │
-│            │ (Name Matching) │                              │
-│            └────────┬────────┘                              │
-│                     ▼                                        │
-│            ┌─────────────────┐                              │
-│            │ Duplicate Check │                              │
-│            └────────┬────────┘                              │
-│                     ▼                                        │
-│  ┌─────────────────────────────────────────┐               │
-│  │            GitHub Push                   │               │
-│  │  ┌─────────────────┐ ┌────────────────┐ │               │
-│  │  │survey_data_     │ │population_     │ │               │
-│  │  │unified.csv      │ │estimates_only  │ │               │
-│  │  └─────────────────┘ └────────────────┘ │               │
-│  └─────────────────────────────────────────┘               │
-└─────────────────────────────────────────────────────────────┘
-```
-
 ## Data Flow
 
 1. **Fetch** - Select data source, indicators, and countries
