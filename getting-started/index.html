@@ -394,6 +394,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Environment Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-a-unwpp-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting a UNWPP Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -636,11 +653,22 @@ R<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;shiny:
 <p><strong><a href="https://huggingface.co/spaces/CIJBoulange/survey-data-fetcher">https://huggingface.co/spaces/CIJBoulange/survey-data-fetcher</a></strong></p>
 <p>No installation required - just open in your browser.</p>
 <h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
-<p>For GitHub integration, set up a <code>.Renviron</code> file:</p>
+<p>Set up a <code>.Renviron</code> file with your API keys:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># .Renviron</span>
+
+<span class="c1"># Required for UNWPP data fetching</span>
+<span class="nv">UNWPP_TOKEN</span><span class="o">=</span>your_unwpp_api_token_here
+
+<span class="c1"># Required for GitHub database integration</span>
 <span class="nv">GITHUB_TOKEN</span><span class="o">=</span>ghp_your_personal_access_token_here
 </code></pre></div>
-<p>Or on Hugging Face Spaces, add it as a secret in Settings.</p>
+<p>On Hugging Face Spaces, add these as secrets in Settings.</p>
+<h3 id="getting-a-unwpp-token">Getting a UNWPP Token<a class="headerlink" href="#getting-a-unwpp-token" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to <a href="https://population.un.org/dataportal/">population.un.org/dataportal</a></li>
+<li>Register for an account</li>
+<li>Request API access to get your token</li>
+</ol>
 <h2 id="first-steps">First Steps<a class="headerlink" href="#first-steps" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Select a data source</strong> from the sidebar (DHS, UNICEF, or UNWPP)</li>
