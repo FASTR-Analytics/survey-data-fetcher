@@ -29,7 +29,7 @@ RUN R -e "install.packages(c('shinydashboard', 'DT', 'httr', 'jsonlite', 'countr
 RUN R -e "install.packages(c('plotly', 'shinyWidgets', 'shinycssloaders', 'shinyBS', 'shinyjs'), Ncpus = 2)"
 
 # Install data/file handling packages
-RUN R -e "install.packages(c('RCurl', 'stringr', 'readxl', 'rsdmx'), Ncpus = 2)"
+RUN R -e "install.packages(c('RCurl', 'stringr', 'readxl', 'rsdmx', 'stringdist', 'base64enc'), Ncpus = 2)"
 
 # Install rdhs separately with explicit validation and error output
 RUN R -e "install.packages('rdhs', Ncpus = 2)" && \
