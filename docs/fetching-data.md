@@ -1,20 +1,19 @@
 # Fetching Data
 
-## Example: Adding Nigeria DHS Data to FASTR
+## Example: Adding WUENIC Immunization Data to FASTR
 
-You need vaccination coverage data from Nigeria's latest DHS survey, cleaned and formatted for the FASTR analytics platform.
+You need the latest WHO/UNICEF immunization coverage estimates for Guinea, cleaned and formatted for the FASTR analytics platform.
 
 **Workflow:**
 
-1. Open the app and select **DHS** from the sidebar
-2. Click **Vaccinations** in Quick Favorites to select BCG, Penta1-3, Measles, etc.
-3. Select **Nigeria** from the country dropdown
-4. Set Geographic Level to **Subnational** (to get state-level data)
-5. Click **Fetch Data**
-6. Go to **Clean & Process** tab → click **Clean Data**
-7. Go to **Database Integration** tab:
+1. Open the app and select **UNICEF** from the sidebar
+2. Click **Child Immunization** in Quick Favorites to select DTP1-3, BCG, MCV1, etc.
+3. Select **Guinea** from the country dropdown
+4. Click **Fetch Data**
+5. Go to **Clean & Process** tab → click **Clean Data**
+6. Go to **Database Integration** tab:
     - Click **Pull from GitHub** to get the latest database
-    - Click **Validate Names** to check state names match
+    - Click **Validate Names** to check country name matches
     - Click **Check Duplicates** to see if records already exist
     - Click **Append & Push** to add new records to GitHub
 
