@@ -86,9 +86,12 @@ git push
 
 1. Go to Space **Settings**
 2. Find **"Variables and secrets"**
-3. Add:
-   - **Name**: `GITHUB_TOKEN`
-   - **Value**: Your GitHub personal access token
+3. Add these secrets:
+
+| Secret Name | Value | Purpose |
+|-------------|-------|---------|
+| `UNWPP_TOKEN` | Your UN Data Portal token | Fetch UNWPP population data |
+| `GITHUB_TOKEN` | Your GitHub PAT | Push data to GitHub repo |
 
 ---
 
@@ -127,27 +130,42 @@ git remote -v
 
 #### Package installation fails
 
-Check the Dockerfile has all required packages:
+Check the Dockerfile has all required packages. Add missing packages:
 
 ```dockerfile
-RUN R -e "install.packages(c('stringdist', 'base64enc'))"
+RUN R -e "install.packages(c('package_name'))"
 ```
 
 #### App crashes on startup
 
-Check the logs for missing libraries:
+Check the logs for missing libraries. The error will look like:
 
 ```
-Error in library(stringdist) : there is no package called 'stringdist'
+Error in library(package_name) : there is no package called 'package_name'
 ```
+
+**Solution:** Add the missing package to the Dockerfile and rebuild.
+
+#### API fetch fails
+
+- **DHS**: No token required, but rate limits may apply
+- **UNICEF**: No token required
+- **UNWPP**: Requires `UNWPP_TOKEN` secret
 
 #### GitHub push fails
 
-Verify the `GITHUB_TOKEN` secret:
+Verify your `GITHUB_TOKEN` secret:
 
 1. Token has `repo` or `contents:write` permission
-2. Token has access to `FASTR-Analytics/modules`
+2. Token has access to the target repository
 3. Secret name is exactly `GITHUB_TOKEN`
+4. Token hasn't expired
+
+#### Data not appearing after push
+
+- Check the commit was successful on GitHub
+- Verify you pushed to the correct branch (`main`)
+- Ensure the data passed validation (no unmatched admin areas)
 
 ---
 
