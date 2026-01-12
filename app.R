@@ -1669,6 +1669,20 @@ output$country_selector <- renderUI({
     cat("\nClick 'Append to Database' to finalize.\n")
   })
 
+  # Commit message preview
+  output$commit_preview <- renderUI({
+    if (is.null(values$duplicate_analysis) || nrow(values$duplicate_analysis$new_records) == 0) {
+      return(div(class = "well", style = "background: #f5f5f5; font-size: 12px;",
+                 "Commit preview will appear after duplicate check..."))
+    }
+
+    # Generate preview
+    preview_msg <- generate_commit_message(values$duplicate_analysis$new_records, input$commit_notes)
+
+    div(class = "well", style = "background: #f5f5f5; font-family: monospace; font-size: 11px; white-space: pre-wrap;",
+        preview_msg)
+  })
+
   # Append to database and push to GitHub
   observeEvent(input$append_to_database, {
     req(values$duplicate_analysis)
@@ -1702,7 +1716,8 @@ output$country_selector <- renderUI({
       pop_db = values$pop_db,
       create_backup = FALSE,  # Skip local backup for cloud deployment
       push_to_github = input$push_to_github,
-      github_token = github_token()
+      github_token = github_token(),
+      commit_notes = input$commit_notes
     )
 
     if (result$success) {

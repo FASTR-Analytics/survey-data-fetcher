@@ -384,6 +384,71 @@ detect_duplicates <- function(new_data, existing_data) {
 # DATABASE APPEND FUNCTIONS
 # ========================================
 
+#' Generate a detailed commit message from the data being added
+#' @param new_records data.frame of new records
+#' @param user_notes Optional user-provided notes
+#' @return Character string with formatted commit message
+generate_commit_message <- function(new_records, user_notes = NULL) {
+  if (is.null(new_records) || nrow(new_records) == 0) {
+    return("Update survey database")
+  }
+
+  # Extract summary info
+  countries <- unique(new_records$iso3_code)
+  indicators <- unique(new_records$indicator_common_id)
+  sources <- unique(new_records$source)
+  years <- range(new_records$year, na.rm = TRUE)
+
+  # Build title line
+  country_str <- if (length(countries) <= 3) {
+    paste(countries, collapse = ", ")
+  } else {
+    paste0(paste(countries[1:3], collapse = ", "), " +", length(countries) - 3, " more")
+  }
+
+  title <- paste0("Add data: ", country_str, " (", nrow(new_records), " records)")
+
+  # Build body
+  body_parts <- c()
+
+  # Countries
+  body_parts <- c(body_parts, paste0("Countries: ", paste(countries, collapse = ", ")))
+
+  # Indicators
+  indicator_str <- if (length(indicators) <= 5) {
+    paste(indicators, collapse = ", ")
+  } else {
+    paste0(paste(indicators[1:5], collapse = ", "), " +", length(indicators) - 5, " more")
+  }
+  body_parts <- c(body_parts, paste0("Indicators: ", indicator_str))
+
+  # Years
+  if (years[1] == years[2]) {
+    body_parts <- c(body_parts, paste0("Year: ", years[1]))
+  } else {
+    body_parts <- c(body_parts, paste0("Years: ", years[1], "-", years[2]))
+  }
+
+  # Source
+  body_parts <- c(body_parts, paste0("Source: ", paste(sources, collapse = ", ")))
+
+  # Record count
+  body_parts <- c(body_parts, paste0("Records: ", nrow(new_records)))
+
+  # User notes
+  if (!is.null(user_notes) && nchar(trimws(user_notes)) > 0) {
+    body_parts <- c(body_parts, "", paste0("Notes: ", user_notes))
+  }
+
+  # Timestamp
+  body_parts <- c(body_parts, "", paste0("Timestamp: ", format(Sys.time(), "%Y-%m-%d %H:%M UTC")))
+
+  # Combine
+  commit_msg <- paste0(title, "\n\n", paste(body_parts, collapse = "\n"))
+
+  return(commit_msg)
+}
+
 #' Append validated data to databases and push to GitHub
 #' @param new_records data.frame of new records to add
 #' @param duplicates data.frame of duplicates with actions
@@ -392,10 +457,11 @@ detect_duplicates <- function(new_data, existing_data) {
 #' @param create_backup logical, whether to create local backup files
 #' @param push_to_github logical, whether to push changes to GitHub
 #' @param github_token GitHub personal access token (required for push)
+#' @param commit_notes Optional user notes for commit message
 #' @return list with success status and message
 append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
                                  create_backup = TRUE, push_to_github = TRUE,
-                                 github_token = NULL) {
+                                 github_token = NULL, commit_notes = NULL) {
   tryCatch({
     # Create local backups if requested
     if (create_backup) {
@@ -497,10 +563,8 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
         ))
       }
 
-      # Generate commit message
-      timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M")
-      commit_msg <- paste0("Update survey data: +", nrow(new_survey_data), " survey, +",
-                           nrow(new_pop_data), " population records (", timestamp, ")")
+      # Generate detailed commit message
+      commit_msg <- generate_commit_message(records_to_add, commit_notes)
 
       # Push survey database
       if (nrow(new_survey_data) > 0 || nrow(updates) > 0) {

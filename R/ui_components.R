@@ -680,6 +680,12 @@ create_integration_tab <- function() {
                              icon("info-circle"),
                              " Requires GITHUB_TOKEN in .Renviron file (HF Spaces: set as secret)"),
                          br(),
+                         textAreaInput("commit_notes", "Commit Notes (optional):",
+                                      placeholder = "Add any notes about this update...",
+                                      rows = 2, width = "100%"),
+                         p(style = "font-size: 11px; color: #666;",
+                           "Auto-includes: countries, indicators, record counts, source, timestamp"),
+                         br(),
                          actionButton("append_to_database", "Append & Push to GitHub",
                                      class = "btn-success btn-lg",
                                      icon = icon("cloud-upload-alt")),
@@ -687,16 +693,16 @@ create_integration_tab <- function() {
                          uiOutput("append_status")
                   ),
                   column(6,
-                         h4("GitHub Push Status"),
+                         h4("Commit Message Preview"),
+                         uiOutput("commit_preview"),
+                         hr(),
                          div(class = "well",
                              p(strong("Target Repo:"), " FASTR-Analytics/modules"),
                              p(strong("Files to update:")),
                              tags$ul(
                                tags$li("survey_data_unified.csv"),
                                tags$li("population_estimates_only.csv")
-                             ),
-                             p(style = "font-size: 12px; color: #666;",
-                               "Changes will be committed with a timestamped message.")
+                             )
                          ),
                          uiOutput("github_token_status")
                   )
