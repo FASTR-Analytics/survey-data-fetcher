@@ -1,5 +1,27 @@
 # Fetching Data
 
+## Example: Adding Nigeria DHS Data to FASTR
+
+You need vaccination coverage data from Nigeria's latest DHS survey, cleaned and formatted for the FASTR analytics platform.
+
+**Workflow:**
+
+1. Open the app and select **DHS** from the sidebar
+2. Click **Vaccinations** in Quick Favorites to select BCG, Penta1-3, Measles, etc.
+3. Select **Nigeria** from the country dropdown
+4. Set Geographic Level to **Subnational** (to get state-level data)
+5. Click **Fetch Data**
+6. Go to **Clean & Process** tab → click **Clean Data**
+7. Go to **Database Integration** tab:
+    - Click **Pull from GitHub** to get the latest database
+    - Click **Validate Names** to check state names match
+    - Click **Check Duplicates** to see if records already exist
+    - Click **Append & Push** to add new records to GitHub
+
+The data is now standardized with FASTR column names (`admin_area_1`, `indicator_common_id`, etc.) and pushed to the shared database.
+
+---
+
 ## Step-by-Step Guide
 
 ### 1. Select Data Source

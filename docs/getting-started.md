@@ -78,11 +78,6 @@ On Hugging Face Spaces, add these as secrets in Settings.
 2. Register for an account
 3. Request API access to get your token
 
-## First Steps
+## Next Steps
 
-1. **Select a data source** from the sidebar (DHS, UNICEF, or UNWPP)
-2. **Choose indicators** using Quick Favorites or Browse All
-3. **Select countries** of interest
-4. **Click "Fetch Data"** to retrieve from the API
-5. **Clean the data** in the "Clean & Process" tab
-6. **Integrate with database** in the "Database Integration" tab
+Once set up, see [Fetching Data](fetching-data.md) for a complete workflow example.
