@@ -279,6 +279,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#data-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -534,6 +545,34 @@
 <li><strong>GitHub Integration</strong>: Pull the latest database, validate new data, and push updates directly to GitHub</li>
 <li><strong>Collaborative Workflow</strong>: Multiple users can contribute to the unified survey database</li>
 </ul>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TD
+    subgraph sources[Data Sources]
+        DHS[DHS API]
+        UNICEF[UNICEF SDMX]
+        UNWPP[UNWPP API]
+    end
+
+    subgraph app[Survey Data Fetcher]
+        FETCH[Fetch Data]
+        CLEAN[Clean &amp; Standardize]
+        VALIDATE[Validate Names]
+        DEDUP[Check Duplicates]
+    end
+
+    subgraph output[GitHub Repository]
+        SURVEY[survey_data_unified.csv]
+        POP[population_estimates_only.csv]
+    end
+
+    DHS --&gt; FETCH
+    UNICEF --&gt; FETCH
+    UNWPP --&gt; FETCH
+    FETCH --&gt; CLEAN
+    CLEAN --&gt; VALIDATE
+    VALIDATE --&gt; DEDUP
+    DEDUP --&gt; SURVEY
+    DEDUP --&gt; POP</code></pre>
 <h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Fetch</strong> - Select data source, indicators, and countries</li>
