@@ -642,10 +642,32 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#api-fetch-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API fetch fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#github-push-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
         GitHub push fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-not-appearing-after-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data not appearing after push
       
     </span>
   </a>
@@ -810,10 +832,29 @@ git<span class="w"> </span>push
 <ol>
 <li>Go to Space <strong>Settings</strong></li>
 <li>Find <strong>"Variables and secrets"</strong></li>
-<li>Add:</li>
-<li><strong>Name</strong>: <code>GITHUB_TOKEN</code></li>
-<li><strong>Value</strong>: Your GitHub personal access token</li>
+<li>Add these secrets:</li>
 </ol>
+<table>
+<thead>
+<tr>
+<th>Secret Name</th>
+<th>Value</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UNWPP_TOKEN</code></td>
+<td>Your UN Data Portal token</td>
+<td>Fetch UNWPP population data</td>
+</tr>
+<tr>
+<td><code>GITHUB_TOKEN</code></td>
+<td>Your GitHub PAT</td>
+<td>Push data to GitHub repo</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="updating-the-deployment">Updating the Deployment<a class="headerlink" href="#updating-the-deployment" title="Permanent link">&para;</a></h2>
 <h3 id="from-local">From Local<a class="headerlink" href="#from-local" title="Permanent link">&para;</a></h3>
@@ -838,20 +879,34 @@ git<span class="w"> </span>push<span class="w"> </span>huggingface<span class="w
 </ul>
 <h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
 <h4 id="package-installation-fails">Package installation fails<a class="headerlink" href="#package-installation-fails" title="Permanent link">&para;</a></h4>
-<p>Check the Dockerfile has all required packages:</p>
-<div class="highlight"><pre><span></span><code><span class="k">RUN</span><span class="w"> </span>R<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;install.packages(c(&#39;stringdist&#39;, &#39;base64enc&#39;))&quot;</span>
+<p>Check the Dockerfile has all required packages. Add missing packages:</p>
+<div class="highlight"><pre><span></span><code><span class="k">RUN</span><span class="w"> </span>R<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;install.packages(c(&#39;package_name&#39;))&quot;</span>
 </code></pre></div>
 <h4 id="app-crashes-on-startup">App crashes on startup<a class="headerlink" href="#app-crashes-on-startup" title="Permanent link">&para;</a></h4>
-<p>Check the logs for missing libraries:</p>
-<div class="highlight"><pre><span></span><code>Error in library(stringdist) : there is no package called &#39;stringdist&#39;
+<p>Check the logs for missing libraries. The error will look like:</p>
+<div class="highlight"><pre><span></span><code>Error in library(package_name) : there is no package called &#39;package_name&#39;
 </code></pre></div>
+<p><strong>Solution:</strong> Add the missing package to the Dockerfile and rebuild.</p>
+<h4 id="api-fetch-fails">API fetch fails<a class="headerlink" href="#api-fetch-fails" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>DHS</strong>: No token required, but rate limits may apply</li>
+<li><strong>UNICEF</strong>: No token required</li>
+<li><strong>UNWPP</strong>: Requires <code>UNWPP_TOKEN</code> secret</li>
+</ul>
 <h4 id="github-push-fails">GitHub push fails<a class="headerlink" href="#github-push-fails" title="Permanent link">&para;</a></h4>
-<p>Verify the <code>GITHUB_TOKEN</code> secret:</p>
+<p>Verify your <code>GITHUB_TOKEN</code> secret:</p>
 <ol>
 <li>Token has <code>repo</code> or <code>contents:write</code> permission</li>
-<li>Token has access to <code>FASTR-Analytics/modules</code></li>
+<li>Token has access to the target repository</li>
 <li>Secret name is exactly <code>GITHUB_TOKEN</code></li>
+<li>Token hasn't expired</li>
 </ol>
+<h4 id="data-not-appearing-after-push">Data not appearing after push<a class="headerlink" href="#data-not-appearing-after-push" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Check the commit was successful on GitHub</li>
+<li>Verify you pushed to the correct branch (<code>main</code>)</li>
+<li>Ensure the data passed validation (no unmatched admin areas)</li>
+</ul>
 <hr />
 <h2 id="local-development">Local Development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h2>
 <h3 id="run-with-docker">Run with Docker<a class="headerlink" href="#run-with-docker" title="Permanent link">&para;</a></h3>
