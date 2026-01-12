@@ -5,20 +5,12 @@ site_author: FASTR Analytics
 theme:
   name: material
   palette:
-    scheme: default
-    primary: white
+    primary: teal
     accent: amber
-  font:
-    text: Inter
-    code: JetBrains Mono
   features:
     - navigation.sections
     - navigation.expand
     - toc.integrate
-    - navigation.top
-
-extra_css:
-  - stylesheets/custom.css
 
 nav:
   - Home: index.md

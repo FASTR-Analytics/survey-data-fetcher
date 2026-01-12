@@ -1,56 +1,36 @@
 /* ========================================
-   FASTR CLEAN THEME - GOLD ACCENT
+   FASTR CLEAN THEME - VERSION 3.2
    ========================================
-   Inspired by citiespeoplelove.co
-   Clean, minimal design with warm gold accent
+   Clean, minimal design with FASTR teal #0f706d as accent
+   Fixed: Header alignment, button colors, progress indicators, green alert backgrounds
 */
 
-/* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 :root {
-  --gold: #e0b641;
-  --gold-light: #f0d078;
-  --gold-dark: #c99d2c;
-  --text-dark: #1a1a1a;
-  --text-medium: #4a4a4a;
-  --text-light: #8a8a8a;
+  --fastr-teal: #0f706d;
+  --fastr-teal-light: #1a8b86;
+  --text-dark: #2c3e50;
+  --text-medium: #7f8c8d;
+  --text-light: #95a5a6;
   --bg-white: #ffffff;
-  --bg-cream: #fafaf8;
-  --bg-light: #f5f5f3;
-  --border-light: #e5e5e5;
-  --border-medium: #d0d0d0;
+  --bg-light: #f8f9fa;
+  --bg-medium: #e9ecef;
+  --border-light: #dee2e6;
 }
 
 /* ========================================
-   BASIC RESETS & TYPOGRAPHY
+   BASIC RESETS
    ======================================== */
 * {
   box-sizing: border-box;
 }
 
-body, .content-wrapper {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-  color: var(--text-dark) !important;
-  line-height: 1.6 !important;
-  letter-spacing: -0.011em !important;
-  font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04' !important;
-  background: var(--bg-light) !important;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-dark) !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.02em !important;
-}
-
 /* ========================================
-   HEADER - CLEAN WHITE WITH GOLD BORDER
+   HEADER - CLEAN WHITE WITH ALIGNED TEAL BORDER
    ======================================== */
 .main-header {
   background: var(--bg-white) !important;
-  border-bottom: 3px solid var(--gold) !important;
-  box-shadow: none !important;
+  border-bottom: 3px solid var(--fastr-teal) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
 }
 
 .main-header .navbar {
@@ -61,80 +41,50 @@ h1, h2, h3, h4, h5, h6 {
 
 .main-header .logo {
   background: var(--bg-white) !important;
-  color: var(--text-dark) !important;
-  border-right: 1px solid var(--border-light) !important;
+  color: var(--fastr-teal) !important;
+  border-right: none !important;
   border-bottom: none !important;
-  font-weight: 600 !important;
-  font-size: 16px !important;
-  letter-spacing: -0.01em !important;
+  font-weight: 700 !important;
+  font-size: 18px !important;
 }
 
 .main-header .navbar .nav > li > a {
   color: var(--text-dark) !important;
 }
 
-.skin-blue .main-header > .logo {
-  background: var(--bg-white) !important;
-  color: var(--text-dark) !important;
-}
-
-.skin-blue .main-header .navbar {
-  background: var(--bg-white) !important;
-}
-
 /* ========================================
-   SIDEBAR - MINIMAL WHITE
+   SIDEBAR - CLEAN GRAY
    ======================================== */
 .main-sidebar {
-  background: var(--bg-white) !important;
+  background: var(--bg-light) !important;
   border-right: 1px solid var(--border-light) !important;
 }
 
-.skin-blue .main-sidebar {
-  background: var(--bg-white) !important;
-}
-
 .sidebar-menu > li > a {
-  color: var(--text-medium) !important;
-  padding: 14px 20px !important;
+  color: var(--text-dark) !important;
+  padding: 12px 15px !important;
   border-left: 3px solid transparent !important;
-  transition: all 0.15s ease !important;
-  font-weight: 400 !important;
+  transition: all 0.2s ease !important;
 }
 
 .sidebar-menu > li:hover > a {
-  background: var(--bg-cream) !important;
-  color: var(--text-dark) !important;
-  border-left: 3px solid var(--gold-light) !important;
+  background: var(--bg-white) !important;
+  border-left: 3px solid var(--fastr-teal-light) !important;
 }
 
 .sidebar-menu > li.active > a {
-  background: var(--bg-cream) !important;
-  color: var(--text-dark) !important;
-  border-left: 3px solid var(--gold) !important;
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
   font-weight: 600 !important;
 }
 
-.skin-blue .sidebar-menu > li > a {
+.sidebar-menu > li > a > .fa {
   color: var(--text-medium) !important;
 }
 
-.skin-blue .sidebar-menu > li.active > a {
-  background: var(--bg-cream) !important;
-  color: var(--text-dark) !important;
-}
-
-.sidebar-menu > li > a > .fa {
-  color: var(--text-light) !important;
-  width: 20px !important;
-}
-
 .sidebar-menu > li.active > a > .fa {
-  color: var(--gold-dark) !important;
-}
-
-.sidebar-menu > li:hover > a > .fa {
-  color: var(--gold) !important;
+  color: var(--fastr-teal) !important;
 }
 
 /* ========================================
@@ -145,49 +95,72 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ========================================
-   BOXES - CLEAN WHITE WITH GOLD ACCENT
+   BOXES - CLEAN WHITE WITH MINIMAL BORDERS
    ======================================== */
 .box {
   background: var(--bg-white) !important;
   border: 1px solid var(--border-light) !important;
-  border-radius: 4px !important;
-  box-shadow: none !important;
-  margin-bottom: 24px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  margin-bottom: 20px !important;
 }
 
 .box-header {
   background: var(--bg-white) !important;
   color: var(--text-dark) !important;
-  border-bottom: 2px solid var(--gold) !important;
-  padding: 16px 20px !important;
+  border-bottom: 2px solid var(--fastr-teal) !important;
+  padding: 15px !important;
   font-weight: 600 !important;
-  border-radius: 4px 4px 0 0 !important;
+  border-radius: 6px 6px 0 0 !important;
 }
 
 .box-title {
   color: var(--text-dark) !important;
   font-weight: 600 !important;
-  font-size: 15px !important;
-  letter-spacing: -0.01em !important;
-}
-
-.box-body {
-  padding: 20px !important;
+  font-size: 16px !important;
 }
 
 /* ========================================
-   BUTTONS - GOLD ACCENT
+   RADIO BUTTONS - SIMPLE AND VISIBLE
+   ======================================== */
+input[type="radio"] {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 10px 0 0 !important;
+  opacity: 1 !important;
+  position: relative !important;
+  display: inline-block !important;
+  accent-color: var(--fastr-teal) !important;
+  cursor: pointer !important;
+}
+
+.radio {
+  margin-bottom: 10px !important;
+  display: block !important;
+}
+
+.radio label {
+  color: var(--text-dark) !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 8px 0 !important;
+}
+
+/* ========================================
+   BUTTONS - CONSISTENT FASTR TEAL THEME
    ======================================== */
 .btn-primary,
 .btn-success {
-  background: var(--gold) !important;
-  border: none !important;
-  color: var(--text-dark) !important;
-  font-weight: 600 !important;
-  border-radius: 3px !important;
-  padding: 10px 20px !important;
-  transition: all 0.15s ease !important;
-  letter-spacing: 0 !important;
+  background: var(--fastr-teal) !important;
+  border-color: var(--fastr-teal) !important;
+  color: var(--bg-white) !important;
+  font-weight: 500 !important;
+  border-radius: 4px !important;
+  padding: 8px 16px !important;
+  transition: all 0.2s ease !important;
 }
 
 .btn-primary:hover,
@@ -196,42 +169,22 @@ h1, h2, h3, h4, h5, h6 {
 .btn-success:hover,
 .btn-success:focus,
 .btn-success:active {
-  background: var(--gold-dark) !important;
-  color: var(--text-dark) !important;
+  background: var(--fastr-teal-light) !important;
+  border-color: var(--fastr-teal-light) !important;
+  color: var(--bg-white) !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 2px 8px rgba(224, 182, 65, 0.3) !important;
+  box-shadow: 0 2px 4px rgba(15, 112, 109, 0.3) !important;
 }
 
 .btn-info {
-  background: var(--bg-cream) !important;
-  border: 1px solid var(--border-medium) !important;
+  background: var(--bg-medium) !important;
+  border-color: var(--bg-medium) !important;
   color: var(--text-dark) !important;
-  font-weight: 500 !important;
-}
-
-.btn-info:hover {
-  background: var(--bg-light) !important;
-  border-color: var(--border-medium) !important;
 }
 
 .btn-warning {
   background: var(--text-medium) !important;
-  border: none !important;
-  color: var(--bg-white) !important;
-}
-
-.btn-warning:hover {
-  background: var(--text-dark) !important;
-}
-
-.btn-danger {
-  background: var(--bg-white) !important;
-  border: 1px solid #c0392b !important;
-  color: #c0392b !important;
-}
-
-.btn-danger:hover {
-  background: #c0392b !important;
+  border-color: var(--text-medium) !important;
   color: var(--bg-white) !important;
 }
 
@@ -240,64 +193,27 @@ h1, h2, h3, h4, h5, h6 {
    ======================================== */
 .form-control {
   border: 1px solid var(--border-light) !important;
-  border-radius: 3px !important;
+  border-radius: 4px !important;
   color: var(--text-dark) !important;
-  padding: 10px 12px !important;
-  transition: border-color 0.15s ease !important;
 }
 
 .form-control:focus {
-  border-color: var(--gold) !important;
-  box-shadow: 0 0 0 3px rgba(224, 182, 65, 0.15) !important;
-  outline: none !important;
-}
-
-/* Select inputs */
-.selectize-input {
-  border: 1px solid var(--border-light) !important;
-  border-radius: 3px !important;
-  box-shadow: none !important;
-}
-
-.selectize-input.focus {
-  border-color: var(--gold) !important;
-  box-shadow: 0 0 0 3px rgba(224, 182, 65, 0.15) !important;
-}
-
-.selectize-dropdown {
-  border: 1px solid var(--border-light) !important;
-  border-radius: 3px !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-}
-
-.selectize-dropdown .active {
-  background: var(--gold-light) !important;
-  color: var(--text-dark) !important;
+  border-color: var(--fastr-teal) !important;
+  box-shadow: 0 0 0 0.2rem rgba(15, 112, 109, 0.25) !important;
 }
 
 /* ========================================
-   RADIO BUTTONS & CHECKBOXES
+   TYPOGRAPHY
    ======================================== */
-input[type="radio"],
-input[type="checkbox"] {
-  width: 18px !important;
-  height: 18px !important;
-  margin: 0 10px 0 0 !important;
-  accent-color: var(--gold) !important;
-  cursor: pointer !important;
-}
-
-.radio, .checkbox {
-  margin-bottom: 10px !important;
-}
-
-.radio label, .checkbox label {
+body, .content-wrapper {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   color: var(--text-dark) !important;
-  font-weight: 400 !important;
-  cursor: pointer !important;
-  display: flex !important;
-  align-items: center !important;
-  padding: 6px 0 !important;
+  line-height: 1.5 !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-dark) !important;
+  font-weight: 600 !important;
 }
 
 /* ========================================
@@ -308,125 +224,112 @@ input[type="checkbox"] {
 }
 
 .table thead th {
-  background: var(--gold) !important;
+  background: var(--bg-light) !important;
   color: var(--text-dark) !important;
-  border-bottom: none !important;
+  border-bottom: 2px solid var(--border-light) !important;
   font-weight: 600 !important;
-  padding: 12px 16px !important;
-}
-
-.table tbody tr:nth-child(even) {
-  background: var(--bg-cream) !important;
-}
-
-.table tbody td {
-  border-color: var(--border-light) !important;
-  padding: 10px 16px !important;
-}
-
-/* DataTables */
-.dataTables_wrapper {
-  color: var(--text-dark) !important;
-}
-
-.dataTables_filter input {
-  border: 1px solid var(--border-light) !important;
-  border-radius: 3px !important;
-  padding: 6px 10px !important;
-}
-
-.dataTables_filter input:focus {
-  border-color: var(--gold) !important;
-  outline: none !important;
 }
 
 /* ========================================
-   ALERTS & NOTIFICATIONS
+   ALERTS - CONSISTENT FASTR THEME
    ======================================== */
 .alert-info {
-  background: rgba(224, 182, 65, 0.1) !important;
-  border: 1px solid var(--border-light) !important;
-  border-left: 4px solid var(--gold) !important;
+  background: rgba(15, 112, 109, 0.1) !important;
+  border: 1px solid var(--fastr-teal) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
   color: var(--text-dark) !important;
-  border-radius: 3px !important;
 }
 
 .alert-success {
-  background: rgba(224, 182, 65, 0.15) !important;
-  border: 1px solid var(--gold) !important;
-  border-left: 4px solid var(--gold) !important;
+  background: rgba(15, 112, 109, 0.1) !important;
+  border: 1px solid var(--fastr-teal) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
   color: var(--text-dark) !important;
-  border-radius: 3px !important;
 }
 
 .alert-warning {
-  background: rgba(224, 182, 65, 0.2) !important;
-  border: 1px solid var(--gold-dark) !important;
-  border-left: 4px solid var(--gold-dark) !important;
+  background: rgba(243, 156, 18, 0.1) !important;
+  border: 1px solid #f39c12 !important;
+  border-left: 4px solid #f39c12 !important;
   color: var(--text-dark) !important;
-  border-radius: 3px !important;
 }
 
 .alert-danger {
-  background: rgba(192, 57, 43, 0.1) !important;
-  border: 1px solid #c0392b !important;
-  border-left: 4px solid #c0392b !important;
+  background: rgba(231, 76, 60, 0.1) !important;
+  border: 1px solid #e74c3c !important;
+  border-left: 4px solid #e74c3c !important;
   color: var(--text-dark) !important;
-  border-radius: 3px !important;
-}
-
-/* Shiny notifications */
-.shiny-notification {
-  border-left: 4px solid var(--gold) !important;
-  background-color: var(--bg-white) !important;
-  color: var(--text-dark) !important;
-  border-radius: 3px !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-}
-
-.shiny-notification.shiny-notification-message {
-  background-color: var(--bg-white) !important;
-  border-left-color: var(--gold) !important;
-}
-
-.shiny-notification.shiny-notification-warning {
-  background-color: var(--bg-white) !important;
-  border-left-color: var(--gold-dark) !important;
-}
-
-.shiny-notification.shiny-notification-error {
-  background-color: var(--bg-white) !important;
-  border-left-color: #c0392b !important;
 }
 
 /* ========================================
-   PROGRESS INDICATORS
+   CLEAN UP ANY REMAINING ISSUES
    ======================================== */
+.skin-blue .main-header > .logo {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+}
+
+.skin-blue .main-header .navbar {
+  background: var(--bg-white) !important;
+}
+
+.skin-blue .main-sidebar {
+  background: var(--bg-light) !important;
+}
+
+.skin-blue .sidebar-menu > li > a {
+  color: var(--text-dark) !important;
+}
+
+.skin-blue .sidebar-menu > li.active > a {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+}
+
+/* ========================================
+   PROGRESS INDICATORS & LOADING STATES
+   ======================================== */
+
+/* Progress bars */
 .progress {
-  background-color: var(--bg-light) !important;
-  border-radius: 3px !important;
-  height: 6px !important;
-  margin: 12px 0 !important;
-  overflow: hidden !important;
+  background-color: var(--bg-medium) !important;
+  border-radius: 4px !important;
+  height: 8px !important;
+  margin: 10px 0 !important;
 }
 
 .progress-bar {
-  background-color: var(--gold) !important;
+  background-color: var(--fastr-teal) !important;
   transition: width 0.3s ease !important;
 }
 
+/* Spinners and loading indicators */
 .spinner-border,
 .fa-spin {
-  color: var(--gold) !important;
+  color: var(--fastr-teal) !important;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1000 !important;
 }
 
 .loading-spinner {
-  border: 3px solid var(--bg-light) !important;
-  border-top: 3px solid var(--gold) !important;
+  border: 3px solid var(--bg-medium) !important;
+  border-top: 3px solid var(--fastr-teal) !important;
   border-radius: 50% !important;
-  width: 36px !important;
-  height: 36px !important;
-  animation: spin 0.8s linear infinite !important;
+  width: 40px !important;
+  height: 40px !important;
+  animation: spin 1s linear infinite !important;
 }
 
 @keyframes spin {
@@ -434,181 +337,103 @@ input[type="checkbox"] {
   100% { transform: rotate(360deg); }
 }
 
-/* ========================================
-   TABS & NAVIGATION
-   ======================================== */
-.nav-tabs {
-  border-bottom: 1px solid var(--border-light) !important;
+/* Button loading states */
+.btn.loading {
+  position: relative !important;
+  color: transparent !important;
 }
 
-.nav-tabs > li > a {
-  color: var(--text-medium) !important;
-  border: none !important;
-  border-bottom: 2px solid transparent !important;
-  padding: 12px 20px !important;
-  margin-bottom: -1px !important;
-  transition: all 0.15s ease !important;
+.btn.loading::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 2px solid transparent !important;
+  border-top: 2px solid var(--bg-white) !important;
+  border-radius: 50% !important;
+  animation: spin 1s linear infinite !important;
 }
 
-.nav-tabs > li > a:hover {
-  color: var(--text-dark) !important;
-  background: transparent !important;
-  border-bottom-color: var(--gold-light) !important;
-}
-
-.nav-tabs > li.active > a,
-.nav-tabs > li.active > a:hover,
-.nav-tabs > li.active > a:focus {
-  color: var(--text-dark) !important;
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 2px solid var(--gold) !important;
-  font-weight: 600 !important;
-}
-
-/* ========================================
-   BADGES & LABELS
-   ======================================== */
-.badge-success,
-.label-success {
-  background-color: var(--gold) !important;
-  color: var(--text-dark) !important;
-}
-
-.badge-primary,
-.label-primary {
-  background-color: var(--text-dark) !important;
-  color: var(--bg-white) !important;
-}
-
-.badge-info,
-.label-info {
-  background-color: var(--bg-light) !important;
-  color: var(--text-dark) !important;
-  border: 1px solid var(--border-light) !important;
-}
-
-/* ========================================
-   LINKS
-   ======================================== */
-a {
-  color: var(--text-dark) !important;
-  text-decoration: underline !important;
-  text-decoration-color: var(--gold) !important;
-  text-underline-offset: 2px !important;
-  transition: all 0.15s ease !important;
-}
-
-a:hover {
-  text-decoration: none !important;
-  color: var(--gold-dark) !important;
-}
-
-/* Sidebar links override */
-.sidebar-menu a {
-  text-decoration: none !important;
-}
-
-/* Button links override */
-.btn {
-  text-decoration: none !important;
-}
-
-/* ========================================
-   GOLD HIGHLIGHT SECTIONS
-   ======================================== */
-.highlight-section {
-  background: var(--gold) !important;
-  padding: 24px !important;
-  margin: 20px 0 !important;
-  border-radius: 4px !important;
-}
-
-.highlight-section h3,
-.highlight-section p {
-  color: var(--text-dark) !important;
-  margin: 0 !important;
-}
-
-/* ========================================
-   STATUS MESSAGES
-   ======================================== */
+/* Status messages */
 .status-message {
-  background: var(--bg-cream) !important;
-  border-left: 4px solid var(--gold) !important;
-  padding: 14px 18px !important;
-  margin: 12px 0 !important;
-  border-radius: 0 3px 3px 0 !important;
+  background: var(--bg-light) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
+  padding: 12px 16px !important;
+  margin: 10px 0 !important;
+  border-radius: 0 4px 4px 0 !important;
   color: var(--text-dark) !important;
 }
 
 .status-message.success {
-  border-left-color: var(--gold) !important;
+  border-left-color: var(--fastr-teal) !important;
+  background: rgba(15, 112, 109, 0.05) !important;
 }
 
 .status-message.error {
-  border-left-color: #c0392b !important;
+  border-left-color: #e74c3c !important;
+  background: rgba(231, 76, 60, 0.05) !important;
 }
 
 .status-message.warning {
-  border-left-color: var(--gold-dark) !important;
+  border-left-color: #f39c12 !important;
+  background: rgba(243, 156, 18, 0.05) !important;
 }
 
 /* ========================================
-   WELLPANEL & INFO BOXES
-   ======================================== */
-.well {
-  background: var(--bg-cream) !important;
-  border: 1px solid var(--border-light) !important;
-  border-radius: 4px !important;
-  box-shadow: none !important;
-}
-
-.info-box {
-  background: var(--bg-white) !important;
-  border: 1px solid var(--border-light) !important;
-  border-radius: 4px !important;
-  box-shadow: none !important;
-}
-
-.info-box-icon {
-  background: var(--gold) !important;
-  color: var(--text-dark) !important;
-}
-
-/* ========================================
-   MISC OVERRIDES
+   OVERRIDE ALL GREEN ELEMENTS
    ======================================== */
 
-/* Remove any remaining teal colors */
+/* Bootstrap success classes */
 .bg-success,
 .text-success,
 .border-success {
-  background-color: rgba(224, 182, 65, 0.15) !important;
+  background-color: rgba(15, 112, 109, 0.1) !important;
+  color: var(--fastr-teal) !important;
+  border-color: var(--fastr-teal) !important;
+}
+
+/* Success badges and labels */
+.badge-success,
+.label-success {
+  background-color: var(--fastr-teal) !important;
+  color: var(--bg-white) !important;
+}
+
+/* Override any remaining green backgrounds */
+*[style*="background-color: #28a745"],
+*[style*="background-color: #5cb85c"],
+*[style*="background-color: green"],
+*[style*="background: #28a745"],
+*[style*="background: #5cb85c"],
+*[style*="background: green"] {
+  background-color: rgba(15, 112, 109, 0.1) !important;
+  background: rgba(15, 112, 109, 0.1) !important;
+}
+
+/* Shiny notification overrides */
+.shiny-notification {
+  border-left: 4px solid var(--fastr-teal) !important;
+  background-color: var(--bg-white) !important;
   color: var(--text-dark) !important;
-  border-color: var(--gold) !important;
 }
 
-/* Clean scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.shiny-notification.shiny-notification-message {
+  background-color: rgba(15, 112, 109, 0.1) !important;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-light);
+.shiny-notification.shiny-notification-warning {
+  background-color: rgba(243, 156, 18, 0.1) !important;
+  border-left-color: #f39c12 !important;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--border-medium);
-  border-radius: 4px;
+.shiny-notification.shiny-notification-error {
+  background-color: rgba(231, 76, 60, 0.1) !important;
+  border-left-color: #e74c3c !important;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-light);
-}
-
-/* Smooth transitions on interactive elements */
-button, .btn, a, input, select, .selectize-input {
-  transition: all 0.15s ease !important;
-}
+/* ========================================
+   JAVASCRIPT FOR PROGRESS HANDLING
+   ======================================== */
