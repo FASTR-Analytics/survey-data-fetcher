@@ -165,8 +165,19 @@ create_help_tab <- function() {
   tabItem(tabName = "help",
           fluidRow(
             box(
+              title = "Documentation", status = "primary", solidHeader = TRUE, width = 12,
+              div(style = "text-align: center; padding: 20px;",
+                  tags$a(href = "https://fastr-analytics.github.io/survey-data-fetcher/",
+                         target = "_blank",
+                         class = "btn btn-primary btn-lg",
+                         icon("book"), " View Full Documentation")
+              )
+            )
+          ),
+          fluidRow(
+            box(
               title = "About This Application", status = "info", solidHeader = TRUE, width = 12,
-              
+
               h4("Purpose"),
               p("This application provides an easy-to-use interface for fetching survey data from multiple international sources using real-time API connections:"),
 
@@ -448,14 +459,6 @@ create_app_sidebar <- function() {
       menuItem("Visualizations", tabName = "visualize", icon = icon("chart-bar")),
       menuItem("Database Integration", tabName = "integration", icon = icon("database")),
       menuItem("Help & Info", tabName = "help", icon = icon("question-circle"))
-    ),
-
-    # Documentation link at bottom of sidebar
-    div(style = "position: absolute; bottom: 10px; left: 0; right: 0; padding: 15px; border-top: 1px solid rgba(255,255,255,0.2);",
-        tags$a(href = "https://fastr-analytics.github.io/survey-data-fetcher/",
-               target = "_blank",
-               style = "color: #D0CB17; text-decoration: none; display: block; text-align: center;",
-               icon("book"), " Documentation")
     )
   )
 }
