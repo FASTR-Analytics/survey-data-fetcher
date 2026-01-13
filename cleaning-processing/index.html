@@ -389,22 +389,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cleaning-steps" class="md-nav__link">
+  <a href="#data-filtering-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cleaning Steps
+        Data Filtering Rules
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Cleaning Steps">
+    <nav class="md-nav" aria-label="Data Filtering Rules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-column-standardization" class="md-nav__link">
+  <a href="#sex-disaggregation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Column Standardization
+        Sex Disaggregation
       
     </span>
   </a>
@@ -412,10 +412,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-percentage-normalization" class="md-nav__link">
+  <a href="#preferred-values-dhs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Percentage Normalization
+        Preferred Values (DHS)
       
     </span>
   </a>
@@ -423,10 +423,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-indicator-id-mapping" class="md-nav__link">
+  <a href="#variant-selection-unwpp" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Indicator ID Mapping
+        Variant Selection (UNWPP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#age-filters-unwpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Age Filters (UNWPP)
       
     </span>
   </a>
@@ -435,6 +446,89 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#indicators-outside-the-predefined-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Indicators Outside the Predefined List
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Indicators Outside the Predefined List">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-to-unmapped-indicators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens to Unmapped Indicators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-auto-generated-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Auto-Generated IDs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-new-indicator-mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding New Indicator Mappings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#column-standardization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Column Standardization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#percentage-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Percentage Normalization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#indicator-id-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Indicator ID Mapping
+      
+    </span>
+  </a>
   
 </li>
       
@@ -636,8 +730,64 @@
 <h1 id="cleaning-processing">Cleaning &amp; Processing<a class="headerlink" href="#cleaning-processing" title="Permanent link">&para;</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The cleaning process standardizes data from different sources into a unified format compatible with the FASTR Analytics Platform.</p>
-<h2 id="cleaning-steps">Cleaning Steps<a class="headerlink" href="#cleaning-steps" title="Permanent link">&para;</a></h2>
-<h3 id="1-column-standardization">1. Column Standardization<a class="headerlink" href="#1-column-standardization" title="Permanent link">&para;</a></h3>
+<hr />
+<h2 id="data-filtering-rules">Data Filtering Rules<a class="headerlink" href="#data-filtering-rules" title="Permanent link">&para;</a></h2>
+<p>The cleaning functions apply several filters to ensure consistent, comparable data.</p>
+<h3 id="sex-disaggregation">Sex Disaggregation<a class="headerlink" href="#sex-disaggregation" title="Permanent link">&para;</a></h3>
+<p><strong>We keep totals only, not sex-disaggregated values.</strong></p>
+<ul>
+<li>UNICEF data: Filters to <code>SEX = "_T"</code> (total) or <code>NA</code></li>
+<li>UNWPP data: Filters to <code>sex = "Both sexes"</code> for population and mortality indicators</li>
+<li>DHS data: Uses <code>IsPreferred = 1</code> which typically returns the combined value</li>
+</ul>
+<p>This means if an indicator has separate Male/Female values, we take the combined "Both sexes" or "Total" value.</p>
+<h3 id="preferred-values-dhs">Preferred Values (DHS)<a class="headerlink" href="#preferred-values-dhs" title="Permanent link">&para;</a></h3>
+<p>DHS data includes multiple breakdowns (by age, education, wealth, etc.). We filter to <code>IsPreferred = 1</code> to get the standard reported value rather than disaggregated subgroups.</p>
+<h3 id="variant-selection-unwpp">Variant Selection (UNWPP)<a class="headerlink" href="#variant-selection-unwpp" title="Permanent link">&para;</a></h3>
+<p>UNWPP provides multiple projection variants. We use <code>variant = "Median"</code> for all indicators to get the central estimate.</p>
+<h3 id="age-filters-unwpp">Age Filters (UNWPP)<a class="headerlink" href="#age-filters-unwpp" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Women of reproductive age: <code>ageLabel = "15-49"</code></li>
+<li>Under-1 population: <code>ageLabel = "0"</code></li>
+<li>Under-5 population: <code>ageLabel = "0-4"</code> (or sum of 0,1,2,3,4)</li>
+</ul>
+<hr />
+<h2 id="indicators-outside-the-predefined-list">Indicators Outside the Predefined List<a class="headerlink" href="#indicators-outside-the-predefined-list" title="Permanent link">&para;</a></h2>
+<p>The app has predefined mappings for common indicators (anc1, penta1, bcg, etc.). But you can fetch <strong>any indicator</strong> from the data sources.</p>
+<h3 id="what-happens-to-unmapped-indicators">What Happens to Unmapped Indicators<a class="headerlink" href="#what-happens-to-unmapped-indicators" title="Permanent link">&para;</a></h3>
+<p>When you select an indicator that isn't in our predefined list:</p>
+<ol>
+<li>The app tries to <strong>auto-generate</strong> a meaningful <code>indicator_common_id</code> based on the indicator label</li>
+<li>It looks for patterns like "DTP", "measles", "ANC", "mortality" etc.</li>
+<li>If no pattern matches, it creates an ID from the original indicator code (e.g., <code>ch_vacc_c_xyz</code> → <code>ch_vacc_c_xyz</code>)</li>
+</ol>
+<h3 id="example-auto-generated-ids">Example Auto-Generated IDs<a class="headerlink" href="#example-auto-generated-ids" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Original Label</th>
+<th>Auto-Generated ID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"DTP3 coverage"</td>
+<td><code>penta3</code></td>
+</tr>
+<tr>
+<td>"Measles 2nd dose"</td>
+<td><code>measles2</code></td>
+</tr>
+<tr>
+<td>"Some new indicator XYZ"</td>
+<td><code>some_new_indicator_xyz</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="adding-new-indicator-mappings">Adding New Indicator Mappings<a class="headerlink" href="#adding-new-indicator-mappings" title="Permanent link">&para;</a></h3>
+<p>If you regularly use an indicator that isn't mapped, contact the FASTR team to add it to the predefined mapping list. This ensures consistent naming across all users.</p>
+<hr />
+<h2 id="column-standardization">Column Standardization<a class="headerlink" href="#column-standardization" title="Permanent link">&para;</a></h2>
 <p>All data is transformed to a consistent column structure:</p>
 <table>
 <thead>
@@ -715,23 +865,39 @@
 </tr>
 </tbody>
 </table>
-<h3 id="2-percentage-normalization">2. Percentage Normalization<a class="headerlink" href="#2-percentage-normalization" title="Permanent link">&para;</a></h3>
+<hr />
+<h2 id="percentage-normalization">Percentage Normalization<a class="headerlink" href="#percentage-normalization" title="Permanent link">&para;</a></h2>
 <p>All percentage values are converted to <strong>0-1 decimal scale</strong>:</p>
 <ul>
 <li>Input: <code>85%</code> or <code>85</code></li>
 <li>Output: <code>0.85</code></li>
 </ul>
 <p>This ensures consistency across sources that may report percentages differently.</p>
-<h3 id="3-indicator-id-mapping">3. Indicator ID Mapping<a class="headerlink" href="#3-indicator-id-mapping" title="Permanent link">&para;</a></h3>
+<p><strong>Indicators treated as percentages:</strong></p>
+<ul>
+<li>Coverage indicators: anc1, anc4, delivery, pnc1, bcg, penta1-3, measles1-2, polio1-3, rotavirus, pcv, iptp1-3, fp, etc.</li>
+</ul>
+<p><strong>Indicators kept as rates (per 1,000):</strong></p>
+<ul>
+<li>Mortality rates: imr, nmr, u5mr, mmr</li>
+<li>Demographic rates: crude_birth_rate, total_fertility_rate</li>
+</ul>
+<p><strong>Indicators kept as counts:</strong></p>
+<ul>
+<li>Population estimates: poptot, livebirth, womenrepage, totu1pop, totu5pop</li>
+</ul>
+<hr />
+<h2 id="indicator-id-mapping">Indicator ID Mapping<a class="headerlink" href="#indicator-id-mapping" title="Permanent link">&para;</a></h2>
 <p>Original indicator IDs are mapped to standardized <code>indicator_common_id</code> values:</p>
 <div class="highlight"><pre><span></span><code>DHS:    RH_ANCP_W_SKP  → anc1
 UNICEF: MNCH_ANC1      → anc1
-MICS:   MNCH_ANC1      → anc1
+WUENIC: DTP3           → penta3
+UNWPP:  22             → imr
 </code></pre></div>
 <p>See <a href="../indicators/">Indicator Reference</a> for complete mappings.</p>
 <hr />
 <h2 id="fastr-name-standardization">FASTR Name Standardization<a class="headerlink" href="#fastr-name-standardization" title="Permanent link">&para;</a></h2>
-<p>When <strong>"Apply FASTR name standardization"</strong> is checked, country and province names are harmonized to match the FASTR Analytics Platform naming conventions.</p>
+<p>When <strong>"Apply FASTR name standardization"</strong> is checked, country and province names are harmonized to match DHIS2 naming conventions used in FASTR.</p>
 <h3 id="country-name-mappings">Country Name Mappings<a class="headerlink" href="#country-name-mappings" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -746,12 +912,20 @@ MICS:   MNCH_ANC1      → anc1
 <td>Guinée</td>
 </tr>
 <tr>
-<td>Cote d'Ivoire</td>
-<td>Côte d'Ivoire</td>
+<td>Nigeria</td>
+<td>ng Federal Government</td>
 </tr>
 <tr>
-<td>Democratic Republic of the Congo</td>
+<td>Senegal</td>
+<td>Sénégal</td>
+</tr>
+<tr>
+<td>Cameroon</td>
+<td>Ministere de la Sante Publique</td>
+</tr>
+<tr>
 <td>DRC</td>
+<td>République Démocratique du Congo</td>
 </tr>
 </tbody>
 </table>
@@ -759,16 +933,17 @@ MICS:   MNCH_ANC1      → anc1
 <p><strong>Nigeria:</strong>
 <div class="highlight"><pre><span></span><code>Abia → ab Abia State
 Lagos → la Lagos State
+FCT Abuja → fc Federal Capital Territory
 </code></pre></div></p>
 <p><strong>Senegal:</strong>
 <div class="highlight"><pre><span></span><code>Dakar → DRS Dakar
-Thiès → DRS Thiès
+Thiès → DRS Thies
 </code></pre></div></p>
 <p><strong>Guinea:</strong>
 <div class="highlight"><pre><span></span><code>Conakry → DSV Conakry
-Boké → DPS Boké
+Boké → IRS Boké
 </code></pre></div></p>
-<p>These mappings ensure compatibility with DHIS2 naming conventions used in the FASTR platform.</p>
+<p>These mappings ensure compatibility with DHIS2 organisation unit names.</p>
 <hr />
 <h2 id="how-to-clean-data">How to Clean Data<a class="headerlink" href="#how-to-clean-data" title="Permanent link">&para;</a></h2>
 <h3 id="clean-latest-fetch">Clean Latest Fetch<a class="headerlink" href="#clean-latest-fetch" title="Permanent link">&para;</a></h3>
@@ -794,8 +969,8 @@ Boké → DPS Boké
 <li><strong>Integration</strong> into the unified database</li>
 </ul>
 <p>Example cleaned row:</p>
-<div class="highlight"><pre><span></span><code>admin_area_1,admin_area_2,year,indicator_id,indicator_common_id,indicator_type,survey_value,source,source_detail,survey_type,country_name,iso2_code,iso3_code
-Nigeria,la Lagos State,2018,RH_ANCP_W_SKP,anc1,percent,0.92,DHS Sub-national,NG2018DHS,household,Nigeria,NG,NGA
+<div class="highlight"><pre><span></span><code>admin_area_1,admin_area_2,year,indicator_common_id,indicator_type,survey_value,source
+ng Federal Government,la Lagos State,2018,anc1,percent,0.92,DHS Sub-national
 </code></pre></div>
 
 
