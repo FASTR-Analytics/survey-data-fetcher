@@ -1,6 +1,15 @@
 site_name: FASTR Survey Data Fetcher
 site_description: Documentation for the FASTR Survey Data Fetcher application
-site_author: FASTR Analytics
+site_author: Claire Boulange / FASTR Analytics
+
+copyright: >
+  Copyright &copy; 2024-2026 Claire Boulange / FASTR Analytics.
+  Licensed under MIT License.
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/FASTR-Analytics/survey-data-fetcher
 
 theme:
   name: material
