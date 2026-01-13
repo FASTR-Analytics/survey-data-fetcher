@@ -1,6 +1,8 @@
 site_name: FASTR Survey Data Fetcher
 site_description: Documentation for the FASTR Survey Data Fetcher application
 site_author: Claire Boulange / FASTR Analytics
+repo_url: https://github.com/FASTR-Analytics/survey-data-fetcher
+repo_name: FASTR-Analytics/survey-data-fetcher
 
 copyright: >
   Copyright &copy; 2024-2026 Claire Boulange / FASTR Analytics.
