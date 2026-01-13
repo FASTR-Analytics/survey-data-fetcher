@@ -448,6 +448,14 @@ create_app_sidebar <- function() {
       menuItem("Visualizations", tabName = "visualize", icon = icon("chart-bar")),
       menuItem("Database Integration", tabName = "integration", icon = icon("database")),
       menuItem("Help & Info", tabName = "help", icon = icon("question-circle"))
+    ),
+
+    # Documentation link at bottom of sidebar
+    div(style = "position: absolute; bottom: 10px; left: 0; right: 0; padding: 15px; border-top: 1px solid rgba(255,255,255,0.2);",
+        tags$a(href = "https://fastr-analytics.github.io/survey-data-fetcher/",
+               target = "_blank",
+               style = "color: #D0CB17; text-decoration: none; display: block; text-align: center;",
+               icon("book"), " Documentation")
     )
   )
 }
