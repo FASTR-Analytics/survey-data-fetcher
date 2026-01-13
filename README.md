@@ -115,10 +115,10 @@ Full documentation available at: **https://fastr-analytics.github.io/survey-data
 - [Indicator Reference](https://fastr-analytics.github.io/survey-data-fetcher/indicators/)
 - [Deployment Guide](https://fastr-analytics.github.io/survey-data-fetcher/deployment/)
 
-## Contributing
+## Author
 
-This is a FASTR Analytics tool. For issues or feature requests, please contact the development team or open an issue on GitHub.
+Developed by **Claire Boulange** / FASTR Analytics
 
 ## License
 
-Internal use - FASTR Analytics
+MIT License - Free to use, modify, and distribute with attribution.
