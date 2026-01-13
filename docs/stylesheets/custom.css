@@ -1,172 +1,299 @@
 /* ========================================
-   FASTR DOCS - CUSTOM COLOR PALETTE
+   FASTR MKDOCS THEME
    ========================================
-   #394a51 - Dark slate (primary)
-   #7fa99b - Sage green (secondary)
-   #fbf2d5 - Cream (background)
-   #fdc57b - Warm orange (accent)
+   Official FASTR brand colors and styling
 */
 
 :root {
-  --md-primary-fg-color: #394a51;
-  --md-primary-bg-color: #ffffff;
-  --md-accent-fg-color: #fdc57b;
-  --md-accent-bg-color: #fdc57b;
+  /* Primary Colors */
+  --fastr-deep-green: #09544F;
+  --fastr-dark-green: #0C716B;
+  --fastr-green: #1F9A9C;
+  --fastr-lime: #D0CB17;
+  --fastr-navy: #21568C;
+  --fastr-blue: #1A90C0;
+  --fastr-light-blue: #CAE6E9;
 
-  --slate: #394a51;
-  --sage: #7fa99b;
-  --cream: #fbf2d5;
-  --orange: #fdc57b;
-  --text-dark: #2d3a3f;
-  --text-light: #ffffff;
+  /* Secondary Colors */
+  --fastr-gold: #D8A822;
+  --fastr-purple: #7A1F6E;
+  --fastr-orchid: #BD5091;
+  --fastr-coral: #FF6462;
+
+  /* Text & Background */
+  --text-dark: #2c3e50;
+  --text-medium: #7f8c8d;
+  --bg-white: #ffffff;
+  --bg-light: #f8f9fa;
+  --border-light: #dee2e6;
+
+  /* MkDocs Material overrides */
+  --md-primary-fg-color: var(--fastr-dark-green);
+  --md-primary-bg-color: var(--bg-white);
+  --md-accent-fg-color: var(--fastr-lime);
 }
 
-/* Header */
+/* ========================================
+   HEADER
+   ======================================== */
 .md-header {
-  background-color: var(--slate);
+  background-color: var(--fastr-deep-green);
 }
 
 .md-header__title {
-  color: var(--text-light);
+  color: var(--bg-white);
 }
 
-/* Navigation tabs */
 .md-tabs {
-  background-color: var(--slate);
+  background-color: var(--fastr-dark-green);
 }
 
-/* Sidebar */
-.md-nav__link--active {
-  color: var(--slate) !important;
-  font-weight: 600;
-}
-
-.md-nav__link:hover {
-  color: var(--sage);
-}
-
-/* Content links */
-.md-typeset a {
-  color: var(--slate);
-}
-
-.md-typeset a:hover {
-  color: var(--sage);
-}
-
-/* Code blocks */
-.md-typeset code {
-  background-color: var(--cream);
-  color: var(--text-dark);
-}
-
-.md-typeset pre {
-  background-color: #f5f0e1;
-}
-
-/* Tables */
-.md-typeset table:not([class]) th {
-  background-color: var(--slate);
-  color: var(--text-light);
-}
-
-.md-typeset table:not([class]) tr:nth-child(even) {
-  background-color: var(--cream);
-}
-
-/* Admonitions */
-.md-typeset .admonition,
-.md-typeset details {
-  border-left-color: var(--sage);
-}
-
-.md-typeset .admonition.tip,
-.md-typeset details.tip {
-  border-left-color: var(--sage);
-}
-
-.md-typeset .admonition.warning,
-.md-typeset details.warning {
-  border-left-color: var(--orange);
-}
-
-.md-typeset .admonition-title,
-.md-typeset summary {
-  background-color: rgba(127, 169, 155, 0.1);
-}
-
-/* Buttons */
-.md-typeset .md-button {
-  background-color: var(--orange);
-  border-color: var(--orange);
-  color: var(--text-dark);
-}
-
-.md-typeset .md-button:hover {
-  background-color: #e5ab5f;
-  border-color: #e5ab5f;
-}
-
-/* Footer */
-.md-footer {
-  background-color: var(--slate);
-}
-
-/* Search */
-.md-search__input {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Mermaid diagrams */
-.mermaid {
-  background-color: var(--cream);
-  padding: 1rem;
-  border-radius: 4px;
-}
-
-/* Blockquotes */
-.md-typeset blockquote {
-  border-left-color: var(--sage);
-  background-color: var(--cream);
-}
-
-/* Horizontal rules */
-.md-typeset hr {
-  border-color: var(--sage);
-}
-
-/* Headings */
+/* ========================================
+   HEADINGS
+   ======================================== */
 .md-typeset h1 {
-  color: var(--slate);
+  color: var(--fastr-deep-green);
+  font-weight: 700;
+  border-bottom: 4px solid var(--fastr-lime);
+  padding-bottom: 0.3em;
 }
 
 .md-typeset h2 {
-  color: var(--sage);
-  border-bottom: 2px solid var(--sage);
-  padding-bottom: 0.3rem;
+  color: var(--fastr-navy);
+  font-weight: 600;
+  border-bottom: 3px solid var(--fastr-blue);
+  padding-bottom: 0.2em;
 }
 
 .md-typeset h3 {
-  color: var(--slate);
+  color: var(--fastr-purple);
+  font-weight: 600;
+  border-left: 4px solid var(--fastr-orchid);
+  padding-left: 0.5em;
 }
 
 .md-typeset h4,
 .md-typeset h5,
 .md-typeset h6 {
-  color: var(--sage);
+  color: var(--text-dark);
+  font-weight: 600;
 }
 
-/* Table of contents active */
+/* ========================================
+   NAVIGATION
+   ======================================== */
 .md-nav__link--active {
-  color: var(--slate) !important;
+  color: var(--fastr-dark-green) !important;
+  font-weight: 600;
 }
 
-/* Tabs */
+.md-nav__link:hover {
+  color: var(--fastr-green);
+}
+
+/* ========================================
+   LINKS
+   ======================================== */
+.md-typeset a {
+  color: var(--fastr-blue);
+}
+
+.md-typeset a:hover {
+  color: var(--fastr-navy);
+  text-decoration: underline;
+}
+
+/* ========================================
+   EMPHASIS
+   ======================================== */
+.md-typeset strong,
+.md-typeset b {
+  color: var(--fastr-navy);
+}
+
+.md-typeset em,
+.md-typeset i {
+  color: var(--fastr-green);
+}
+
+/* ========================================
+   CODE
+   ======================================== */
+.md-typeset code {
+  background-color: var(--bg-light);
+  color: var(--fastr-navy);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+}
+
+.md-typeset pre {
+  background-color: var(--bg-light);
+  border-left: 4px solid var(--fastr-navy);
+}
+
+/* ========================================
+   TABLES
+   ======================================== */
+.md-typeset table:not([class]) th {
+  background-color: var(--fastr-light-blue);
+  color: var(--fastr-navy);
+  font-weight: 600;
+  border-bottom: 2px solid var(--fastr-blue);
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background-color: var(--bg-light);
+}
+
+.md-typeset table:not([class]) tr:hover {
+  background-color: var(--fastr-light-blue);
+}
+
+/* ========================================
+   BLOCKQUOTES
+   ======================================== */
+.md-typeset blockquote {
+  border-left: 4px solid var(--fastr-gold);
+  background: rgba(216, 168, 34, 0.1);
+  padding: 1em;
+  border-radius: 0 6px 6px 0;
+}
+
+/* ========================================
+   ADMONITIONS
+   ======================================== */
+/* Info - Blue */
+.md-typeset .admonition.info,
+.md-typeset details.info {
+  border-color: var(--fastr-blue);
+}
+
+.md-typeset .admonition.info > .admonition-title,
+.md-typeset details.info > summary {
+  background-color: rgba(26, 144, 192, 0.1);
+}
+
+/* Tip - Green */
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: var(--fastr-green);
+}
+
+.md-typeset .admonition.tip > .admonition-title,
+.md-typeset details.tip > summary {
+  background-color: rgba(31, 154, 156, 0.1);
+}
+
+/* Warning - Gold */
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-color: var(--fastr-gold);
+}
+
+.md-typeset .admonition.warning > .admonition-title,
+.md-typeset details.warning > summary {
+  background-color: rgba(216, 168, 34, 0.1);
+}
+
+/* Danger - Coral */
+.md-typeset .admonition.danger,
+.md-typeset details.danger {
+  border-color: var(--fastr-coral);
+}
+
+.md-typeset .admonition.danger > .admonition-title,
+.md-typeset details.danger > summary {
+  background-color: rgba(255, 100, 98, 0.1);
+}
+
+/* Note - Purple */
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: var(--fastr-purple);
+}
+
+.md-typeset .admonition.note > .admonition-title,
+.md-typeset details.note > summary {
+  background-color: rgba(122, 31, 110, 0.1);
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+.md-typeset .md-button {
+  background-color: var(--fastr-lime);
+  border-color: var(--fastr-lime);
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.md-typeset .md-button:hover {
+  background-color: #b8b314;
+  border-color: #b8b314;
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.md-footer {
+  background-color: var(--fastr-deep-green);
+}
+
+.md-footer-meta {
+  background-color: var(--fastr-deep-green);
+}
+
+/* ========================================
+   SEARCH
+   ======================================== */
+.md-search__input {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ========================================
+   LISTS
+   ======================================== */
+.md-typeset ul > li::marker {
+  color: var(--fastr-lime);
+}
+
+.md-typeset ol > li::marker {
+  color: var(--fastr-blue);
+  font-weight: 600;
+}
+
+/* ========================================
+   HORIZONTAL RULES
+   ======================================== */
+.md-typeset hr {
+  border-color: var(--fastr-light-blue);
+}
+
+/* ========================================
+   TABLE OF CONTENTS
+   ======================================== */
+.md-nav--secondary .md-nav__link--active {
+  color: var(--fastr-dark-green) !important;
+}
+
+/* ========================================
+   TABS
+   ======================================== */
 .md-typeset .tabbed-labels > label:hover {
-  color: var(--sage);
+  color: var(--fastr-green);
 }
 
 .md-typeset .tabbed-set > input:checked + label {
-  border-color: var(--orange);
-  color: var(--slate);
+  border-color: var(--fastr-lime);
+  color: var(--fastr-dark-green);
+}
+
+/* ========================================
+   MERMAID DIAGRAMS
+   ======================================== */
+.mermaid {
+  background-color: var(--bg-light);
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 4px solid var(--fastr-navy);
 }
