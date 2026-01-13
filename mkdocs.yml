@@ -7,12 +7,15 @@ theme:
   icon:
     logo: material/database-sync
   palette:
-    primary: teal
-    accent: amber
+    primary: custom
+    accent: custom
   features:
     - navigation.sections
     - navigation.expand
     - toc.integrate
+
+extra_css:
+  - stylesheets/custom.css
 
 nav:
   - Home: index.md

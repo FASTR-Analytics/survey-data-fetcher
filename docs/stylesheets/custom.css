@@ -1,0 +1,151 @@
+/* ========================================
+   FASTR DOCS - CUSTOM COLOR PALETTE
+   ========================================
+   #394a51 - Dark slate (primary)
+   #7fa99b - Sage green (secondary)
+   #fbf2d5 - Cream (background)
+   #fdc57b - Warm orange (accent)
+*/
+
+:root {
+  --md-primary-fg-color: #394a51;
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color: #fdc57b;
+  --md-accent-bg-color: #fdc57b;
+
+  --slate: #394a51;
+  --sage: #7fa99b;
+  --cream: #fbf2d5;
+  --orange: #fdc57b;
+  --text-dark: #2d3a3f;
+  --text-light: #ffffff;
+}
+
+/* Header */
+.md-header {
+  background-color: var(--slate);
+}
+
+.md-header__title {
+  color: var(--text-light);
+}
+
+/* Navigation tabs */
+.md-tabs {
+  background-color: var(--slate);
+}
+
+/* Sidebar */
+.md-nav__link--active {
+  color: var(--slate) !important;
+  font-weight: 600;
+}
+
+.md-nav__link:hover {
+  color: var(--sage);
+}
+
+/* Content links */
+.md-typeset a {
+  color: var(--slate);
+}
+
+.md-typeset a:hover {
+  color: var(--sage);
+}
+
+/* Code blocks */
+.md-typeset code {
+  background-color: var(--cream);
+  color: var(--text-dark);
+}
+
+.md-typeset pre {
+  background-color: #f5f0e1;
+}
+
+/* Tables */
+.md-typeset table:not([class]) th {
+  background-color: var(--slate);
+  color: var(--text-light);
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background-color: var(--cream);
+}
+
+/* Admonitions */
+.md-typeset .admonition,
+.md-typeset details {
+  border-left-color: var(--sage);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-left-color: var(--sage);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-left-color: var(--orange);
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary {
+  background-color: rgba(127, 169, 155, 0.1);
+}
+
+/* Buttons */
+.md-typeset .md-button {
+  background-color: var(--orange);
+  border-color: var(--orange);
+  color: var(--text-dark);
+}
+
+.md-typeset .md-button:hover {
+  background-color: #e5ab5f;
+  border-color: #e5ab5f;
+}
+
+/* Footer */
+.md-footer {
+  background-color: var(--slate);
+}
+
+/* Search */
+.md-search__input {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mermaid diagrams */
+.mermaid {
+  background-color: var(--cream);
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+/* Blockquotes */
+.md-typeset blockquote {
+  border-left-color: var(--sage);
+  background-color: var(--cream);
+}
+
+/* Horizontal rules */
+.md-typeset hr {
+  border-color: var(--sage);
+}
+
+/* Table of contents active */
+.md-nav__link--active {
+  color: var(--slate) !important;
+}
+
+/* Tabs */
+.md-typeset .tabbed-labels > label:hover {
+  color: var(--sage);
+}
+
+.md-typeset .tabbed-set > input:checked + label {
+  border-color: var(--orange);
+  color: var(--slate);
+}
