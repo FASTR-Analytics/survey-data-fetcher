@@ -121,4 +121,4 @@ Developed by **Claire Boulange** / FASTR Analytics
 
 ## License
 
-MIT License - Free to use, modify, and distribute with attribution.
+Apache License 2.0

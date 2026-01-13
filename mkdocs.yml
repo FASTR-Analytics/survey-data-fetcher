@@ -6,7 +6,7 @@ repo_name: FASTR-Analytics/survey-data-fetcher
 
 copyright: >
   Copyright &copy; 2024-2026 Claire Boulange / FASTR Analytics.
-  Licensed under MIT License.
+  Licensed under Apache 2.0.
 
 extra:
   social:
