@@ -135,6 +135,27 @@
   border-color: var(--sage);
 }
 
+/* Headings */
+.md-typeset h1 {
+  color: var(--slate);
+}
+
+.md-typeset h2 {
+  color: var(--sage);
+  border-bottom: 2px solid var(--sage);
+  padding-bottom: 0.3rem;
+}
+
+.md-typeset h3 {
+  color: var(--slate);
+}
+
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  color: var(--sage);
+}
+
 /* Table of contents active */
 .md-nav__link--active {
   color: var(--slate) !important;
