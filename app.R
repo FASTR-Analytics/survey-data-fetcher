@@ -1971,15 +1971,43 @@ output$country_selector <- renderUI({
   observe({
     backbone_files <- list.files("assets", pattern = "_backbone\\.csv$", full.names = TRUE)
 
+    # Mapping from backbone filename to proper country display name
+    country_name_map <- c(
+      "afghanistan" = "Afghanistan",
+      "bangladesh1" = "Bangladesh (DGHS)",
+      "bangladesh2" = "Bangladesh (DGFP)",
+      "cameroon" = "Cameroon",
+      "drc" = "République Démocratique du Congo",
+      "ethiopia" = "Ethiopia",
+      "ghana" = "Ghana",
+      "guinea" = "Guinée",
+      "guineaold" = "Guinea (Old)",
+      "haiti" = "Haiti",
+      "kenya" = "Kenya",
+      "liberia" = "Liberia",
+      "malawi" = "Malawi",
+      "mali" = "Mali",
+      "nigeria" = "Nigeria",
+      "senegal" = "Sénégal",
+      "sierraleone" = "Sierra Leone",
+      "somalia" = "Somalia",
+      "somaliland" = "Somaliland"
+    )
+
     countries <- c()
     regions <- list()
 
     for(file in backbone_files) {
       tryCatch({
         data <- read.csv(file, stringsAsFactors = FALSE)
-        # Extract country name from file (e.g., "senegal_backbone.csv" -> "Senegal")
-        country_key <- gsub("_backbone\\.csv$", "", basename(file))
-        country_key <- tools::toTitleCase(country_key)
+        # Extract country key from file (e.g., "senegal_backbone.csv" -> "senegal")
+        file_key <- gsub("_backbone\\.csv$", "", basename(file))
+        # Map to proper country name, fallback to title case if not in mapping
+        country_key <- if(file_key %in% names(country_name_map)) {
+          country_name_map[[file_key]]
+        } else {
+          tools::toTitleCase(file_key)
+        }
 
         # Get unique admin_area_2 values (regions)
         if("admin_area_2" %in% names(data)) {

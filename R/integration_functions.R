@@ -129,40 +129,66 @@ push_database_to_github <- function(data, file_path, commit_message, github_toke
 # DATABASE LOADING FUNCTIONS
 # ========================================
 
+#' Standardize country names in database to match FASTR conventions
+#' @param data Data frame with country_name and/or admin_area_1 columns
+#' @return Data frame with standardized country names
+standardize_db_country_names <- function(data) {
+  if (is.null(data) || nrow(data) == 0) return(data)
+
+  # Mapping from database variations to standard FASTR names
+  db_country_fixes <- c(
+    "Congo Democratic Republic" = "République Démocratique du Congo",
+    "Democratic Republic of the Congo" = "République Démocratique du Congo",
+    "Cote d'Ivoire" = "Côte d'Ivoire",
+    "Cote d Ivoire" = "Côte d'Ivoire"
+  )
+
+  if ("country_name" %in% names(data)) {
+    data$country_name <- dplyr::recode(data$country_name, !!!db_country_fixes)
+  }
+  if ("admin_area_1" %in% names(data)) {
+    data$admin_area_1 <- dplyr::recode(data$admin_area_1, !!!db_country_fixes)
+  }
+
+  return(data)
+}
+
 #' Load the survey database (from GitHub first, fallback to local)
 #' @param use_github Whether to pull from GitHub (default TRUE)
 #' @return data.frame of survey data or NULL if not available
 load_survey_database <- function(use_github = TRUE) {
+  data <- NULL
+
   if (use_github) {
     data <- pull_database_from_github(SURVEY_DB_URL)
-    if (!is.null(data)) {
-      return(data)
-    }
   }
 
   # Fallback to local file
-  if (file.exists(SURVEY_DB_PATH)) {
-    return(readr::read_csv(SURVEY_DB_PATH, show_col_types = FALSE))
+  if (is.null(data) && file.exists(SURVEY_DB_PATH)) {
+    data <- readr::read_csv(SURVEY_DB_PATH, show_col_types = FALSE)
   }
-  return(NULL)
+
+  # Standardize country names before returning
+  return(standardize_db_country_names(data))
 }
 
 #' Load the population database (from GitHub first, fallback to local)
 #' @param use_github Whether to pull from GitHub (default TRUE)
 #' @return data.frame of population data or NULL if not available
 load_population_database <- function(use_github = TRUE) {
+  data <- NULL
+
   if (use_github) {
     data <- pull_database_from_github(POP_DB_URL)
-    if (!is.null(data)) {
-      return(data)
-    }
   }
 
   # Fallback to local file
-  if (file.exists(POP_DB_PATH)) {
-    return(readr::read_csv(POP_DB_PATH, show_col_types = FALSE))
+  if (is.null(data) && file.exists(POP_DB_PATH)) {
+    data <- readr::read_csv(POP_DB_PATH, show_col_types = FALSE)
   }
-  return(NULL)
+
+  # Standardize country names before returning
+  return(standardize_db_country_names(data))
 }
 
 # ========================================

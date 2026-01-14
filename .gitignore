@@ -11,3 +11,6 @@ docker-compose.yml
 # DHIS2 credentials and configuration (keep templates only)
 config/dhis2_instances.yaml
 site/
+
+# Large geojson files (exceed Hugging Face 10MB limit)
+assets/*.geojson
