@@ -13,7 +13,7 @@
       
       
       
-        <link rel="prev" href="../cleaning-processing/">
+        <link rel="prev" href="../data-review/">
       
       
         <link rel="next" href="../indicators/">
@@ -368,6 +368,60 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../manual-entry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manual Entry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -515,10 +569,32 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#results" class="md-nav__link">
+  <a href="#results-summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results:
+        Results Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handling-different-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Handling Different Values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Types
       
     </span>
   </a>
@@ -769,16 +845,46 @@ Select correct name or IGNORE: [Dropdown: IGNORE, la Lagos State, ...]
 <li><code>year</code></li>
 <li><code>indicator_common_id</code></li>
 </ul>
-<h3 id="results">Results:<a class="headerlink" href="#results" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Duplicate Records</strong>: Shows existing vs. new values</li>
-<li><strong>New Records</strong>: Records that will be added</li>
-</ul>
-<p>For duplicates, you can choose:</p>
-<ul>
-<li><code>keep_existing</code> - Don't update (default)</li>
-<li><code>replace_with_new</code> - Update to new value</li>
-</ul>
+<h3 id="results-summary">Results Summary<a class="headerlink" href="#results-summary" title="Permanent link">&para;</a></h3>
+<p>After checking, you'll see a summary showing:
+- <strong>X with different values</strong>: Records that exist but have different values
+- <strong>Y with same values</strong>: Records that already match (no action needed)
+- <strong>Z new records</strong>: Records not in the database</p>
+<h3 id="handling-different-values">Handling Different Values<a class="headerlink" href="#handling-different-values" title="Permanent link">&para;</a></h3>
+<p>For records with different values, you have two options:</p>
+<p><strong>Per-row actions:</strong>
+Each row shows the current action and a toggle button:
+- Click <strong>"Replace"</strong> to use the new fetched value
+- Click <strong>"Keep Instead"</strong> to keep the existing database value</p>
+<p><strong>Bulk actions:</strong>
+Use the dropdown and <strong>"Apply to All"</strong> button to set all different-value records at once.</p>
+<h3 id="record-types">Record Types<a class="headerlink" href="#record-types" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Description</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Different Values</strong></td>
+<td>Values don't match database</td>
+<td>Choose keep or replace</td>
+</tr>
+<tr>
+<td><strong>Same Values</strong></td>
+<td>Values already match</td>
+<td>Skipped automatically</td>
+</tr>
+<tr>
+<td><strong>New Records</strong></td>
+<td>Not in database</td>
+<td>Will be added</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="step-4-append-push-to-github">Step 4: Append &amp; Push to GitHub<a class="headerlink" href="#step-4-append-push-to-github" title="Permanent link">&para;</a></h2>
 <h3 id="commit-message">Commit Message<a class="headerlink" href="#commit-message" title="Permanent link">&para;</a></h3>
@@ -881,7 +987,7 @@ Changes pushed to GitHub!
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2024-2026 Claire Boulange / FASTR Analytics. Licensed under Apache 2.0.
+      Copyright &copy; 2025 The World Bank, Global Financing Facility for Women, Children and Adolescents (GFF), FASTR Initiative. All rights reserved. Made publicly available for transparency and reference purposes only.
 
     </div>
   

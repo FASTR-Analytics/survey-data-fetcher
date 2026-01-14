@@ -13,26 +13,28 @@
       
       
       
+        <link rel="prev" href="../manual-entry/">
       
-        <link rel="next" href="getting-started/">
+      
+        <link rel="next" href="../database-integration/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>FASTR Survey Data Fetcher</title>
+        <title>Data Review - FASTR Survey Data Fetcher</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="stylesheets/custom.css">
+      <link rel="stylesheet" href="../stylesheets/custom.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fastr-survey-data-fetcher" class="md-skip">
+        <a href="#data-review" class="md-skip">
           Skip to content
         </a>
       
@@ -92,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="FASTR Survey Data Fetcher" class="md-header__button md-logo" aria-label="FASTR Survey Data Fetcher" data-md-component="logo">
+    <a href=".." title="FASTR Survey Data Fetcher" class="md-header__button md-logo" aria-label="FASTR Survey Data Fetcher" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 12v1.5a4 4 0 0 1 4 4c0 .82-.25 1.58-.67 2.21l-1.09-1.09c.17-.34.26-.72.26-1.12A2.5 2.5 0 0 0 19 15v1.5l-2.25-2.25zm0 11v-1.5a4 4 0 0 1-4-4c0-.82.25-1.58.67-2.21l1.09 1.09c-.17.34-.26.72-.26 1.12A2.5 2.5 0 0 0 19 20v-1.5l2.25 2.25zM12 3c4.42 0 8 1.79 8 4s-3.58 4-8 4-8-1.79-8-4 3.58-4 8-4M4 9c0 2.21 3.58 4 8 4 1.11 0 2.17-.11 3.14-.32-.95.86-1.64 1.99-1.96 3.28L12 16c-4.42 0-8-1.79-8-4zm16 0v2h-.5l-.6.03c.7-.6 1.1-1.29 1.1-2.03M4 14c0 2.21 3.58 4 8 4l1-.03c.09 1.06.42 2.03.95 2.91L12 21c-4.42 0-8-1.79-8-4z"/></svg>
@@ -112,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Data Review
             
           </span>
         </div>
@@ -204,7 +206,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="FASTR Survey Data Fetcher" class="md-nav__button md-logo" aria-label="FASTR Survey Data Fetcher" data-md-component="logo">
+    <a href=".." title="FASTR Survey Data Fetcher" class="md-nav__button md-logo" aria-label="FASTR Survey Data Fetcher" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 12v1.5a4 4 0 0 1 4 4c0 .82-.25 1.58-.67 2.21l-1.09-1.09c.17-.34.26-.72.26-1.12A2.5 2.5 0 0 0 19 15v1.5l-2.25-2.25zm0 11v-1.5a4 4 0 0 1-4-4c0-.82.25-1.58.67-2.21l1.09 1.09c-.17.34-.26.72-.26 1.12A2.5 2.5 0 0 0 19 20v-1.5l2.25 2.25zM12 3c4.42 0 8 1.79 8 4s-3.58 4-8 4-8-1.79-8-4 3.58-4 8-4M4 9c0 2.21 3.58 4 8 4 1.11 0 2.17-.11 3.14-.32-.95.86-1.64 1.99-1.96 3.28L12 16c-4.42 0-8-1.79-8-4zm16 0v2h-.5l-.6.03c.7-.6 1.1-1.29 1.1-2.03M4 14c0 2.21 3.58 4 8 4l1-.03c.09 1.06.42 2.03.95 2.91L12 21c-4.42 0-8-1.79-8-4z"/></svg>
@@ -231,37 +233,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -277,81 +252,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data Flow
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output-databases" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Output Databases
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-links" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick Links
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -363,7 +263,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/" class="md-nav__link">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -390,7 +290,7 @@
   
   
     <li class="md-nav__item">
-      <a href="data-sources/" class="md-nav__link">
+      <a href="../data-sources/" class="md-nav__link">
         
   
   
@@ -417,7 +317,7 @@
   
   
     <li class="md-nav__item">
-      <a href="fetching-data/" class="md-nav__link">
+      <a href="../fetching-data/" class="md-nav__link">
         
   
   
@@ -444,7 +344,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cleaning-processing/" class="md-nav__link">
+      <a href="../cleaning-processing/" class="md-nav__link">
         
   
   
@@ -471,7 +371,7 @@
   
   
     <li class="md-nav__item">
-      <a href="manual-entry/" class="md-nav__link">
+      <a href="../manual-entry/" class="md-nav__link">
         
   
   
@@ -495,10 +395,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="data-review/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Review
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -514,6 +441,198 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Use
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to Use">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-load-the-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Load the Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-select-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Select Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-generate-plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Generate Plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reading-the-chart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the Chart
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reading the Chart">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-data-existing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Data (Existing)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newfetched-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New/Fetched Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#duplicate-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Duplicate Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary Tables
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-records-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Records Table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-data-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New Data Table
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow Integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tips
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -525,7 +644,7 @@
   
   
     <li class="md-nav__item">
-      <a href="database-integration/" class="md-nav__link">
+      <a href="../database-integration/" class="md-nav__link">
         
   
   
@@ -552,7 +671,7 @@
   
   
     <li class="md-nav__item">
-      <a href="indicators/" class="md-nav__link">
+      <a href="../indicators/" class="md-nav__link">
         
   
   
@@ -579,7 +698,7 @@
   
   
     <li class="md-nav__item">
-      <a href="deployment/" class="md-nav__link">
+      <a href="../deployment/" class="md-nav__link">
         
   
   
@@ -619,82 +738,115 @@
   
 
 
-<h1 id="fastr-survey-data-fetcher">FASTR Survey Data Fetcher<a class="headerlink" href="#fastr-survey-data-fetcher" title="Permanent link">&para;</a></h1>
-<p>A Shiny application for fetching, cleaning, and integrating health survey data from multiple international sources into the FASTR Analytics Platform.</p>
-<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
+<h1 id="data-review">Data Review<a class="headerlink" href="#data-review" title="Permanent link">&para;</a></h1>
+<p>The Data Review tab provides visual comparison between your fetched/entered data and the existing database, helping you identify what's new and what already exists.</p>
+<h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Multi-Source Data Fetching</strong>: Connect to DHS, UNICEF (MICS/WUENIC), and UN World Population Prospects APIs</li>
-<li><strong>Data Cleaning &amp; Standardization</strong>: Automatically clean and standardize data for FASTR compatibility</li>
-<li><strong>Manual Data Entry</strong>: Enter survey values manually with enforced standard indicator codes</li>
-<li><strong>Data Review</strong>: Compare fetched data against existing database with visual overlays</li>
-<li><strong>GitHub Integration</strong>: Pull the latest database, validate new data, and push updates directly to GitHub</li>
-<li><strong>Collaborative Workflow</strong>: Multiple users can contribute to the unified survey database</li>
+<li><strong>Visual Comparison</strong>: See database vs. new data overlaid on the same chart</li>
+<li><strong>Duplicate Identification</strong>: Quickly spot records that already exist</li>
+<li><strong>Quality Check</strong>: Verify new data aligns with historical trends</li>
+<li><strong>Regional Analysis</strong>: Compare national and subnational data</li>
 </ul>
-<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TD
-    subgraph sources[Data Sources]
-        DHS[DHS API]
-        UNICEF[UNICEF SDMX]
-        UNWPP[UNWPP API]
-    end
-
-    subgraph app[Survey Data Fetcher]
-        FETCH[Fetch Data]
-        CLEAN[Clean &amp; Standardize]
-        VALIDATE[Validate Names]
-        DEDUP[Check Duplicates]
-    end
-
-    subgraph output[GitHub Repository]
-        SURVEY[survey_data_unified.csv]
-        POP[population_estimates_only.csv]
-    end
-
-    DHS --&gt; FETCH
-    UNICEF --&gt; FETCH
-    UNWPP --&gt; FETCH
-    FETCH --&gt; CLEAN
-    CLEAN --&gt; VALIDATE
-    VALIDATE --&gt; DEDUP
-    DEDUP --&gt; SURVEY
-    DEDUP --&gt; POP</code></pre>
-<h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Fetch</strong> - Select data source, indicators, and countries (or use Manual Entry)</li>
-<li><strong>Clean</strong> - Apply FASTR standardization to harmonize names and formats</li>
-<li><strong>Review</strong> - Compare fetched data against existing database visually</li>
-<li><strong>Validate</strong> - Check admin area names against existing database</li>
-<li><strong>Deduplicate</strong> - Identify records that already exist, choose to keep or replace</li>
-<li><strong>Push</strong> - Append new records to GitHub repository</li>
-</ol>
-<h2 id="output-databases">Output Databases<a class="headerlink" href="#output-databases" title="Permanent link">&para;</a></h2>
+<h2 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-load-the-database">Step 1: Load the Database<a class="headerlink" href="#step-1-load-the-database" title="Permanent link">&para;</a></h3>
+<p>Click <strong>"Load Database from GitHub"</strong> to fetch the current database for comparison.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The database is filtered to only include countries present in your cleaned data.</p>
+</div>
+<h3 id="step-2-select-filters">Step 2: Select Filters<a class="headerlink" href="#step-2-select-filters" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Country</strong>: Choose the country to review</li>
+<li><strong>Regions</strong>: Select specific regions or check "Include NATIONAL" for country-level data</li>
+<li><strong>Indicator</strong>: Select the indicator to visualize</li>
+</ul>
+<h3 id="step-3-generate-plot">Step 3: Generate Plot<a class="headerlink" href="#step-3-generate-plot" title="Permanent link">&para;</a></h3>
+<p>Click <strong>"Generate Plot"</strong> to create the comparison chart.</p>
+<h2 id="reading-the-chart">Reading the Chart<a class="headerlink" href="#reading-the-chart" title="Permanent link">&para;</a></h2>
+<h3 id="database-data-existing">Database Data (Existing)<a class="headerlink" href="#database-data-existing" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Database</th>
-<th>Contents</th>
-<th>Indicators</th>
+<th>Level</th>
+<th>Line Style</th>
+<th>Marker</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>survey_data_unified.csv</code></td>
-<td>Survey indicators</td>
-<td>anc1, penta1, bcg, measles1, u5mr, etc.</td>
+<td><strong>National</strong></td>
+<td>Solid line (thick)</td>
+<td>Circle</td>
 </tr>
 <tr>
-<td><code>population_estimates_only.csv</code></td>
-<td>Population estimates</td>
-<td>poptot, livebirth, womenrepage, etc.</td>
+<td><strong>Subnational</strong></td>
+<td>Dotted line (thin)</td>
+<td>Triangle</td>
 </tr>
 </tbody>
 </table>
-<h2 id="quick-links">Quick Links<a class="headerlink" href="#quick-links" title="Permanent link">&para;</a></h2>
+<p>Colors indicate source:
+- <strong>DHS</strong>: Teal (#0f706d)
+- <strong>MICS</strong>: Blue (#3498db)
+- <strong>WUENIC</strong>: Purple (#9b59b6)
+- <strong>UNWPP</strong>: Orange (#f39c12)
+- <strong>WHO</strong>: Green (#1abc9c)</p>
+<h3 id="newfetched-data">New/Fetched Data<a class="headerlink" href="#newfetched-data" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Line Style</th>
+<th>Marker</th>
+<th>Color</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>National</strong></td>
+<td>Dashed</td>
+<td>Diamond</td>
+<td>Red</td>
+</tr>
+<tr>
+<td><strong>Subnational</strong></td>
+<td>Dash-dot</td>
+<td>Square</td>
+<td>Orange</td>
+</tr>
+</tbody>
+</table>
+<h2 id="duplicate-summary">Duplicate Summary<a class="headerlink" href="#duplicate-summary" title="Permanent link">&para;</a></h2>
+<p>Below the filters, a summary shows:</p>
 <ul>
-<li><a href="getting-started/">Getting Started</a> - Set up and run the app</li>
-<li><a href="data-sources/">Data Sources</a> - Available APIs and their indicators</li>
-<li><a href="database-integration/">Database Integration</a> - GitHub sync workflow</li>
-<li><a href="deployment/">Deployment</a> - Deploy to Hugging Face Spaces</li>
+<li><strong>X already in database</strong>: Records that match existing entries</li>
+<li><strong>Y are new</strong>: Records not found in database</li>
+</ul>
+<p>This helps you understand how much of your fetched data is new vs. duplicate.</p>
+<h2 id="summary-tables">Summary Tables<a class="headerlink" href="#summary-tables" title="Permanent link">&para;</a></h2>
+<p>Two tables show the breakdown:</p>
+<h3 id="database-records-table">Database Records Table<a class="headerlink" href="#database-records-table" title="Permanent link">&para;</a></h3>
+<p>Shows existing records for your selection, including:
+- Region, Year, Value, Source</p>
+<h3 id="new-data-table">New Data Table<a class="headerlink" href="#new-data-table" title="Permanent link">&para;</a></h3>
+<p>Shows your fetched/entered data for comparison</p>
+<h2 id="workflow-integration">Workflow Integration<a class="headerlink" href="#workflow-integration" title="Permanent link">&para;</a></h2>
+<p>The Data Review tab fits into the workflow between cleaning and database integration:</p>
+<div class="highlight"><pre><span></span><code>Fetch/Enter → Clean → **Review** → Validate → Deduplicate → Push
+</code></pre></div>
+<p>Use this step to:</p>
+<ol>
+<li><strong>Verify data quality</strong> before integration</li>
+<li><strong>Identify gaps</strong> in existing coverage</li>
+<li><strong>Spot anomalies</strong> in new data</li>
+<li><strong>Plan updates</strong> - decide which records to replace</li>
+</ol>
+<h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Review data before running duplicate check</li>
+<li>Use to verify manual entries match expected patterns</li>
+<li>Compare multiple regions to spot inconsistencies</li>
+<li>National data (solid lines) should generally be visible above subnational (dotted lines)</li>
 </ul>
 
 
@@ -766,10 +918,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.sections", "navigation.expand", "toc.integrate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
