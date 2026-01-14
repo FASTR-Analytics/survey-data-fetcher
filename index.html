@@ -636,11 +636,13 @@
         DHS[DHS API]
         UNICEF[UNICEF SDMX]
         UNWPP[UNWPP API]
+        MANUAL[Manual Entry]
     end
 
     subgraph app[Survey Data Fetcher]
         FETCH[Fetch Data]
         CLEAN[Clean &amp; Standardize]
+        REVIEW[Data Review]
         VALIDATE[Validate Names]
         DEDUP[Check Duplicates]
     end
@@ -653,8 +655,10 @@
     DHS --&gt; FETCH
     UNICEF --&gt; FETCH
     UNWPP --&gt; FETCH
+    MANUAL --&gt; CLEAN
     FETCH --&gt; CLEAN
-    CLEAN --&gt; VALIDATE
+    CLEAN --&gt; REVIEW
+    REVIEW --&gt; VALIDATE
     VALIDATE --&gt; DEDUP
     DEDUP --&gt; SURVEY
     DEDUP --&gt; POP</code></pre>
