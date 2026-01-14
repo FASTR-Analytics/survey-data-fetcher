@@ -335,7 +335,7 @@ clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standar
         admin_area_1_iso == "CIV" ~ "Côte d'Ivoire",
         admin_area_1_iso == "COT" ~ "Côte d'Ivoire",  # Alternative code
         admin_area_1_iso == "384" ~ "Côte d'Ivoire",  # Numeric code
-        admin_area_1_iso == "COD" ~ "Democratic Republic of the Congo",
+        admin_area_1_iso == "COD" ~ "République Démocratique du Congo",
         TRUE ~ countrycode(admin_area_1_iso, "iso3c", "country.name", warn = FALSE)
       ),
       # Convert percentages to decimals
@@ -494,7 +494,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -522,7 +522,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -551,7 +551,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -579,7 +579,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -607,7 +607,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -635,7 +635,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -660,7 +660,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -695,7 +695,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       mutate(
         admin_area_1 = case_when(
           country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-          country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+          country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
           TRUE ~ country_name
         ),
         admin_area_2 = "NATIONAL",
@@ -741,7 +741,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       mutate(
         admin_area_1 = case_when(
           country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-          country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+          country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
           TRUE ~ country_name
         ),
         admin_area_2 = "NATIONAL",
@@ -772,7 +772,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -797,7 +797,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -825,7 +825,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -853,7 +853,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -881,7 +881,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -909,7 +909,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -937,7 +937,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -962,7 +962,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
-        country_name == "Democratic Republic of the Congo" ~ "Democratic Republic of the Congo",
+        country_name == "République Démocratique du Congo" ~ "République Démocratique du Congo",
         TRUE ~ country_name
       ),
       admin_area_2 = "NATIONAL",
@@ -1087,7 +1087,7 @@ get_country_name_mappings <- function(use_dhis2 = TRUE) {
     "Côte d'Ivoire" = "Cote d Ivoire",
     "SierraLeone" = "Sierra Leone",
     "Cameroon" = "Ministere de la Sante Publique",
-    "DRC" = "Democratic Republic of the Congo",
+    "DRC" = "République Démocratique du Congo",
     "Senegal" = "Sénégal"
   )
 }
@@ -1210,8 +1210,8 @@ get_province_name_mappings <- function() {
       "North-West" = "Nord-Ouest"
     ),
 
-    # DRC provinces (after country name is fixed to "Democratic Republic of the Congo")
-    "Democratic Republic of the Congo" = c(
+    # DRC provinces (after country name is fixed to "République Démocratique du Congo")
+    "République Démocratique du Congo" = c(
       "Kinshasa" = "kn Kinshasa Province",
       "Bas-Congo" = "kc Kongo Central Province",
       "Equateur (>= 2015)" = "eq Equateur Province",
