@@ -28,7 +28,7 @@ POP_DB_PATH <- "/Users/claireboulange/Desktop/modules/population_estimates_only.
 
 # Population estimate indicators (for splitting databases)
 POP_INDICATORS <- c("poptot", "popu5", "totu1pop", "totu5pop", "livebirth",
-                    "womenrepage", "popgrowth")
+                    "womenrepage", "popgrowth", "crudebr")
 
 # ========================================
 # GITHUB FUNCTIONS
