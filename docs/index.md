@@ -19,11 +19,13 @@ flowchart TD
         DHS[DHS API]
         UNICEF[UNICEF SDMX]
         UNWPP[UNWPP API]
+        MANUAL[Manual Entry]
     end
 
     subgraph app[Survey Data Fetcher]
         FETCH[Fetch Data]
         CLEAN[Clean & Standardize]
+        REVIEW[Data Review]
         VALIDATE[Validate Names]
         DEDUP[Check Duplicates]
     end
@@ -36,8 +38,10 @@ flowchart TD
     DHS --> FETCH
     UNICEF --> FETCH
     UNWPP --> FETCH
+    MANUAL --> CLEAN
     FETCH --> CLEAN
-    CLEAN --> VALIDATE
+    CLEAN --> REVIEW
+    REVIEW --> VALIDATE
     VALIDATE --> DEDUP
     DEDUP --> SURVEY
     DEDUP --> POP
