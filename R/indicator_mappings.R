@@ -26,16 +26,29 @@ FAVORITE_DHS_LABELS <- list(
   "CH_VACC_C_BAS" = "fully_immunized",
   "CH_VACC_C_NON" = "no_immunization",
   "CH_VACC_C_BCG" = "bcg",
+  # Penta/DTP - both code variants (DP = DTP, PT = Pentavalent)
   "CH_VACC_C_DP1" = "penta1",
   "CH_VACC_C_DP2" = "penta2",
   "CH_VACC_C_DP3" = "penta3",
+  "CH_VACC_C_PT1" = "penta1",
+  "CH_VACC_C_PT2" = "penta2",
+  "CH_VACC_C_PT3" = "penta3",
+  # Measles - both code variants
   "CH_VACC_C_MSL" = "measles1",
   "CH_VACC_C_MSL2" = "measles2",
+  "CH_VACC_C_MS2" = "measles2",
+  # Rotavirus - both code variants (ROT and RT)
   "CH_VACC_C_ROT1" = "rotavirus1",
   "CH_VACC_C_ROT2" = "rotavirus2",
+  "CH_VACC_C_RT1" = "rotavirus1",
+  "CH_VACC_C_RT2" = "rotavirus2",
+  # Polio - both code variants (VACS and VACC)
   "CH_VACS_C_OP1" = "polio1",
   "CH_VACS_C_OP2" = "polio2",
   "CH_VACS_C_OP3" = "polio3",
+  "CH_VACC_C_OP1" = "polio1",
+  "CH_VACC_C_OP2" = "polio2",
+  "CH_VACC_C_OP3" = "polio3",
 
   # Child Health
   "ML_FEVT_C_ADV" = "fever_treatment",
@@ -293,4 +306,131 @@ add_common_ids <- function(indicator_df) {
   )
 
   return(indicator_df)
+}
+
+# ========================================
+# INDICATOR CATEGORIES
+# ========================================
+# Categories for organizing indicators in manual entry
+
+INDICATOR_CATEGORIES <- list(
+  "ANC & Maternal Health" = c(
+    "anc1", "anc4", "delivery", "pnc1", "iron_anc"
+  ),
+  "Immunization" = c(
+    "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
+    "rotavirus1", "rotavirus2", "rotavirus_complete",
+    "polio1", "polio2", "polio3",
+    "fully_immunized", "no_immunization",
+    "hepb3", "pcv3", "hib3", "yellow_fever", "rubella1"
+  ),
+  "Child Health & Nutrition" = c(
+    "stunting", "wasting", "underweight",
+    "exclusive_breastfeeding", "early_breastfeeding",
+    "fever_treatment", "ari_treatment", "diarrhea_ort"
+  ),
+  "Mortality Rates" = c(
+    "imr", "nmr", "u5mr", "mmr"
+  ),
+  "Family Planning" = c(
+    "contraceptive_modern", "contraceptive_any", "unmet_need", "mcpr"
+  ),
+  "Malaria" = c(
+    "itn_access", "itn_use", "iptp1", "iptp2", "iptp3"
+  ),
+  "HIV/AIDS" = c(
+    "hiv_test", "hiv_test_women", "hiv_knowledge"
+  ),
+  "Population & Demographics" = c(
+    "poptot", "popu5", "totu1pop", "totu5pop",
+    "livebirth", "womenrepage", "popgrowth",
+    "tfr", "crudebr", "lifeexp", "adultmort",
+    "childdep", "olddep", "totdep", "sexratio", "medianage"
+  )
+)
+
+#' Get indicator categories for dropdown
+#' @return Named vector of category names
+#' @export
+get_indicator_categories <- function() {
+  cats <- names(INDICATOR_CATEGORIES)
+  setNames(cats, cats)
+}
+
+#' Get indicators by category
+#' @param category Category name
+#' @return Vector of indicator common IDs in that category
+#' @export
+get_indicators_by_category <- function(category) {
+  if (is.null(category) || category == "" || category == "All") {
+    # Return all indicators
+    return(sort(unique(unlist(INDICATOR_CATEGORIES))))
+  }
+
+  if (category %in% names(INDICATOR_CATEGORIES)) {
+    return(INDICATOR_CATEGORIES[[category]])
+  }
+
+  return(character(0))
+}
+
+# ========================================
+# MANUAL ENTRY HELPER FUNCTIONS
+# ========================================
+
+#' Get all valid indicator common IDs for manual entry dropdown
+#'
+#' @return Named vector suitable for selectInput choices
+#' @export
+get_all_valid_indicator_ids <- function() {
+  # Collect unique common_ids from all sources
+  all_common_ids <- unique(c(
+    unlist(FAVORITE_DHS_LABELS, use.names = FALSE),
+    unlist(FAVORITE_UNICEF_LABELS, use.names = FALSE),
+    unlist(FAVORITE_WUENIC_LABELS, use.names = FALSE),
+    unlist(FAVORITE_UNWPP_LABELS, use.names = FALSE)
+  ))
+
+  # Remove duplicates and sort
+  all_common_ids <- sort(unique(all_common_ids))
+
+  # Create named vector for selectInput (value = value for simplicity)
+  choices <- setNames(all_common_ids, all_common_ids)
+
+  return(choices)
+}
+
+#' Get indicator type based on common_id
+#'
+#' @param common_id The indicator common ID
+#' @return Character string: "percent", "rate", "population_estimate", or "other"
+#' @export
+get_indicator_type <- function(common_id) {
+  percentage_indicators <- c(
+    "anc1", "anc4", "delivery", "pnc1", "iron_anc",
+    "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
+    "rotavirus1", "rotavirus2", "rotavirus_complete", "polio1", "polio2", "polio3",
+    "fully_immunized", "no_immunization", "iptp1", "iptp2", "iptp3",
+    "mcpr", "hepb3", "pcv3", "hib3", "yellow_fever", "rubella1",
+    "contraceptive_modern", "contraceptive_any", "unmet_need",
+    "itn_access", "itn_use", "hiv_test", "hiv_test_women", "hiv_knowledge",
+    "fever_treatment", "ari_treatment", "diarrhea_ort",
+    "exclusive_breastfeeding", "early_breastfeeding",
+    "stunting", "wasting", "underweight"
+  )
+
+  rate_indicators <- c(
+    "imr", "nmr", "u5mr", "mmr", "tfr", "crudebr",
+    "lifeexp", "adultmort", "childdep", "olddep", "totdep", "sexratio", "medianage"
+  )
+
+  population_indicators <- c(
+    "poptot", "popu5", "totu1pop", "totu5pop",
+    "livebirth", "womenrepage", "popgrowth"
+  )
+
+  if (common_id %in% percentage_indicators) return("percent")
+  if (common_id %in% rate_indicators) return("rate")
+  if (common_id %in% population_indicators) return("population_estimate")
+  return("other")
 }

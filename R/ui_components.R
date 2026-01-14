@@ -187,22 +187,40 @@ create_help_tab <- function() {
                 tags$li(strong("UNWPP:"), " UN World Population Prospects via UN Data API")
               ),
 
-              h4("How It Works"),
-              p("The application connects directly to official data sources through their APIs, ensuring you always get the most up-to-date information. When you click 'Fetch Data', the app makes real-time requests to the respective databases and processes the results for analysis."),
+              h4("Application Tabs"),
+              tags$ul(
+                tags$li(strong("Browse Metadata:"), " View available indicators and their definitions"),
+                tags$li(strong("Fetch Data:"), " Select data source, indicators, and countries to fetch via API"),
+                tags$li(strong("Results:"), " Preview fetched data and manage your data cart"),
+                tags$li(strong("Clean & Process:"), " Apply FASTR standardization to harmonize data"),
+                tags$li(strong("Manual Entry:"), " Enter survey values manually with enforced standard indicator codes"),
+                tags$li(strong("Data Review:"), " Compare fetched data against existing database with visual charts"),
+                tags$li(strong("Database Integration:"), " Validate names, check duplicates, and push to GitHub")
+              ),
 
-              h4("Getting Started"),
+              h4("Workflow"),
               tags$ol(
                 tags$li("Choose your data source (DHS, UNICEF, or UNWPP) from the sidebar"),
                 tags$li("Select indicators using quick favorites or browse all available options"),
                 tags$li("Choose your countries of interest"),
                 tags$li("Click 'Fetch Data' and wait for the API to retrieve your data"),
                 tags$li("Clean and process your data using the built-in tools"),
-                tags$li("Create visualizations and download your results")
+                tags$li("Use Data Review to compare against existing database"),
+                tags$li("Go to Database Integration to validate, check duplicates, and push to GitHub")
               ),
 
+              p(em("Alternatively, use Manual Entry to add individual data points from reports or other sources.")),
+
               h4("Data Processing"),
-              p("You can choose to clean and standardize your fetched data using the built-in processing tools, which harmonizes different data formats across sources and prepares the data for integration into the FASTR Analytics Platform. Alternatively, you can download the raw data and use your own tools, code, or methods to clean it according to your specific needs."),
-              
+              p("The cleaning process harmonizes different data formats across sources and prepares the data for integration into the FASTR Analytics Platform. Admin area names are standardized using DHIS2 reference data.")
+            )
+          ),
+          fluidRow(
+            box(
+              title = "License", status = "warning", solidHeader = TRUE, width = 12,
+              p(strong("Copyright (c) 2025"), " The World Bank, Global Financing Facility for Women, Children and Adolescents (GFF), Frequent Assessments and System Tools for Resilience (FASTR) Initiative"),
+              p("All rights reserved."),
+              p("This software is made publicly available for transparency and reference purposes only. Viewing and reviewing the source code is permitted. Copying, modification, distribution, or use requires express written permission.")
             )
           )
   )
@@ -456,115 +474,11 @@ create_app_sidebar <- function() {
       menuItem("Fetch Data", tabName = "fetcher", icon = icon("download")),
       menuItem("Results", tabName = "results", icon = icon("chart-line")),
       menuItem("Clean & Process", tabName = "processing", icon = icon("magic")),
-      menuItem("Visualizations", tabName = "visualize", icon = icon("chart-bar")),
+      menuItem("Manual Entry", tabName = "manual_entry", icon = icon("keyboard")),
+      menuItem("Data Review", tabName = "data_review", icon = icon("search")),
       menuItem("Database Integration", tabName = "integration", icon = icon("database")),
       menuItem("Help & Info", tabName = "help", icon = icon("question-circle"))
     )
-  )
-}
-
-# ========================================
-# VISUALIZATION TAB FUNCTION
-# ========================================
-# Purpose: Provides UI components for time series and multi-indicator visualizations of cleaned survey data
-
-create_visualization_tab <- function() {
-  tabItem(tabName = "visualize",
-          fluidRow(
-            box(
-              title = "Indicator Trends", status = "primary", solidHeader = TRUE, width = 12,
-
-              conditionalPanel(
-                condition = "output.has_cleaned_data",
-                fluidRow(
-                  column(4,
-                         h5("Visualization Options"),
-                         div(class = "alert alert-info", style = "margin-bottom: 15px;",
-                             icon("info-circle"),
-                             " Select your options below, then click 'Generate Plot' to create your visualization."),
-
-                         selectInput("plot_indicator", "Select Indicator:",
-                                    choices = NULL),
-
-                         selectInput("plot_countries", "Select Geographic Areas:",
-                                    choices = NULL,
-                                    multiple = TRUE),
-
-                         checkboxInput("show_trend", "Add Trend Line", value = FALSE),
-
-                         br(),
-                         actionButton("generate_plot", "Generate Plot",
-                                     class = "btn-primary btn-block btn-lg",
-                                     style = "font-weight: bold;")
-                  ),
-
-                  column(8,
-                         h5("Time Series Chart"),
-                         div(id = "plot-placeholder", class = "well text-center", style = "height: 480px; line-height: 480px; background: #f9f9f9; border: 2px dashed #ddd; margin-bottom: 20px;",
-                             icon("chart-line", style = "font-size: 48px; color: #ccc; margin-right: 15px;"),
-                             span("Select options and click 'Generate Plot' to create your time series visualization",
-                                  style = "color: #999; font-size: 16px; vertical-align: middle;")
-                         ),
-                         withSpinner(plotlyOutput("time_series_plot", height = "500px"), type = 6)
-                  )
-                )
-              ),
-
-              conditionalPanel(
-                condition = "!output.has_cleaned_data",
-                div(class = "alert alert-info",
-                    icon("info-circle"),
-                    " Please clean your data first in the 'Clean & Process' tab to enable visualizations.")
-              )
-            )
-          ),
-
-          fluidRow(
-            box(
-              title = "Multi-Indicator Comparison", status = "info", solidHeader = TRUE, width = 12,
-
-              conditionalPanel(
-                condition = "output.has_cleaned_data",
-                fluidRow(
-                  column(4,
-                         h5("Comparison Options"),
-                         div(class = "alert alert-info", style = "margin-bottom: 15px;",
-                             icon("info-circle"),
-                             " Choose one geographic area and multiple indicators to compare them over time."),
-
-                         selectInput("comparison_country", "Select Geographic Area:",
-                                    choices = NULL),
-
-                         selectInput("comparison_indicators", "Select Indicators:",
-                                    choices = NULL,
-                                    multiple = TRUE),
-
-                         radioButtons("comparison_scale", "Y-axis Scale:",
-                                     choices = list(
-                                       "Free Scale (Separate Charts)" = "free",
-                                       "Fixed Scale (One Chart)" = "fixed"
-                                     ),
-                                     selected = "free"),
-
-                         br(),
-                         actionButton("generate_comparison", "Generate Comparison",
-                                     class = "btn-info btn-block btn-lg",
-                                     style = "font-weight: bold;")
-                  ),
-
-                  column(8,
-                         h5("Multi-Indicator Chart"),
-                         div(id = "comparison-placeholder", class = "well text-center", style = "height: 480px; line-height: 480px; background: #f9f9f9; border: 2px dashed #ddd; margin-bottom: 20px;",
-                             icon("chart-bar", style = "font-size: 48px; color: #ccc; margin-right: 15px;"),
-                             span("Select options and click 'Generate Comparison' to create your multi-indicator chart",
-                                  style = "color: #999; font-size: 16px; vertical-align: middle;")
-                         ),
-                         withSpinner(plotlyOutput("comparison_plot", height = "500px"), type = 6)
-                  )
-                )
-              )
-            )
-          )
   )
 }
 
@@ -653,22 +567,67 @@ create_integration_tab <- function() {
               conditionalPanel(
                 condition = "output.has_cleaned_data",
                 fluidRow(
-                  column(4,
-                         p("Check your validated data against the existing database for duplicates."),
-                         actionButton("check_duplicates", "Check for Duplicates",
-                                     class = "btn-info btn-lg",
-                                     icon = icon("clone")),
-                         br(), br(),
-                         verbatimTextOutput("duplicate_summary")
-                  ),
-                  column(8,
-                         h5("Duplicate Records Found"),
-                         p("Records with the same country, admin area, year, and indicator. Choose action for each."),
-                         DT::dataTableOutput("duplicates_table"),
-                         br(),
-                         h5("New Records to Add"),
-                         DT::dataTableOutput("new_records_preview")
+                  column(12,
+                         fluidRow(
+                           column(4,
+                                  actionButton("check_duplicates", "Check for Duplicates",
+                                              class = "btn-info btn-lg",
+                                              icon = icon("clone"))
+                           ),
+                           column(8,
+                                  uiOutput("duplicate_status_summary")
+                           )
+                         )
                   )
+                ),
+
+                # Records with Different Values section
+                conditionalPanel(
+                  condition = "output.has_different_values",
+                  hr(),
+                  fluidRow(
+                    column(8,
+                           h5(icon("exclamation-triangle", style = "color: #f39c12;"),
+                              " Records with Different Values"),
+                           div(class = "alert alert-warning", style = "padding: 10px; margin-bottom: 10px;",
+                               "These records exist in the database but have ", strong("different values"),
+                               " than your fetched data. Use the buttons in each row to choose whether to ",
+                               strong("Replace"), " with new values or ", strong("Keep"), " existing values.")
+                    ),
+                    column(4,
+                           h5("Bulk Action"),
+                           selectInput("duplicate_action_choice", "Apply to all rows:",
+                                      choices = c(
+                                        "Keep existing values" = "keep_existing",
+                                        "Replace with new values" = "replace"
+                                      ),
+                                      selected = "keep_existing"),
+                           actionButton("apply_duplicate_action", "Apply to All",
+                                       class = "btn-warning btn-block",
+                                       icon = icon("check"))
+                    )
+                  ),
+                  DT::dataTableOutput("different_values_table")
+                ),
+
+                # Records with Same Values (collapsed by default)
+                conditionalPanel(
+                  condition = "output.has_same_values",
+                  hr(),
+                  h5(icon("check-circle", style = "color: #27ae60;"), " Records with Same Values (no action needed)"),
+                  p(style = "font-size: 12px; color: #666;",
+                    "These records already exist in the database with the same values - they will be skipped."),
+                  DT::dataTableOutput("same_values_table")
+                ),
+
+                # New Records section
+                conditionalPanel(
+                  condition = "output.has_new_records",
+                  hr(),
+                  h5(icon("plus-circle", style = "color: #3498db;"), " New Records to Add"),
+                  p(style = "font-size: 12px; color: #666;",
+                    "These records don't exist in the database and will be added."),
+                  DT::dataTableOutput("new_records_preview")
                 )
               )
             )
@@ -719,6 +678,270 @@ create_integration_tab <- function() {
                   )
                 )
               )
+            )
+          )
+  )
+}
+
+# ========================================
+# DATA REVIEW TAB (DB vs NEW COMPARISON)
+# ========================================
+
+create_data_review_tab <- function() {
+  tabItem(tabName = "data_review",
+          fluidRow(
+            box(
+              title = "Data Coverage Review", status = "primary", solidHeader = TRUE, width = 12,
+              div(class = "alert alert-info",
+                  icon("info-circle"),
+                  " Review data coverage by country and region. Compare what's in the database (teal) with newly fetched data (red).")
+            )
+          ),
+
+          # Database Loading Section
+          fluidRow(
+            box(
+              title = "Database Status", status = "warning", solidHeader = TRUE, width = 12,
+              fluidRow(
+                column(4,
+                       actionButton("load_review_database", "Load Database from GitHub",
+                                   class = "btn-warning btn-lg",
+                                   icon = icon("cloud-download-alt"))
+                ),
+                column(8,
+                       uiOutput("review_db_status"),
+                       uiOutput("review_duplicate_summary")
+                )
+              )
+            )
+          ),
+
+          fluidRow(
+            # Controls
+            box(
+              title = "Selection", status = "info", solidHeader = TRUE, width = 4,
+
+              h5("Step 1: Select Country"),
+              selectInput("review_country", "Country:",
+                         choices = NULL,
+                         selected = NULL),
+
+              conditionalPanel(
+                condition = "input.review_country != '' && input.review_country != null",
+                h5("Step 2: Select Region(s)"),
+                checkboxInput("review_include_national", "Include National-level data", value = TRUE),
+                selectInput("review_regions", "Regions:",
+                           choices = NULL,
+                           selected = NULL,
+                           multiple = TRUE)
+              ),
+
+              conditionalPanel(
+                condition = "input.review_country != '' && input.review_country != null",
+                h5("Step 3: Select Indicator"),
+                selectInput("review_indicator", "Indicator:",
+                           choices = NULL,
+                           selected = NULL)
+              ),
+
+              hr(),
+              actionButton("generate_review_plot", "Generate Coverage Chart",
+                          class = "btn-primary btn-block btn-lg",
+                          icon = icon("chart-line"))
+            ),
+
+            # Chart and Tables
+            box(
+              title = "Coverage Comparison", status = "success", solidHeader = TRUE, width = 8,
+
+              # Legend - Database sources
+              div(style = "margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;",
+                  div(style = "margin-bottom: 8px;",
+                      strong("Database Sources: "),
+                      span(style = "display: inline-block; width: 14px; height: 14px; background: #0f706d; margin-left: 10px; margin-right: 3px; border-radius: 2px; vertical-align: middle;"),
+                      span("DHS", style = "margin-right: 12px; font-size: 12px;"),
+                      span(style = "display: inline-block; width: 14px; height: 14px; background: #3498db; margin-right: 3px; border-radius: 2px; vertical-align: middle;"),
+                      span("MICS", style = "margin-right: 12px; font-size: 12px;"),
+                      span(style = "display: inline-block; width: 14px; height: 14px; background: #9b59b6; margin-right: 3px; border-radius: 2px; vertical-align: middle;"),
+                      span("WUENIC", style = "margin-right: 12px; font-size: 12px;"),
+                      span(style = "display: inline-block; width: 14px; height: 14px; background: #f39c12; margin-right: 3px; border-radius: 2px; vertical-align: middle;"),
+                      span("UNWPP", style = "margin-right: 12px; font-size: 12px;"),
+                      span(style = "display: inline-block; width: 14px; height: 14px; background: #1abc9c; margin-right: 3px; border-radius: 2px; vertical-align: middle;"),
+                      span("WHO", style = "font-size: 12px;")
+                  ),
+                  div(
+                      strong("New Fetched: "),
+                      span(style = "display: inline-block; width: 14px; height: 14px; background: #e74c3c; margin-left: 10px; margin-right: 3px; border-radius: 2px; vertical-align: middle; border: 2px dashed #c0392b;"),
+                      span("Red dashed lines", style = "font-size: 12px;")
+                  )
+              ),
+
+              withSpinner(plotlyOutput("review_coverage_plot", height = "400px"), type = 6),
+
+              hr(),
+
+              fluidRow(
+                column(6,
+                       h5("Database Records"),
+                       DT::dataTableOutput("review_db_table")
+                ),
+                column(6,
+                       h5("New Fetched Records"),
+                       DT::dataTableOutput("review_new_table")
+                )
+              )
+            )
+          )
+  )
+}
+
+# ========================================
+# MANUAL ENTRY TAB
+# ========================================
+
+create_manual_entry_tab <- function() {
+  tabItem(tabName = "manual_entry",
+          fluidRow(
+            box(
+              title = "Manual Survey Data Entry", status = "primary", solidHeader = TRUE, width = 12,
+              div(class = "alert alert-info",
+                  icon("keyboard"),
+                  " Use this form to manually enter survey data. Indicator codes are enforced from the standard list. ",
+                  "Entries follow the same workflow: cleaned_data -> validation -> duplicate check -> database.")
+            )
+          ),
+
+          fluidRow(
+            # Entry Form
+            box(
+              title = "Data Entry Form", status = "warning", solidHeader = TRUE, width = 6,
+
+              h4("Geographic Information"),
+              fluidRow(
+                column(6,
+                       selectInput("manual_country", "Country:",
+                                  choices = NULL,
+                                  selected = NULL)
+                ),
+                column(6,
+                       selectInput("manual_region", "Region/Province:",
+                                  choices = c("NATIONAL" = "NATIONAL"),
+                                  selected = "NATIONAL")
+                )
+              ),
+
+              h4("Temporal Information"),
+              numericInput("manual_year", "Year:",
+                          value = as.integer(format(Sys.Date(), "%Y")),
+                          min = 1990, max = 2035, step = 1, width = "200px"),
+
+              h4("Indicator Information"),
+              fluidRow(
+                column(6,
+                       selectInput("manual_indicator_category", "Indicator Category:",
+                                  choices = c("Select category..." = "",
+                                             "ANC & Maternal Health" = "ANC & Maternal Health",
+                                             "Immunization" = "Immunization",
+                                             "Child Health & Nutrition" = "Child Health & Nutrition",
+                                             "Mortality Rates" = "Mortality Rates",
+                                             "Family Planning" = "Family Planning",
+                                             "Malaria" = "Malaria",
+                                             "HIV/AIDS" = "HIV/AIDS",
+                                             "Population & Demographics" = "Population & Demographics"),
+                                  selected = "")
+                ),
+                column(6,
+                       selectInput("manual_indicator", "Indicator:",
+                                  choices = c("Select category first..." = ""),
+                                  selected = "")
+                )
+              ),
+              uiOutput("manual_indicator_type_display"),
+
+              h4("Value"),
+              numericInput("manual_value", "Survey Value:",
+                          value = NA, min = 0, step = 0.01, width = "200px"),
+              uiOutput("manual_value_guidance"),
+
+              h4("Source Information"),
+              fluidRow(
+                column(6,
+                       selectInput("manual_source", "Source:",
+                                  choices = c("DHS National" = "DHS National",
+                                             "DHS Sub-national" = "DHS Sub-national",
+                                             "MICS" = "MICS",
+                                             "WUENIC" = "WUENIC",
+                                             "UNWPP" = "UNWPP",
+                                             "WHO" = "WHO",
+                                             "Admin" = "Admin",
+                                             "Other" = "Other"),
+                                  selected = "Other")
+                ),
+                column(6,
+                       selectInput("manual_survey_type", "Survey Type:",
+                                  choices = c("household" = "household",
+                                             "modeled" = "modeled",
+                                             "admin" = "admin",
+                                             "other" = "other"),
+                                  selected = "household")
+                )
+              ),
+              textInput("manual_source_detail", "Source Detail:",
+                       placeholder = "e.g., DHS 2023, MICS 2022, Admin report Q3",
+                       width = "100%"),
+
+              hr(),
+
+              fluidRow(
+                column(6,
+                       actionButton("add_manual_entry", "Add to Staging",
+                                   class = "btn-success btn-block",
+                                   icon = icon("plus"))
+                ),
+                column(6,
+                       actionButton("clear_manual_form", "Clear Form",
+                                   class = "btn-outline-secondary btn-block",
+                                   icon = icon("eraser"))
+                )
+              ),
+
+              br(),
+              uiOutput("manual_entry_status")
+            ),
+
+            # Staging Area
+            box(
+              title = "Staging Area", status = "info", solidHeader = TRUE, width = 6,
+
+              h4("Current Entry Preview"),
+              verbatimTextOutput("manual_entry_preview"),
+
+              hr(),
+
+              h4("Staged Entries"),
+              div(class = "alert alert-warning", style = "padding: 8px; font-size: 12px;",
+                  icon("exclamation-triangle"),
+                  " Staged entries are NOT yet in cleaned_data. Click 'Commit All' to add them."),
+
+              DT::dataTableOutput("staged_entries_table"),
+
+              br(),
+
+              fluidRow(
+                column(6,
+                       actionButton("remove_staged_entry", "Remove Selected",
+                                   class = "btn-warning btn-block",
+                                   icon = icon("minus"))
+                ),
+                column(6,
+                       actionButton("commit_staged_entries", "Commit All to Cleaned Data",
+                                   class = "btn-success btn-block",
+                                   icon = icon("check"))
+                )
+              ),
+
+              br(),
+              uiOutput("staged_entries_summary")
             )
           )
   )

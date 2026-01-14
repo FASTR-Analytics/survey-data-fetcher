@@ -5,8 +5,8 @@ repo_url: https://github.com/FASTR-Analytics/survey-data-fetcher
 repo_name: FASTR-Analytics/survey-data-fetcher
 
 copyright: >
-  Copyright &copy; 2024-2026 Claire Boulange / FASTR Analytics.
-  Licensed under Apache 2.0.
+  Copyright &copy; 2025 The World Bank, Global Financing Facility for Women,
+  Children and Adolescents (GFF), FASTR Initiative. All rights reserved.
 
 extra:
   social:
@@ -34,6 +34,8 @@ nav:
   - Data Sources: data-sources.md
   - Fetching Data: fetching-data.md
   - Cleaning & Processing: cleaning-processing.md
+  - Manual Entry: manual-entry.md
+  - Data Review: data-review.md
   - Database Integration: database-integration.md
   - Indicator Reference: indicators.md
   - Deployment: deployment.md

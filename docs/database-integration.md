@@ -89,15 +89,32 @@ A record is considered a duplicate if it matches on:
 - `year`
 - `indicator_common_id`
 
-### Results:
+### Results Summary
 
-- **Duplicate Records**: Shows existing vs. new values
-- **New Records**: Records that will be added
+After checking, you'll see a summary showing:
+- **X with different values**: Records that exist but have different values
+- **Y with same values**: Records that already match (no action needed)
+- **Z new records**: Records not in the database
 
-For duplicates, you can choose:
+### Handling Different Values
 
-- `keep_existing` - Don't update (default)
-- `replace_with_new` - Update to new value
+For records with different values, you have two options:
+
+**Per-row actions:**
+Each row shows the current action and a toggle button:
+- Click **"Replace"** to use the new fetched value
+- Click **"Keep Instead"** to keep the existing database value
+
+**Bulk actions:**
+Use the dropdown and **"Apply to All"** button to set all different-value records at once.
+
+### Record Types
+
+| Section | Description | Action |
+|---------|-------------|--------|
+| **Different Values** | Values don't match database | Choose keep or replace |
+| **Same Values** | Values already match | Skipped automatically |
+| **New Records** | Not in database | Will be added |
 
 ---
 

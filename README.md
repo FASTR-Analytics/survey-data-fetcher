@@ -17,9 +17,10 @@ A Shiny web application for fetching, cleaning, and integrating health survey da
 
 - **Multi-Source Data Fetching**: Connect to DHS, UNICEF (MICS/WUENIC), and UN World Population Prospects APIs
 - **Data Cleaning & Standardization**: Automatically harmonize data for FASTR compatibility
+- **Manual Data Entry**: Enter survey values manually with enforced standard indicator codes
+- **Data Review**: Compare fetched data against existing database with visual overlays
 - **GitHub Integration**: Pull the latest database, validate new data, and push updates directly to GitHub
 - **Collaborative Workflow**: Multiple users can contribute to the unified survey database
-- **Visualizations**: Interactive time series and multi-indicator comparison charts
 
 ## Data Sources
 
@@ -54,11 +55,12 @@ R -e "shiny::runApp()"
 ## Workflow
 
 ```
-1. Fetch Data     →  Select source, indicators, countries
+1. Fetch Data     →  Select source, indicators, countries (or use Manual Entry)
 2. Clean Data     →  Apply FASTR standardization
-3. Validate       →  Check admin area names against database
-4. Check Dupes    →  Identify existing records
-5. Push to GitHub →  Append to unified database
+3. Review Data    →  Compare against existing database visually
+4. Validate       →  Check admin area names against database
+5. Check Dupes    →  Identify existing records, choose keep or replace
+6. Push to GitHub →  Append to unified database
 ```
 
 ## Database Integration
@@ -121,4 +123,10 @@ Developed by **Claire Boulange** / FASTR Analytics
 
 ## License
 
-Apache License 2.0
+Copyright (c) 2025 The World Bank, Global Financing Facility for Women, Children and Adolescents (GFF), Frequent Assessments and System Tools for Resilience (FASTR) Initiative
+
+All rights reserved.
+
+This software is made publicly available for transparency and reference purposes only. Viewing and reviewing the source code is permitted. However, copying, modification, distribution, or use of this Software for any purpose is strictly prohibited without express written permission of the copyright holders.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.

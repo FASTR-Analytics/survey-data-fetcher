@@ -58,7 +58,8 @@ ui <- dashboardPage(
       create_metadata_tab(),
       create_results_tab(),
       create_processing_tab(),
-      create_visualization_tab(),
+      create_manual_entry_tab(),
+      create_data_review_tab(),
       create_integration_tab(),
       create_help_tab()
     )
@@ -86,7 +87,11 @@ server <- function(input, output, session) {
     pop_db = NULL,                  # Existing population database
     validation_result = NULL,       # Name validation results
     validated_data = NULL,          # Data after name corrections
-    duplicate_analysis = NULL       # Duplicate detection results
+    duplicate_analysis = NULL,      # Duplicate detection results
+    # Manual entry
+    staged_manual_entries = data.frame(),  # Staging area for manual entries
+    available_countries = NULL,            # Countries from backbone files
+    country_regions = list()               # Regions per country from backbone
   )
 
   # Initialize indicator lookup table for better plotting labels
@@ -989,413 +994,12 @@ output$country_selector <- renderUI({
       write.csv(values$cleaned_data, file, row.names = FALSE)
     }
   )
-  
-  # Update plot selectors when cleaned data changes
-  observe({
-    req(values$cleaned_data)
 
-    if(nrow(values$cleaned_data) > 0) {
-      # Get unique indicators with readable names and source
-      indicator_choices <- values$cleaned_data %>%
-        select(indicator_id, indicator_common_id, source) %>%
-        distinct() %>%
-        mutate(display_name = paste0(indicator_common_id, " (", toupper(source), ")")) %>%
-        {setNames(.$indicator_id, .$display_name)}
-      
-      # Create geographic area choices that handle both national and subnational data
-      geo_areas <- values$cleaned_data %>%
-        mutate(
-          # Create display name for geographic areas using country_name for better readability
-          geo_display = if_else(
-            admin_area_2 == "NATIONAL" | is.na(admin_area_2),
-            country_name,  # Use country_name instead of admin_area_1
-            paste(country_name, "-", admin_area_2)  # Use country_name for subnational too
-          ),
-          # Create unique identifier for filtering
-          geo_id = if_else(
-            admin_area_2 == "NATIONAL" | is.na(admin_area_2),
-            admin_area_1,
-            paste(admin_area_1, "||", admin_area_2)
-          )
-        ) %>%
-        select(geo_id, geo_display) %>%
-        distinct() %>%
-        arrange(geo_display)
-      
-      geo_choices <- setNames(geo_areas$geo_id, geo_areas$geo_display)
-      
-      # Update indicator selector with readable names
-      updateSelectInput(session, "plot_indicator",
-                        choices = indicator_choices)
-      
-      # Update country selectors with geographic areas
-      updateSelectInput(session, "plot_countries",
-                        choices = geo_choices,
-                        selected = geo_areas$geo_id[1:min(3, length(geo_areas$geo_id))])
-      
-      updateSelectInput(session, "comparison_country",
-                        choices = geo_choices)
-      
-      # Update comparison indicators with same choices (already includes source)
-      updateSelectInput(session, "comparison_indicators",
-                        choices = indicator_choices,
-                        selected = names(indicator_choices)[1:min(3, length(indicator_choices))])
-    }
-  })
-  
   # Check if cleaned data exists
   output$has_cleaned_data <- reactive({
     nrow(values$cleaned_data) > 0
   })
   outputOptions(output, "has_cleaned_data", suspendWhenHidden = FALSE)
-  
-  # Create filtering function that handles both national and subnational data
-  filter_data <- function(data, selected_geos) {
-    filtered_data <- data.frame()
-    
-    # Debug: Print available data structure
-    cat("=== DEBUG: Available data structure ===\n")
-    cat("Unique admin_area_1 values:", paste(unique(data$admin_area_1), collapse = ", "), "\n")
-    cat("Unique admin_area_2 values:", paste(unique(data$admin_area_2), collapse = ", "), "\n")
-    cat("Selected geo_ids:", paste(selected_geos, collapse = ", "), "\n")
-    
-    for(geo_id in selected_geos) {
-      cat("\n--- Processing geo_id:", geo_id, "---\n")
-      
-      if(grepl("\\|\\|", geo_id)) {
-        # Subnational data - split geo_id to get admin_area_1 and admin_area_2
-        parts <- strsplit(geo_id, "\\|\\|")[[1]]
-        admin1 <- parts[1]
-        admin2 <- parts[2]
-        cat("Looking for admin1:", admin1, "admin2:", admin2, "\n")
-        
-        # Check if this combination exists
-        matching_rows <- data %>%
-          filter(.data$admin_area_1 == admin1 & .data$admin_area_2 == admin2)
-        cat("Found", nrow(matching_rows), "matching rows\n")
-        
-        # Also try trimmed comparison in case of whitespace issues
-        if(nrow(matching_rows) == 0) {
-          matching_rows <- data %>%
-            filter(str_trim(.data$admin_area_1) == str_trim(admin1) & 
-                   str_trim(.data$admin_area_2) == str_trim(admin2))
-          cat("Found", nrow(matching_rows), "matching rows after trimming\n")
-        }
-        
-        subset_data <- matching_rows
-      } else {
-        # National data - just match admin_area_1
-        cat("Looking for national data for:", geo_id, "\n")
-        subset_data <- data %>%
-          filter(.data$admin_area_1 == geo_id & (.data$admin_area_2 == "NATIONAL" | is.na(.data$admin_area_2)))
-        cat("Found", nrow(subset_data), "national rows\n")
-      }
-      filtered_data <- bind_rows(filtered_data, subset_data)
-    }
-    
-    cat("=== Final filtered data has", nrow(filtered_data), "rows ===\n")
-    return(filtered_data)
-  }
-  
-  # Helper function to shorten long indicator names for better plot display
-  shorten_indicator_name <- function(name, max_chars = 50) {
-    if(is.null(name) || is.na(name) || nchar(name) <= max_chars) {
-      return(name)
-    }
-
-    # Try to break at natural points (commas, dashes, parentheses)
-    if(grepl("[,-]", name)) {
-      parts <- strsplit(name, "[,-]")[[1]]
-      shortened <- trimws(parts[1])
-      if(nchar(shortened) <= max_chars) {
-        return(shortened)
-      }
-    }
-
-    # If still too long, truncate and add ellipsis
-    paste0(substr(name, 1, max_chars - 3), "...")
-  }
-
-  # Generate time series plot
-  observeEvent(input$generate_plot, {
-    req(input$plot_indicator, input$plot_countries, values$cleaned_data)
-    
-    # First filter by indicator, then by geography
-    indicator_data <- values$cleaned_data %>%
-      filter(.data$indicator_id == input$plot_indicator)
-    
-    plot_data <- filter_data(indicator_data, input$plot_countries) %>%
-      mutate(
-        # Create display name for legend using country_name and source
-        geo_label = if_else(
-          admin_area_2 == "NATIONAL" | is.na(admin_area_2),
-          paste0(country_name, " (", toupper(source), ")"),  # Include source for national
-          paste0(country_name, " - ", admin_area_2, " (", toupper(source), ")")  # Include source for subnational
-        )
-      ) %>%
-      arrange(.data$year)
-    
-    if(nrow(plot_data) == 0) {
-      output$time_series_plot <- renderPlotly({
-        plotly::plot_ly() %>%
-          add_text(x = 0.5, y = 0.5, text = "No data available for selected filters",
-                   showlegend = FALSE) %>%
-          layout(xaxis = list(visible = FALSE), yaxis = list(visible = FALSE))
-      })
-      return()
-    }
-    
-    # Hide placeholder and show plot
-    shinyjs::hide("plot-placeholder")
-    
-    output$time_series_plot <- renderPlotly({
-      # Use lines+markers for optimal time series visualization
-      plot_mode <- "lines+markers"
-
-      # Define FASTR theme colors
-      fastr_colors <- c("#0f706d", "#1a8b86", "#2c3e50", "#7f8c8d", "#e74c3c", "#f39c12", "#3498db", "#9b59b6", "#2ecc71", "#e67e22")
-
-      # Enhance plot data with better labels from lookup table
-      enhanced_plot_data <- plot_data %>%
-        mutate(
-          indicator_display_label = sapply(indicator_id, function(id) {
-            tryCatch({
-              label <- get_indicator_label(id)
-              if(label == id && "indicator_common_id" %in% names(plot_data) &&
-                 !is.na(indicator_common_id) && indicator_common_id != "") {
-                return(indicator_common_id)
-              }
-              return(label)
-            }, error = function(e) {
-              # Fallback to original ID if lookup fails
-              return(id)
-            })
-          }),
-          # Create shortened version for legend
-          indicator_short_label = sapply(indicator_display_label, function(name) {
-            shorten_indicator_name(name, max_chars = 40)
-          })
-        )
-
-      # Check if indicators are percentage types for y-axis formatting
-      is_percentage <- any(enhanced_plot_data$indicator_type == "percent", na.rm = TRUE)
-      y_axis_config <- if(is_percentage) {
-        list(
-          title = list(text = "Value (%)", font = list(color = "#2c3e50")),
-          tickformat = ".1%",
-          gridcolor = "#dee2e6",
-          linecolor = "#dee2e6"
-        )
-      } else {
-        list(
-          title = list(text = "Value", font = list(color = "#2c3e50")),
-          gridcolor = "#dee2e6",
-          linecolor = "#dee2e6"
-        )
-      }
-
-      p <- plot_ly(enhanced_plot_data, x = ~year, y = ~survey_value, color = ~geo_label,
-                   type = "scatter",
-                   mode = plot_mode,
-                   line = list(width = 3),
-                   marker = list(size = 8),
-                   colors = fastr_colors) %>%
-        layout(
-          title = list(
-            text = shorten_indicator_name(unique(enhanced_plot_data$indicator_display_label)[1], max_chars = 60),
-            font = list(color = "#2c3e50", size = 16)
-          ),
-          xaxis = list(
-            title = list(text = "Year", font = list(color = "#2c3e50")),
-            gridcolor = "#dee2e6",
-            linecolor = "#dee2e6"
-          ),
-          yaxis = y_axis_config,
-          plot_bgcolor = "#ffffff",
-          paper_bgcolor = "#ffffff",
-          font = list(color = "#2c3e50"),
-          hovermode = "x unified"
-        )
-      
-      # Add trend lines if requested
-      if(input$show_trend) {
-        for(geo_label in unique(plot_data$geo_label)) {
-          geo_data <- plot_data %>% filter(.data$geo_label == geo_label)
-          if(nrow(geo_data) > 1) {
-            trend_model <- lm(survey_value ~ year, data = geo_data)
-            trend_line <- data.frame(
-              year = range(geo_data$year),
-              survey_value = predict(trend_model, newdata = data.frame(year = range(geo_data$year)))
-            )
-            
-            p <- p %>% add_lines(
-              data = trend_line,
-              x = ~year, y = ~survey_value,
-              name = paste(geo_label, "trend"),
-              line = list(dash = "dash", width = 2),
-              showlegend = FALSE
-            )
-          }
-        }
-      }
-      
-      p
-    })
-  })
-  
-  # Generate comparison plot
-  observeEvent(input$generate_comparison, {
-    req(input$comparison_country, input$comparison_indicators, values$cleaned_data)
-    
-    # Filter data using the same logic as the time series plot
-    indicators_data <- values$cleaned_data %>%
-      filter(.data$indicator_id %in% input$comparison_indicators)
-    
-    plot_data <- filter_data(indicators_data, list(input$comparison_country)) %>%
-      arrange(.data$year)
-
-    # Enhance plot data with better labels from lookup table
-    if(nrow(plot_data) > 0) {
-      plot_data <- plot_data %>%
-        mutate(
-          indicator_display_label = sapply(indicator_id, function(id) {
-            tryCatch({
-              label <- get_indicator_label(id)
-              if(label == id && "indicator_common_id" %in% names(plot_data) &&
-                 !is.na(indicator_common_id) && indicator_common_id != "") {
-                return(indicator_common_id)
-              }
-              return(label)
-            }, error = function(e) {
-              # Fallback to original ID if lookup fails
-              return(id)
-            })
-          }),
-          # Create shortened version for legend (shorter for comparison plots)
-          indicator_short_label = sapply(indicator_display_label, function(name) {
-            shorten_indicator_name(name, max_chars = 30)
-          })
-        )
-    }
-
-    if(nrow(plot_data) == 0) {
-      output$comparison_plot <- renderPlotly({
-        plotly::plot_ly() %>%
-          add_text(x = 0.5, y = 0.5, text = "No data available for selected filters",
-                   showlegend = FALSE) %>%
-          layout(xaxis = list(visible = FALSE), yaxis = list(visible = FALSE))
-      })
-      return()
-    }
-    
-    # Hide placeholder and show comparison plot  
-    shinyjs::hide("comparison-placeholder")
-    
-    output$comparison_plot <- renderPlotly({
-      if(input$comparison_scale == "free") {
-        # Use subplots for free scale
-        plot_list <- list()
-        for(i in seq_along(input$comparison_indicators)) {
-          indicator_data <- plot_data %>% filter(.data$indicator_id == input$comparison_indicators[i])
-          indicator_display <- unique(indicator_data$indicator_short_label)[1]
-
-          # Define FASTR theme colors
-          fastr_colors <- c("#0f706d", "#1a8b86", "#2c3e50", "#7f8c8d", "#e74c3c", "#f39c12", "#3498db", "#9b59b6", "#2ecc71", "#e67e22")
-
-          # Check if this indicator is a percentage type for y-axis formatting
-          is_percentage <- any(indicator_data$indicator_type == "percent", na.rm = TRUE)
-          y_axis_config <- if(is_percentage) {
-            list(
-              title = list(text = "Value (%)", font = list(color = "#2c3e50")),
-              tickformat = ".1%",
-              gridcolor = "#dee2e6",
-              linecolor = "#dee2e6"
-            )
-          } else {
-            list(
-              title = list(text = "Value", font = list(color = "#2c3e50")),
-              gridcolor = "#dee2e6",
-              linecolor = "#dee2e6"
-            )
-          }
-
-          p <- plot_ly(indicator_data, x = ~year, y = ~survey_value,
-                       type = "scatter", mode = "lines+markers",
-                       name = if(!is.na(indicator_display)) indicator_display else input$comparison_indicators[i],
-                       line = list(width = 3, color = fastr_colors[((i-1) %% length(fastr_colors)) + 1]),
-                       marker = list(size = 8, color = fastr_colors[((i-1) %% length(fastr_colors)) + 1])) %>%
-            layout(
-              title = list(
-                text = if(!is.na(indicator_display)) indicator_display else input$comparison_indicators[i],
-                font = list(color = "#2c3e50", size = 14)
-              ),
-              xaxis = list(
-                title = list(
-                  text = if(i == length(input$comparison_indicators)) "Year" else "",
-                  font = list(color = "#2c3e50")
-                ),
-                gridcolor = "#dee2e6",
-                linecolor = "#dee2e6"
-              ),
-              yaxis = y_axis_config,
-              plot_bgcolor = "#ffffff",
-              paper_bgcolor = "#ffffff",
-              font = list(color = "#2c3e50")
-            )
-          plot_list[[i]] <- p
-        }
-        
-        subplot(plot_list, nrows = length(input$comparison_indicators), 
-                shareX = TRUE, titleY = TRUE)
-        
-      } else {
-        # Fixed scale - single plot with indicator_common_id in legend
-        # Define FASTR theme colors
-        fastr_colors <- c("#0f706d", "#1a8b86", "#2c3e50", "#7f8c8d", "#e74c3c", "#f39c12", "#3498db", "#9b59b6", "#2ecc71", "#e67e22")
-
-        # Check if indicators are percentage types for y-axis formatting
-        is_percentage <- any(plot_data$indicator_type == "percent", na.rm = TRUE)
-        y_axis_config <- if(is_percentage) {
-          list(
-            title = list(text = "Value (%)", font = list(color = "#2c3e50")),
-            tickformat = ".1%",
-            gridcolor = "#dee2e6",
-            linecolor = "#dee2e6"
-          )
-        } else {
-          list(
-            title = list(text = "Value", font = list(color = "#2c3e50")),
-            gridcolor = "#dee2e6",
-            linecolor = "#dee2e6"
-          )
-        }
-
-        plot_ly(plot_data, x = ~year, y = ~survey_value, color = ~indicator_short_label,
-                type = "scatter", mode = "lines+markers",
-                line = list(width = 3), marker = list(size = 8),
-                colors = fastr_colors) %>%
-          layout(
-            title = list(
-              text = paste("Multi-Indicator Comparison:", unique(plot_data$country_name)[1]),
-              font = list(color = "#2c3e50", size = 16)
-            ),
-            xaxis = list(
-              title = list(text = "Year", font = list(color = "#2c3e50")),
-              gridcolor = "#dee2e6",
-              linecolor = "#dee2e6"
-            ),
-            yaxis = y_axis_config,
-            plot_bgcolor = "#ffffff",
-            paper_bgcolor = "#ffffff",
-            font = list(color = "#2c3e50"),
-            hovermode = "x unified",
-            legend = list(
-              font = list(color = "#2c3e50")
-            )
-          )
-      }
-    })
-  })
 
   # ========================================
   # DATABASE INTEGRATION - SERVER LOGIC
@@ -1640,6 +1244,215 @@ output$country_selector <- renderUI({
     values$duplicate_analysis$duplicates[info$row, "action"] <- info$value
   })
 
+  # Output to show/hide bulk action buttons
+
+  output$has_duplicates <- reactive({
+    !is.null(values$duplicate_analysis) &&
+    !is.null(values$duplicate_analysis$duplicates) &&
+    nrow(values$duplicate_analysis$duplicates) > 0
+  })
+  outputOptions(output, "has_duplicates", suspendWhenHidden = FALSE)
+
+  # Output: has records with different values (pct_diff != 0)
+  output$has_different_values <- reactive({
+    if (is.null(values$duplicate_analysis) || is.null(values$duplicate_analysis$duplicates)) {
+      return(FALSE)
+    }
+    dups <- values$duplicate_analysis$duplicates
+    nrow(dups) > 0 && any(!is.na(dups$pct_diff) & abs(dups$pct_diff) > 0.01)
+  })
+  outputOptions(output, "has_different_values", suspendWhenHidden = FALSE)
+
+  # Output: has records with same values (pct_diff == 0 or very close)
+  output$has_same_values <- reactive({
+    if (is.null(values$duplicate_analysis) || is.null(values$duplicate_analysis$duplicates)) {
+      return(FALSE)
+    }
+    dups <- values$duplicate_analysis$duplicates
+    nrow(dups) > 0 && any(is.na(dups$pct_diff) | abs(dups$pct_diff) <= 0.01)
+  })
+  outputOptions(output, "has_same_values", suspendWhenHidden = FALSE)
+
+  # Output: has new records to add
+  output$has_new_records <- reactive({
+    !is.null(values$duplicate_analysis) &&
+    !is.null(values$duplicate_analysis$new_records) &&
+    nrow(values$duplicate_analysis$new_records) > 0
+  })
+  outputOptions(output, "has_new_records", suspendWhenHidden = FALSE)
+
+  # Duplicate status summary UI
+  output$duplicate_status_summary <- renderUI({
+    if (is.null(values$duplicate_analysis)) {
+      return(div(class = "text-muted", "Click 'Check for Duplicates' to analyze your data."))
+    }
+
+    dups <- values$duplicate_analysis$duplicates
+    new_recs <- values$duplicate_analysis$new_records
+
+    # Count different vs same values
+    n_different <- if (nrow(dups) > 0) {
+      sum(!is.na(dups$pct_diff) & abs(dups$pct_diff) > 0.01)
+    } else 0
+
+    n_same <- if (nrow(dups) > 0) {
+      sum(is.na(dups$pct_diff) | abs(dups$pct_diff) <= 0.01)
+    } else 0
+
+    n_new <- nrow(new_recs)
+
+    div(
+      div(class = "alert alert-success", style = "padding: 10px; margin-bottom: 5px;",
+          icon("check-circle"),
+          HTML(paste0(
+            " Duplicate check complete: ",
+            "<strong>", n_different, "</strong> with different values, ",
+            "<strong>", n_same, "</strong> with same values, ",
+            "<strong>", n_new, "</strong> new records"
+          ))
+      )
+    )
+  })
+
+  # Table: records with different values (pct_diff != 0) - with action buttons
+ output$different_values_table <- DT::renderDataTable({
+    if (is.null(values$duplicate_analysis) || nrow(values$duplicate_analysis$duplicates) == 0) {
+      return(data.frame(Message = "No records with different values."))
+    }
+
+    dups <- values$duplicate_analysis$duplicates %>%
+      dplyr::filter(!is.na(pct_diff) & abs(pct_diff) > 0.01)
+
+    if (nrow(dups) == 0) {
+      return(data.frame(Message = "No records with different values."))
+    }
+
+    # Create action buttons for each row
+    dups <- dups %>%
+      dplyr::mutate(
+        pct_diff = round(pct_diff, 2),
+        row_id = row_number(),
+        # Show current action as styled badge + toggle button
+        Action = sapply(row_id, function(i) {
+          current_action <- dups$action[i]
+          if (current_action == "replace") {
+            paste0(
+              '<span class="label label-warning" style="font-size: 11px;">Replace</span> ',
+              '<button class="btn btn-xs btn-default action-toggle" data-row="', i, '" data-action="keep_existing" ',
+              'onclick="Shiny.setInputValue(\'toggle_dup_action\', {row: ', i, ', action: \'keep_existing\', nonce: Math.random()})">',
+              '<i class="fa fa-undo"></i> Keep Instead</button>'
+            )
+          } else {
+            paste0(
+              '<span class="label label-info" style="font-size: 11px;">Keep Existing</span> ',
+              '<button class="btn btn-xs btn-warning action-toggle" data-row="', i, '" data-action="replace" ',
+              'onclick="Shiny.setInputValue(\'toggle_dup_action\', {row: ', i, ', action: \'replace\', nonce: Math.random()})">',
+              '<i class="fa fa-refresh"></i> Replace</button>'
+            )
+          }
+        })
+      ) %>%
+      dplyr::select(admin_area_1, admin_area_2, year, indicator_common_id,
+                   new_value = survey_value, existing_value, pct_diff, Action)
+
+    dups
+  }, options = list(
+    pageLength = 10,
+    scrollX = TRUE
+  ), rownames = FALSE, escape = FALSE, selection = "none")
+
+  # Handle per-row action toggle button clicks
+ observeEvent(input$toggle_dup_action, {
+    info <- input$toggle_dup_action
+    req(info$row, info$action)
+
+    # Get the filtered data to map row index
+    dups_filtered <- values$duplicate_analysis$duplicates %>%
+      dplyr::filter(!is.na(pct_diff) & abs(pct_diff) > 0.01)
+
+    if (info$row <= nrow(dups_filtered)) {
+      # Find matching row in original duplicates by composite_key
+      target_key <- dups_filtered$composite_key[info$row]
+      match_idx <- which(values$duplicate_analysis$duplicates$composite_key == target_key)
+
+      if (length(match_idx) > 0) {
+        values$duplicate_analysis$duplicates[match_idx, "action"] <- info$action
+        # Table will re-render automatically due to reactive dependency
+      }
+    }
+  })
+
+  # Table: records with same values
+  output$same_values_table <- DT::renderDataTable({
+    if (is.null(values$duplicate_analysis) || nrow(values$duplicate_analysis$duplicates) == 0) {
+      return(data.frame(Message = "No records with same values."))
+    }
+
+    same <- values$duplicate_analysis$duplicates %>%
+      dplyr::filter(is.na(pct_diff) | abs(pct_diff) <= 0.01) %>%
+      dplyr::select(admin_area_1, admin_area_2, year, indicator_common_id, survey_value, source)
+
+    if (nrow(same) == 0) {
+      return(data.frame(Message = "No records with same values."))
+    }
+
+    same
+  }, options = list(pageLength = 5, scrollX = TRUE), rownames = FALSE)
+
+  # Apply duplicate action from dropdown
+  observeEvent(input$apply_duplicate_action, {
+    if (is.null(values$duplicate_analysis) || nrow(values$duplicate_analysis$duplicates) == 0) {
+      showNotification("No duplicates to update", type = "warning")
+      return()
+    }
+
+    # Filter to only records with different values
+    diff_indices <- which(!is.na(values$duplicate_analysis$duplicates$pct_diff) &
+                          abs(values$duplicate_analysis$duplicates$pct_diff) > 0.01)
+
+    if (length(diff_indices) == 0) {
+      showNotification("No records with different values to update", type = "warning")
+      return()
+    }
+
+    action <- input$duplicate_action_choice
+    values$duplicate_analysis$duplicates$action[diff_indices] <- action
+
+    action_text <- if (action == "replace") "REPLACE with new values" else "KEEP existing values"
+    showNotification(
+      paste("Set", length(diff_indices), "records to", action_text),
+      type = "message"
+    )
+  })
+
+  # Bulk action: Replace all with new values
+  observeEvent(input$replace_all_duplicates, {
+    if (is.null(values$duplicate_analysis) || nrow(values$duplicate_analysis$duplicates) == 0) {
+      showNotification("No duplicates to update", type = "warning")
+      return()
+    }
+
+    values$duplicate_analysis$duplicates$action <- "replace"
+    showNotification(
+      paste("Set", nrow(values$duplicate_analysis$duplicates), "records to REPLACE with new values"),
+      type = "message"
+    )
+  })
+
+  # Bulk action: Keep all existing values
+  observeEvent(input$keep_all_existing, {
+    if (is.null(values$duplicate_analysis) || nrow(values$duplicate_analysis$duplicates) == 0) {
+      showNotification("No duplicates to update", type = "warning")
+      return()
+    }
+
+    values$duplicate_analysis$duplicates$action <- "keep_existing"
+    showNotification(
+      paste("Set", nrow(values$duplicate_analysis$duplicates), "records to KEEP existing values"),
+      type = "message"
+    )
+  })
+
   # New records preview
   output$new_records_preview <- DT::renderDataTable({
     if (is.null(values$duplicate_analysis) || nrow(values$duplicate_analysis$new_records) == 0) {
@@ -1754,6 +1567,677 @@ output$country_selector <- renderUI({
 
       showNotification(result$message, type = "error")
     }
+  })
+
+  # ========================================
+  # DATA REVIEW TAB - SERVER LOGIC
+  # ========================================
+
+  # Database status display
+  output$review_db_status <- renderUI({
+    has_cleaned <- !is.null(values$cleaned_data) && nrow(values$cleaned_data) > 0
+    has_db <- !is.null(values$survey_db) && nrow(values$survey_db) > 0
+
+    if(has_db) {
+      n_records <- nrow(values$survey_db)
+      countries <- unique(values$survey_db$iso3_code)
+      div(class = "alert alert-success", style = "margin: 0;",
+          icon("check-circle"),
+          paste(" Database loaded:", n_records, "records for", paste(countries, collapse = ", ")))
+    } else if(has_cleaned) {
+      countries <- unique(values$cleaned_data$iso3_code)
+      countries <- countries[!is.na(countries) & countries != ""]
+      div(class = "alert alert-info", style = "margin: 0;",
+          icon("info-circle"),
+          paste(" Ready to load database for:", paste(countries, collapse = ", "),
+                "- Click 'Load Database' to fetch existing records"))
+    } else {
+      div(class = "alert alert-warning", style = "margin: 0;",
+          icon("exclamation-triangle"),
+          " First fetch and clean data, then load database to compare existing vs new records.")
+    }
+  })
+
+  # Duplicate summary - shows how many fetched records already exist in database
+  output$review_duplicate_summary <- renderUI({
+    has_cleaned <- !is.null(values$cleaned_data) && nrow(values$cleaned_data) > 0
+    has_db <- !is.null(values$survey_db) && nrow(values$survey_db) > 0
+
+    if(!has_cleaned || !has_db) {
+      return(NULL)
+    }
+
+    # Create composite keys for comparison
+    cleaned_keys <- values$cleaned_data %>%
+      mutate(key = paste(admin_area_1, admin_area_2, year, indicator_common_id, sep = "|||")) %>%
+      pull(key)
+
+    db_keys <- values$survey_db %>%
+      mutate(key = paste(admin_area_1, admin_area_2, year, indicator_common_id, sep = "|||")) %>%
+      pull(key)
+
+    # Count duplicates
+    n_total <- length(cleaned_keys)
+    n_duplicates <- sum(cleaned_keys %in% db_keys)
+    n_new <- n_total - n_duplicates
+
+    if(n_duplicates > 0) {
+      div(class = "alert alert-info", style = "margin-top: 10px; margin-bottom: 0;",
+          icon("clone"),
+          HTML(paste0(" Your fetched data: ", n_total, " records total - <strong>",
+                      n_duplicates, "</strong> already in database, <strong>",
+                      n_new, "</strong> are new")))
+    } else {
+      div(class = "alert alert-success", style = "margin-top: 10px; margin-bottom: 0;",
+          icon("plus-circle"),
+          paste(" All", n_total, "fetched records are NEW (not in database)"))
+    }
+  })
+
+  # Load database button handler - filters to countries in cleaned_data
+  observeEvent(input$load_review_database, {
+    # Get ISO3 codes from cleaned_data to filter
+    filter_iso3 <- NULL
+    if(!is.null(values$cleaned_data) && nrow(values$cleaned_data) > 0) {
+      filter_iso3 <- unique(values$cleaned_data$iso3_code)
+      filter_iso3 <- filter_iso3[!is.na(filter_iso3) & filter_iso3 != ""]
+    }
+
+    if(is.null(filter_iso3) || length(filter_iso3) == 0) {
+      showNotification("No cleaned data found - please fetch and clean data first, then load database to compare",
+                      type = "warning", duration = 5)
+      return()
+    }
+
+    showNotification(
+      paste("Loading database for:", paste(filter_iso3, collapse = ", ")),
+      type = "message", duration = 3)
+
+    tryCatch({
+      # Load full database first
+      full_survey_db <- load_survey_database(use_github = TRUE)
+      full_pop_db <- load_population_database(use_github = TRUE)
+
+      # Filter to relevant countries by ISO3
+      if(!is.null(full_survey_db) && nrow(full_survey_db) > 0) {
+        values$survey_db <- full_survey_db %>%
+          filter(iso3_code %in% filter_iso3)
+
+        if(!is.null(full_pop_db) && nrow(full_pop_db) > 0) {
+          values$pop_db <- full_pop_db %>%
+            filter(iso3_code %in% filter_iso3)
+        }
+
+        showNotification(
+          paste("Loaded", nrow(values$survey_db), "database records for",
+                paste(filter_iso3, collapse = ", ")),
+          type = "message", duration = 5)
+      } else {
+        showNotification("Could not load database - check connection", type = "warning")
+      }
+    }, error = function(e) {
+      showNotification(paste("Error loading database:", e$message), type = "error")
+    })
+  })
+
+  # Populate country selector from both survey_db and cleaned_data
+  observe({
+    countries_from_db <- if(!is.null(values$survey_db) && nrow(values$survey_db) > 0) {
+      unique(values$survey_db$country_name)
+    } else {
+      character(0)
+    }
+
+    countries_from_new <- if(!is.null(values$cleaned_data) && nrow(values$cleaned_data) > 0) {
+      unique(values$cleaned_data$country_name)
+    } else {
+      character(0)
+    }
+
+    all_countries <- sort(unique(c(countries_from_db, countries_from_new)))
+
+    updateSelectInput(session, "review_country",
+                     choices = c("Select a country" = "", all_countries),
+                     selected = "")
+  })
+
+  # Populate region selector based on selected country
+  observeEvent(input$review_country, {
+    req(input$review_country, input$review_country != "")
+
+    # Get regions from database
+    regions_from_db <- if(!is.null(values$survey_db) && nrow(values$survey_db) > 0) {
+      values$survey_db %>%
+        filter(country_name == input$review_country,
+               admin_area_2 != "NATIONAL") %>%
+        pull(admin_area_2) %>%
+        unique()
+    } else {
+      character(0)
+    }
+
+    # Get regions from new data
+    regions_from_new <- if(!is.null(values$cleaned_data) && nrow(values$cleaned_data) > 0) {
+      values$cleaned_data %>%
+        filter(country_name == input$review_country,
+               admin_area_2 != "NATIONAL") %>%
+        pull(admin_area_2) %>%
+        unique()
+    } else {
+      character(0)
+    }
+
+    all_regions <- sort(unique(c(regions_from_db, regions_from_new)))
+
+    updateSelectInput(session, "review_regions",
+                     choices = all_regions,
+                     selected = if(length(all_regions) > 0) all_regions[1:min(3, length(all_regions))] else NULL)
+  })
+
+  # Populate indicator selector based on country selection
+  observe({
+    req(input$review_country, input$review_country != "")
+
+    # Get indicators from database
+    indicators_db <- if(!is.null(values$survey_db) && nrow(values$survey_db) > 0) {
+      values$survey_db %>%
+        filter(country_name == input$review_country) %>%
+        pull(indicator_common_id) %>%
+        unique()
+    } else {
+      character(0)
+    }
+
+    # Get indicators from new data
+    indicators_new <- if(!is.null(values$cleaned_data) && nrow(values$cleaned_data) > 0) {
+      values$cleaned_data %>%
+        filter(country_name == input$review_country) %>%
+        pull(indicator_common_id) %>%
+        unique()
+    } else {
+      character(0)
+    }
+
+    all_indicators <- sort(unique(c(indicators_db, indicators_new)))
+
+    updateSelectInput(session, "review_indicator",
+                     choices = c("Select an indicator" = "", all_indicators),
+                     selected = if(length(all_indicators) > 0) all_indicators[1] else "")
+  })
+
+  # Generate coverage comparison plot
+  observeEvent(input$generate_review_plot, {
+    req(input$review_country, input$review_indicator,
+        input$review_country != "", input$review_indicator != "")
+
+    # Build region filter
+    selected_regions <- if(isTRUE(input$review_include_national)) {
+      c("NATIONAL", input$review_regions)
+    } else {
+      input$review_regions
+    }
+
+    # Filter database data
+    db_data <- if(!is.null(values$survey_db) && nrow(values$survey_db) > 0) {
+      values$survey_db %>%
+        filter(country_name == input$review_country,
+               admin_area_2 %in% selected_regions,
+               indicator_common_id == input$review_indicator) %>%
+        mutate(data_source = "Database")
+    } else {
+      data.frame()
+    }
+
+    # Filter new data
+    new_data <- if(!is.null(values$cleaned_data) && nrow(values$cleaned_data) > 0) {
+      values$cleaned_data %>%
+        filter(country_name == input$review_country,
+               admin_area_2 %in% selected_regions,
+               indicator_common_id == input$review_indicator) %>%
+        mutate(data_source = "New")
+    } else {
+      data.frame()
+    }
+
+    # Generate overlay plot
+    output$review_coverage_plot <- renderPlotly({
+      if(nrow(db_data) == 0 && nrow(new_data) == 0) {
+        return(plotly::plot_ly() %>%
+                 add_annotations(x = 0.5, y = 0.5,
+                                text = "No data available for this selection",
+                                showarrow = FALSE, xref = "paper", yref = "paper",
+                                font = list(size = 16, color = "#999")) %>%
+                 layout(xaxis = list(visible = FALSE),
+                       yaxis = list(visible = FALSE)))
+      }
+
+      # Define colors for different database sources
+      source_colors <- list(
+        "DHS National" = "#0f706d",
+        "DHS Sub-national" = "#14967d",
+        "MICS" = "#3498db",
+        "WUENIC" = "#9b59b6",
+        "UNWPP" = "#f39c12",
+        "WHO" = "#1abc9c",
+        "UN IGME" = "#e67e22",
+        "Admin" = "#7f8c8d"
+      )
+      default_db_color <- "#34495e"
+
+      # Create plot
+      p <- plot_ly() %>%
+        layout(
+          title = list(text = paste(input$review_indicator, "-", input$review_country),
+                      font = list(size = 16)),
+          xaxis = list(title = "Year"),
+          yaxis = list(title = "Value"),
+          legend = list(orientation = "h", y = -0.2, xanchor = "center", x = 0.5),
+          hovermode = "x unified"
+        )
+
+      # Add database traces - grouped by source AND region
+      # Use different styles for national vs subnational:
+      # - National: solid line, circle markers, full opacity
+      # - Subnational: dashed line, triangle markers, lighter color
+      if(nrow(db_data) > 0) {
+        # Get unique source types
+        db_sources <- unique(db_data$source)
+
+        # Track subnational region index for varying colors slightly
+        subnational_regions <- setdiff(unique(db_data$admin_area_2), "NATIONAL")
+        region_color_offset <- setNames(seq_along(subnational_regions) * 0.15, subnational_regions)
+
+        for(src in db_sources) {
+          src_color <- if(src %in% names(source_colors)) source_colors[[src]] else default_db_color
+
+          for(region in unique(db_data$admin_area_2)) {
+            src_region_data <- db_data %>%
+              filter(source == src, admin_area_2 == region)
+
+            if(nrow(src_region_data) > 0) {
+              # Simplify source name for legend
+              src_short <- gsub(" National| Sub-national", "", src)
+
+              # Different styling for national vs subnational
+              is_national <- region == "NATIONAL"
+
+              if(is_national) {
+                label <- paste0(src_short, " (National)")
+                line_style <- list(color = src_color, width = 3)
+                marker_style <- list(color = src_color, size = 10, symbol = "circle")
+              } else {
+                label <- paste0(src_short, ": ", region)
+                # Use dashed line and triangle markers for subnational
+                line_style <- list(color = src_color, width = 2, dash = "dot")
+                marker_style <- list(color = src_color, size = 8, symbol = "triangle-up",
+                                    line = list(color = "white", width = 1))
+              }
+
+              p <- p %>% add_trace(
+                data = src_region_data,
+                x = ~year, y = ~survey_value,
+                type = "scatter", mode = "lines+markers",
+                name = label,
+                line = line_style,
+                marker = marker_style,
+                legendgroup = src,
+                hovertemplate = paste0(
+                  "<b>", src, "</b><br>",
+                  "Region: ", region, "<br>",
+                  "Year: %{x}<br>",
+                  "Value: %{y:.3f}<extra></extra>"
+                )
+              )
+            }
+          }
+        }
+      }
+
+      # Add new/fetched data traces - in red/orange tones
+      # National: solid red, diamond markers
+      # Subnational: dashed orange, square markers
+      if(nrow(new_data) > 0) {
+        new_sources <- unique(new_data$source)
+
+        for(src in new_sources) {
+          for(region in unique(new_data$admin_area_2)) {
+            src_region_data <- new_data %>%
+              filter(source == src, admin_area_2 == region)
+
+            if(nrow(src_region_data) > 0) {
+              src_short <- gsub(" National| Sub-national", "", src)
+              is_national <- region == "NATIONAL"
+
+              if(is_national) {
+                label <- paste0("NEW ", src_short, " (National)")
+                line_style <- list(color = "#e74c3c", width = 3, dash = "dash")
+                marker_style <- list(color = "#e74c3c", size = 11, symbol = "diamond")
+              } else {
+                label <- paste0("NEW ", src_short, ": ", region)
+                # Use orange and squares for subnational new data
+                line_style <- list(color = "#e67e22", width = 2, dash = "dashdot")
+                marker_style <- list(color = "#e67e22", size = 9, symbol = "square",
+                                    line = list(color = "white", width = 1))
+              }
+
+              p <- p %>% add_trace(
+                data = src_region_data,
+                x = ~year, y = ~survey_value,
+                type = "scatter", mode = "lines+markers",
+                name = label,
+                line = line_style,
+                marker = marker_style,
+                legendgroup = "NEW",
+                hovertemplate = paste0(
+                  "<b>NEW: ", src, "</b><br>",
+                  "Region: ", region, "<br>",
+                  "Year: %{x}<br>",
+                  "Value: %{y:.3f}<extra></extra>"
+                )
+              )
+            }
+          }
+        }
+      }
+
+      p
+    })
+
+    # Render summary tables
+    output$review_db_table <- DT::renderDataTable({
+      if(nrow(db_data) == 0) {
+        return(data.frame(Message = "No database records for this selection"))
+      }
+      db_data %>%
+        select(admin_area_2, year, survey_value, source) %>%
+        arrange(admin_area_2, year)
+    }, options = list(pageLength = 5, scrollX = TRUE, dom = 'tip'), rownames = FALSE)
+
+    output$review_new_table <- DT::renderDataTable({
+      if(nrow(new_data) == 0) {
+        return(data.frame(Message = "No new records for this selection"))
+      }
+      new_data %>%
+        select(admin_area_2, year, survey_value, source) %>%
+        arrange(admin_area_2, year)
+    }, options = list(pageLength = 5, scrollX = TRUE, dom = 'tip'), rownames = FALSE)
+  })
+
+  # ========================================
+  # MANUAL ENTRY TAB - SERVER LOGIC
+  # ========================================
+
+  # Load countries and regions from backbone files on startup
+  observe({
+    backbone_files <- list.files("assets", pattern = "_backbone\\.csv$", full.names = TRUE)
+
+    countries <- c()
+    regions <- list()
+
+    for(file in backbone_files) {
+      tryCatch({
+        data <- read.csv(file, stringsAsFactors = FALSE)
+        # Extract country name from file (e.g., "senegal_backbone.csv" -> "Senegal")
+        country_key <- gsub("_backbone\\.csv$", "", basename(file))
+        country_key <- tools::toTitleCase(country_key)
+
+        # Get unique admin_area_2 values (regions)
+        if("admin_area_2" %in% names(data)) {
+          region_list <- unique(data$admin_area_2[!is.na(data$admin_area_2) & data$admin_area_2 != ""])
+          regions[[country_key]] <- sort(region_list)
+          countries <- c(countries, country_key)
+        }
+      }, error = function(e) {
+        message("Could not load backbone file: ", file, " - ", e$message)
+      })
+    }
+
+    values$available_countries <- sort(unique(countries))
+    values$country_regions <- regions
+
+    # Update country selector
+    updateSelectInput(session, "manual_country",
+                     choices = c("Select a country" = "", values$available_countries))
+  })
+
+  # Update indicator dropdown based on selected category
+  observeEvent(input$manual_indicator_category, {
+    category <- input$manual_indicator_category
+
+    if (is.null(category) || category == "") {
+      updateSelectInput(session, "manual_indicator",
+                       choices = c("Select category first..." = ""),
+                       selected = "")
+    } else {
+      # Get indicators for this category
+      indicators <- get_indicators_by_category(category)
+      indicator_choices <- setNames(indicators, indicators)
+      updateSelectInput(session, "manual_indicator",
+                       choices = c("Select an indicator" = "", indicator_choices),
+                       selected = "")
+    }
+  }, ignoreNULL = FALSE)
+
+  # Cascading region selector based on country
+  observeEvent(input$manual_country, {
+    req(input$manual_country, input$manual_country != "")
+
+    if(input$manual_country %in% names(values$country_regions)) {
+      region_list <- values$country_regions[[input$manual_country]]
+      regions <- c("NATIONAL" = "NATIONAL",
+                   setNames(region_list, region_list))
+    } else {
+      regions <- c("NATIONAL" = "NATIONAL")
+    }
+
+    updateSelectInput(session, "manual_region",
+                     choices = regions,
+                     selected = "NATIONAL")
+  })
+
+  # Display indicator type
+  output$manual_indicator_type_display <- renderUI({
+    req(input$manual_indicator, input$manual_indicator != "")
+    indicator_type <- get_indicator_type(input$manual_indicator)
+    div(class = "alert alert-secondary", style = "padding: 8px; margin-top: 5px;",
+        strong("Indicator Type: "), indicator_type)
+  })
+
+  # Value guidance based on indicator type
+  output$manual_value_guidance <- renderUI({
+    req(input$manual_indicator, input$manual_indicator != "")
+    indicator_type <- get_indicator_type(input$manual_indicator)
+
+    guidance <- switch(indicator_type,
+      "percent" = HTML("<div class='alert alert-info' style='padding: 8px; font-size: 12px;'>
+                        <strong>Percentage:</strong> Enter as decimal (0.0 to 1.0). Example: 85% = 0.85</div>"),
+      "rate" = HTML("<div class='alert alert-info' style='padding: 8px; font-size: 12px;'>
+                     <strong>Rate:</strong> Enter the rate value directly (e.g., deaths per 1,000)</div>"),
+      "population_estimate" = HTML("<div class='alert alert-info' style='padding: 8px; font-size: 12px;'>
+                                    <strong>Population:</strong> Enter as thousands (e.g., 1500 for 1.5 million)</div>"),
+      HTML("<div class='alert alert-secondary' style='padding: 8px; font-size: 12px;'>
+            Enter value as appropriate for this indicator</div>")
+    )
+
+    guidance
+  })
+
+  # Entry preview
+  output$manual_entry_preview <- renderPrint({
+    if(is.null(input$manual_country) || input$manual_country == "" ||
+       is.null(input$manual_indicator) || input$manual_indicator == "") {
+      cat("Fill in the form to see preview...")
+      return()
+    }
+
+    # Get country codes
+    iso2 <- countrycode::countrycode(input$manual_country, "country.name", "iso2c", warn = FALSE)
+    iso3 <- countrycode::countrycode(input$manual_country, "country.name", "iso3c", warn = FALSE)
+
+    cat("=== Entry Preview ===\n\n")
+    cat("admin_area_1:", input$manual_country, "\n")
+    cat("admin_area_2:", input$manual_region, "\n")
+    cat("year:", input$manual_year, "\n")
+    cat("indicator_id:", input$manual_indicator, "\n")
+    cat("indicator_common_id:", input$manual_indicator, "\n")
+    cat("indicator_type:", get_indicator_type(input$manual_indicator), "\n")
+    cat("survey_value:", input$manual_value, "\n")
+    cat("source:", input$manual_source, "\n")
+    cat("source_detail:", input$manual_source_detail, "\n")
+    cat("survey_type:", input$manual_survey_type, "\n")
+    cat("country_name:", input$manual_country, "\n")
+    cat("iso2_code:", iso2, "\n")
+    cat("iso3_code:", iso3, "\n")
+  })
+
+  # Add entry to staging
+  observeEvent(input$add_manual_entry, {
+    # Validate required fields
+    if(is.null(input$manual_country) || input$manual_country == "") {
+      showNotification("Please select a country", type = "error")
+      return()
+    }
+    if(is.null(input$manual_indicator) || input$manual_indicator == "") {
+      showNotification("Please select an indicator", type = "error")
+      return()
+    }
+    if(is.na(input$manual_value)) {
+      showNotification("Please enter a value", type = "error")
+      return()
+    }
+
+    # Validate percentage values
+    indicator_type <- get_indicator_type(input$manual_indicator)
+    if(indicator_type == "percent" && (input$manual_value < 0 || input$manual_value > 1)) {
+      showNotification("Percentage values must be between 0 and 1 (e.g., 0.85 for 85%)",
+                      type = "error", duration = 5)
+      return()
+    }
+
+    # Get country codes
+    iso2 <- countrycode::countrycode(input$manual_country, "country.name", "iso2c", warn = FALSE)
+    iso3 <- countrycode::countrycode(input$manual_country, "country.name", "iso3c", warn = FALSE)
+
+    # Create new entry
+    new_entry <- data.frame(
+      admin_area_1 = input$manual_country,
+      admin_area_2 = input$manual_region,
+      year = as.integer(input$manual_year),
+      indicator_id = input$manual_indicator,
+      indicator_common_id = input$manual_indicator,
+      indicator_type = indicator_type,
+      survey_value = as.numeric(input$manual_value),
+      source = input$manual_source,
+      source_detail = input$manual_source_detail,
+      survey_type = input$manual_survey_type,
+      country_name = input$manual_country,
+      iso2_code = ifelse(is.na(iso2), "", iso2),
+      iso3_code = ifelse(is.na(iso3), "", iso3),
+      stringsAsFactors = FALSE
+    )
+
+    # Check for duplicate in staging
+    if(!is.null(values$staged_manual_entries) && nrow(values$staged_manual_entries) > 0) {
+      duplicate_check <- values$staged_manual_entries %>%
+        filter(admin_area_1 == new_entry$admin_area_1,
+               admin_area_2 == new_entry$admin_area_2,
+               year == new_entry$year,
+               indicator_common_id == new_entry$indicator_common_id)
+
+      if(nrow(duplicate_check) > 0) {
+        showNotification("This entry already exists in staging", type = "warning")
+        return()
+      }
+    }
+
+    # Add to staging
+    if(is.null(values$staged_manual_entries) || nrow(values$staged_manual_entries) == 0) {
+      values$staged_manual_entries <- new_entry
+    } else {
+      values$staged_manual_entries <- bind_rows(values$staged_manual_entries, new_entry)
+    }
+
+    showNotification("Entry added to staging", type = "message")
+
+    output$manual_entry_status <- renderUI({
+      div(class = "alert alert-success", style = "padding: 8px;",
+          icon("check"),
+          paste(" Entry added. Total staged:", nrow(values$staged_manual_entries)))
+    })
+  })
+
+  # Staged entries table
+  output$staged_entries_table <- DT::renderDataTable({
+    if(is.null(values$staged_manual_entries) || nrow(values$staged_manual_entries) == 0) {
+      return(data.frame(Message = "No staged entries yet"))
+    }
+
+    values$staged_manual_entries %>%
+      select(admin_area_1, admin_area_2, year, indicator_common_id, survey_value, source)
+  }, options = list(pageLength = 5, scrollX = TRUE, dom = 'tip'),
+     selection = "multiple",
+     rownames = FALSE)
+
+  # Staged entries summary
+  output$staged_entries_summary <- renderUI({
+    n <- if(!is.null(values$staged_manual_entries)) nrow(values$staged_manual_entries) else 0
+    div(class = "alert alert-info", style = "padding: 8px;",
+        strong("Total staged entries: "), n)
+  })
+
+  # Remove staged entry
+  observeEvent(input$remove_staged_entry, {
+    selected_rows <- input$staged_entries_table_rows_selected
+
+    if(is.null(selected_rows) || length(selected_rows) == 0) {
+      showNotification("Please select entries to remove", type = "warning")
+      return()
+    }
+
+    values$staged_manual_entries <- values$staged_manual_entries[-selected_rows, ]
+    showNotification(paste("Removed", length(selected_rows), "entry(ies)"), type = "message")
+  })
+
+  # Commit staged entries to cleaned_data
+  observeEvent(input$commit_staged_entries, {
+    if(is.null(values$staged_manual_entries) || nrow(values$staged_manual_entries) == 0) {
+      showNotification("No staged entries to commit", type = "warning")
+      return()
+    }
+
+    n_added <- nrow(values$staged_manual_entries)
+
+    # Add all staged entries to cleaned_data
+    if(is.null(values$cleaned_data) || nrow(values$cleaned_data) == 0) {
+      values$cleaned_data <- values$staged_manual_entries
+    } else {
+      values$cleaned_data <- bind_rows(values$cleaned_data, values$staged_manual_entries)
+    }
+
+    # Clear staging
+    values$staged_manual_entries <- data.frame()
+
+    showNotification(paste("Committed", n_added, "entries to cleaned_data"), type = "message")
+
+    output$manual_entry_status <- renderUI({
+      div(class = "alert alert-success", style = "padding: 8px;",
+          icon("check"),
+          paste(" Committed", n_added, "entries! Total cleaned_data:", nrow(values$cleaned_data)))
+    })
+  })
+
+  # Clear manual entry form
+  observeEvent(input$clear_manual_form, {
+    updateSelectInput(session, "manual_country", selected = "")
+    updateSelectInput(session, "manual_region", selected = "NATIONAL")
+    updateNumericInput(session, "manual_year", value = as.integer(format(Sys.Date(), "%Y")))
+    updateSelectInput(session, "manual_indicator", selected = "")
+    updateNumericInput(session, "manual_value", value = NA)
+    updateSelectInput(session, "manual_source", selected = "Other")
+    updateTextInput(session, "manual_source_detail", value = "")
+    updateSelectInput(session, "manual_survey_type", selected = "household")
+
+    output$manual_entry_status <- renderUI({ NULL })
   })
 }
 

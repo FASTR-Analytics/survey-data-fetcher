@@ -6,6 +6,8 @@ A Shiny application for fetching, cleaning, and integrating health survey data f
 
 - **Multi-Source Data Fetching**: Connect to DHS, UNICEF (MICS/WUENIC), and UN World Population Prospects APIs
 - **Data Cleaning & Standardization**: Automatically clean and standardize data for FASTR compatibility
+- **Manual Data Entry**: Enter survey values manually with enforced standard indicator codes
+- **Data Review**: Compare fetched data against existing database with visual overlays
 - **GitHub Integration**: Pull the latest database, validate new data, and push updates directly to GitHub
 - **Collaborative Workflow**: Multiple users can contribute to the unified survey database
 
@@ -43,11 +45,12 @@ flowchart TD
 
 ## Data Flow
 
-1. **Fetch** - Select data source, indicators, and countries
+1. **Fetch** - Select data source, indicators, and countries (or use Manual Entry)
 2. **Clean** - Apply FASTR standardization to harmonize names and formats
-3. **Validate** - Check admin area names against existing database
-4. **Deduplicate** - Identify records that already exist
-5. **Push** - Append new records to GitHub repository
+3. **Review** - Compare fetched data against existing database visually
+4. **Validate** - Check admin area names against existing database
+5. **Deduplicate** - Identify records that already exist, choose to keep or replace
+6. **Push** - Append new records to GitHub repository
 
 ## Output Databases
 
