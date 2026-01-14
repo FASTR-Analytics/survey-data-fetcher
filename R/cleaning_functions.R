@@ -104,7 +104,7 @@ get_indicator_mapping <- function() {
       "polio1", "polio2", "polio3",
       "iptp1", "iptp2", "iptp3",
       "imr", "nmr", "stillbirth",
-      "womenrepage", "crude_birth_rate", "total_fertility_rate",
+      "womenrepage", "crudebr", "total_fertility_rate",
       "fp",
       "micronutrient", "deworming", "vitamina", "ors_zinc"
     ),
@@ -135,7 +135,7 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
   )
 
   # Define rate indicators
-  rate_indicators <- c("imr", "nmr", "crude_birth_rate", "total_fertility_rate")
+  rate_indicators <- c("imr", "nmr", "crudebr", "total_fertility_rate")
 
   # Define number indicators
   number_indicators <- c("stillbirth")
