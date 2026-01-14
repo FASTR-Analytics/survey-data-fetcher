@@ -1087,7 +1087,7 @@ get_country_name_mappings <- function(use_dhis2 = TRUE) {
     "Côte d'Ivoire" = "Cote d Ivoire",
     "SierraLeone" = "Sierra Leone",
     "Cameroon" = "Ministere de la Sante Publique",
-    "DRC" = "République Démocratique du Congo",
+    "DRC" = "Democratic Republic of the Congo",
     "Senegal" = "Sénégal"
   )
 }
@@ -1210,8 +1210,8 @@ get_province_name_mappings <- function() {
       "North-West" = "Nord-Ouest"
     ),
 
-    # DRC provinces (after country name is fixed to "République Démocratique du Congo")
-    "République Démocratique du Congo" = c(
+    # DRC provinces (after country name is fixed to "Democratic Republic of the Congo")
+    "Democratic Republic of the Congo" = c(
       "Kinshasa" = "kn Kinshasa Province",
       "Bas-Congo" = "kc Kongo Central Province",
       "Equateur (>= 2015)" = "eq Equateur Province",
