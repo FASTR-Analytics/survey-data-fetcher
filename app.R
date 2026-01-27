@@ -59,6 +59,7 @@ ui <- dashboardPage(
       create_results_tab(),
       create_processing_tab(),
       create_manual_entry_tab(),
+      create_database_explorer_tab(),
       create_data_review_tab(),
       create_integration_tab(),
       create_help_tab()
@@ -1568,6 +1569,243 @@ output$country_selector <- renderUI({
       showNotification(result$message, type = "error")
     }
   })
+
+  # ========================================
+  # DATABASE EXPLORER TAB - SERVER LOGIC
+  # ========================================
+
+  # Reactive value to store the full explorer database
+  explorer_db <- reactiveVal(NULL)
+  explorer_filtered <- reactiveVal(NULL)
+
+  # Load database for explorer (no cleaned data requirement)
+  observeEvent(input$explorer_load_db, {
+    showNotification("Loading database from GitHub...", type = "message", duration = 3)
+
+    tryCatch({
+      # Load both databases
+      survey_db <- load_survey_database(use_github = TRUE)
+      pop_db <- load_population_database(use_github = TRUE)
+
+      # Combine them
+      if(!is.null(survey_db) && nrow(survey_db) > 0) {
+        combined <- survey_db
+        if(!is.null(pop_db) && nrow(pop_db) > 0) {
+          # Add pop_db rows that aren't already in survey_db
+          combined <- bind_rows(combined, pop_db)
+        }
+        explorer_db(combined)
+
+        # Update ISO3 dropdown
+        iso3_codes <- sort(unique(combined$iso3_code[!is.na(combined$iso3_code)]))
+        updateSelectInput(session, "explorer_iso3",
+                         choices = c("Select a country" = "", iso3_codes),
+                         selected = "")
+
+        showNotification(
+          paste("Loaded", nrow(combined), "records from", length(iso3_codes), "countries"),
+          type = "message", duration = 5)
+      } else {
+        showNotification("Could not load database - check connection", type = "warning")
+      }
+    }, error = function(e) {
+      showNotification(paste("Error loading database:", e$message), type = "error")
+    })
+  })
+
+  # Database status output
+  output$explorer_db_status <- renderUI({
+    db <- explorer_db()
+    if(is.null(db) || nrow(db) == 0) {
+      div(class = "alert alert-info", style = "margin: 0;",
+          icon("info-circle"),
+          " Click 'Load Database' to fetch data from GitHub")
+    } else {
+      n_countries <- length(unique(db$iso3_code))
+      n_indicators <- length(unique(db$indicator_common_id))
+      div(class = "alert alert-success", style = "margin: 0;",
+          icon("check-circle"),
+          paste(" Database loaded:", nrow(db), "records |",
+                n_countries, "countries |",
+                n_indicators, "indicators"))
+    }
+  })
+
+  # Update indicator dropdown when country changes
+  observeEvent(input$explorer_iso3, {
+    req(input$explorer_iso3, input$explorer_iso3 != "")
+    db <- explorer_db()
+    req(db)
+
+    # Filter to selected country
+    country_data <- db %>% filter(iso3_code == input$explorer_iso3)
+
+    # Get unique indicators
+    indicators <- sort(unique(country_data$indicator_common_id[!is.na(country_data$indicator_common_id)]))
+    updateSelectInput(session, "explorer_indicator",
+                     choices = c("All indicators" = "", indicators),
+                     selected = "")
+
+    # Get unique regions
+    regions <- sort(unique(country_data$admin_area_1[!is.na(country_data$admin_area_1)]))
+    updateSelectInput(session, "explorer_region",
+                     choices = c("All regions" = "", regions),
+                     selected = NULL)
+
+    # Get unique sources
+    sources <- sort(unique(country_data$source[!is.na(country_data$source)]))
+    updateSelectInput(session, "explorer_source",
+                     choices = c("All sources" = "", sources),
+                     selected = NULL)
+  })
+
+  # Apply filters and update table
+  observeEvent(input$explorer_apply_filter, {
+    db <- explorer_db()
+    req(db)
+    req(input$explorer_iso3, input$explorer_iso3 != "")
+
+    # Start with country filter
+    filtered <- db %>% filter(iso3_code == input$explorer_iso3)
+
+    # Apply indicator filter if selected
+    if(!is.null(input$explorer_indicator) && input$explorer_indicator != "") {
+      filtered <- filtered %>% filter(indicator_common_id == input$explorer_indicator)
+    }
+
+    # Apply region filter if selected
+    if(!is.null(input$explorer_region) && length(input$explorer_region) > 0 && input$explorer_region[1] != "") {
+      filtered <- filtered %>% filter(admin_area_1 %in% input$explorer_region)
+    }
+
+    # Apply source filter if selected
+    if(!is.null(input$explorer_source) && length(input$explorer_source) > 0 && input$explorer_source[1] != "") {
+      filtered <- filtered %>% filter(source %in% input$explorer_source)
+    }
+
+    # Sort by year descending
+    filtered <- filtered %>% arrange(desc(year), admin_area_1)
+
+    explorer_filtered(filtered)
+  })
+
+  # Summary output
+  output$explorer_summary <- renderUI({
+    filtered <- explorer_filtered()
+    if(is.null(filtered) || nrow(filtered) == 0) {
+      div(class = "alert alert-secondary",
+          icon("filter"),
+          " Select a country and click 'Apply Filters' to view data")
+    } else {
+      n_records <- nrow(filtered)
+      n_regions <- length(unique(filtered$admin_area_1))
+      n_indicators <- length(unique(filtered$indicator_common_id))
+      years <- range(filtered$year, na.rm = TRUE)
+
+      div(class = "alert alert-info",
+          icon("chart-bar"),
+          paste(" Showing", n_records, "records |",
+                n_regions, "regions |",
+                n_indicators, "indicators |",
+                "Years:", years[1], "-", years[2]))
+    }
+  })
+
+  # Data table output
+  output$explorer_table <- DT::renderDataTable({
+    filtered <- explorer_filtered()
+    req(filtered, nrow(filtered) > 0)
+
+    # Select and reorder columns for display
+    display_cols <- c("country_name", "admin_area_1", "admin_area_2",
+                     "indicator_common_id", "year", "value", "source")
+    available_cols <- intersect(display_cols, names(filtered))
+
+    filtered %>%
+      select(all_of(available_cols)) %>%
+      DT::datatable(
+        options = list(
+          pageLength = 15,
+          scrollX = TRUE,
+          order = list(list(4, 'desc'))  # Sort by year descending
+        ),
+        rownames = FALSE
+      )
+  })
+
+  # Time series plot
+  output$explorer_plot <- renderPlotly({
+    filtered <- explorer_filtered()
+    req(filtered, nrow(filtered) > 0)
+
+    # Group by region and year
+    plot_data <- filtered %>%
+      filter(!is.na(value), !is.na(year)) %>%
+      arrange(year)
+
+    if(nrow(plot_data) == 0) {
+      return(plotly_empty() %>% layout(title = "No data to plot"))
+    }
+
+    # Create color palette for regions
+    regions <- unique(plot_data$admin_area_1)
+    base_colors <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+                     "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf")
+    colors <- rep(base_colors, length.out = length(regions))
+
+    p <- plot_ly()
+
+    for(i in seq_along(regions)) {
+      region_data <- plot_data %>% filter(admin_area_1 == regions[i])
+      p <- p %>% add_trace(
+        data = region_data,
+        x = ~year,
+        y = ~value,
+        type = 'scatter',
+        mode = 'lines+markers',
+        name = regions[i],
+        line = list(color = colors[i]),
+        marker = list(color = colors[i], size = 8),
+        hovertemplate = paste(
+          "<b>%{text}</b><br>",
+          "Year: %{x}<br>",
+          "Value: %{y:.1f}<br>",
+          "<extra></extra>"
+        ),
+        text = region_data$admin_area_1
+      )
+    }
+
+    # Get indicator name for title
+    indicator <- unique(plot_data$indicator_common_id)[1]
+
+    p %>% layout(
+      title = list(text = paste("Time Series:", indicator), x = 0),
+      xaxis = list(title = "Year", dtick = 1),
+      yaxis = list(title = "Value"),
+      legend = list(orientation = "h", y = -0.2),
+      hovermode = "closest"
+    )
+  })
+
+  # Download handler
+  output$explorer_download <- downloadHandler(
+    filename = function() {
+      iso3 <- input$explorer_iso3
+      indicator <- if(!is.null(input$explorer_indicator) && input$explorer_indicator != "") {
+        paste0("_", input$explorer_indicator)
+      } else {
+        ""
+      }
+      paste0("database_", iso3, indicator, "_", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      filtered <- explorer_filtered()
+      if(!is.null(filtered) && nrow(filtered) > 0) {
+        write.csv(filtered, file, row.names = FALSE)
+      }
+    }
+  )
 
   # ========================================
   # DATA REVIEW TAB - SERVER LOGIC

@@ -475,8 +475,9 @@ create_app_sidebar <- function() {
       menuItem("Results", tabName = "results", icon = icon("chart-line")),
       menuItem("Clean & Process", tabName = "processing", icon = icon("magic")),
       menuItem("Manual Entry", tabName = "manual_entry", icon = icon("keyboard")),
+      menuItem("Database Explorer", tabName = "db_explorer", icon = icon("database")),
       menuItem("Data Review", tabName = "data_review", icon = icon("search")),
-      menuItem("Database Integration", tabName = "integration", icon = icon("database")),
+      menuItem("Database Integration", tabName = "integration", icon = icon("cloud-upload-alt")),
       menuItem("Help & Info", tabName = "help", icon = icon("question-circle"))
     )
   )
@@ -678,6 +679,96 @@ create_integration_tab <- function() {
                   )
                 )
               )
+            )
+          )
+  )
+}
+
+# ========================================
+# DATABASE EXPLORER TAB
+# ========================================
+
+create_database_explorer_tab <- function() {
+  tabItem(tabName = "db_explorer",
+          fluidRow(
+            box(
+              title = "Database Explorer", status = "primary", solidHeader = TRUE, width = 12,
+              div(class = "alert alert-info",
+                  icon("database"),
+                  " Browse the GitHub database directly. Filter by country and indicator to see what data is available.")
+            )
+          ),
+
+          # Load Database Section
+          fluidRow(
+            box(
+              title = "Load Database", status = "warning", solidHeader = TRUE, width = 12,
+              fluidRow(
+                column(3,
+                       actionButton("explorer_load_db", "Load Database from GitHub",
+                                   class = "btn-warning btn-lg",
+                                   icon = icon("cloud-download-alt"))
+                ),
+                column(9,
+                       uiOutput("explorer_db_status")
+                )
+              )
+            )
+          ),
+
+          fluidRow(
+            # Filters
+            box(
+              title = "Filters", status = "info", solidHeader = TRUE, width = 4,
+
+              selectInput("explorer_iso3", "Country (ISO3):",
+                         choices = c("Loading..." = ""),
+                         selected = NULL),
+
+              conditionalPanel(
+                condition = "input.explorer_iso3 != '' && input.explorer_iso3 != null",
+                selectInput("explorer_indicator", "Indicator:",
+                           choices = c("All indicators" = ""),
+                           selected = NULL,
+                           multiple = FALSE),
+
+                selectInput("explorer_region", "Region:",
+                           choices = c("All regions" = ""),
+                           selected = NULL,
+                           multiple = TRUE),
+
+                selectInput("explorer_source", "Source:",
+                           choices = c("All sources" = ""),
+                           selected = NULL,
+                           multiple = TRUE)
+              ),
+
+              hr(),
+              actionButton("explorer_apply_filter", "Apply Filters",
+                          class = "btn-primary btn-block",
+                          icon = icon("filter")),
+              br(),
+              downloadButton("explorer_download", "Download Filtered Data",
+                            class = "btn-success btn-block")
+            ),
+
+            # Results
+            box(
+              title = "Database Contents", status = "success", solidHeader = TRUE, width = 8,
+
+              uiOutput("explorer_summary"),
+
+              hr(),
+
+              withSpinner(DT::dataTableOutput("explorer_table"), type = 6)
+            )
+          ),
+
+          # Time series plot
+          fluidRow(
+            box(
+              title = "Time Series View", status = "info", solidHeader = TRUE, width = 12, collapsible = TRUE,
+              withSpinner(plotlyOutput("explorer_plot", height = "350px"), type = 6)
             )
           )
   )
