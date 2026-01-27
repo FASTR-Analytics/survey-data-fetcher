@@ -1718,7 +1718,7 @@ output$country_selector <- renderUI({
 
     # Select and reorder columns for display
     display_cols <- c("country_name", "admin_area_1", "admin_area_2",
-                     "indicator_common_id", "year", "value", "source")
+                     "indicator_common_id", "year", "survey_value", "source")
     available_cols <- intersect(display_cols, names(filtered))
 
     filtered %>%
@@ -1752,9 +1752,9 @@ output$country_selector <- renderUI({
     # Prepare plot data with error handling
     tryCatch({
       plot_data <- filtered %>%
-        select(admin_area_1, year, value, indicator_common_id) %>%
+        select(admin_area_1, year, survey_value, indicator_common_id) %>%
         mutate(
-          value = suppressWarnings(as.numeric(as.character(value))),
+          value = suppressWarnings(as.numeric(as.character(survey_value))),
           year = suppressWarnings(as.numeric(as.character(year))),
           region = as.character(admin_area_1)
         ) %>%
