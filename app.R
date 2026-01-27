@@ -1738,8 +1738,13 @@ output$country_selector <- renderUI({
     filtered <- explorer_filtered()
     req(filtered, nrow(filtered) > 0)
 
-    # Group by region and year
+    # Prepare plot data - ensure numeric values
     plot_data <- filtered %>%
+      mutate(
+        value = as.numeric(value),
+        year = as.numeric(year),
+        region_label = as.character(admin_area_1)
+      ) %>%
       filter(!is.na(value), !is.na(year)) %>%
       arrange(year)
 
@@ -1748,36 +1753,35 @@ output$country_selector <- renderUI({
     }
 
     # Create color palette for regions
-    regions <- unique(plot_data$admin_area_1)
+    regions <- unique(plot_data$region_label)
     base_colors <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
                      "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf")
     colors <- rep(base_colors, length.out = length(regions))
 
+    # Get indicator name for title
+    indicator <- unique(plot_data$indicator_common_id)[1]
+
+    # Build plot
     p <- plot_ly()
 
     for(i in seq_along(regions)) {
-      region_data <- plot_data %>% filter(admin_area_1 == regions[i])
+      region_data <- plot_data %>% filter(region_label == regions[i])
       p <- p %>% add_trace(
-        data = region_data,
-        x = ~year,
-        y = ~value,
+        x = region_data$year,
+        y = region_data$value,
         type = 'scatter',
         mode = 'lines+markers',
         name = regions[i],
         line = list(color = colors[i]),
         marker = list(color = colors[i], size = 8),
-        hovertemplate = paste(
-          "<b>%{text}</b><br>",
-          "Year: %{x}<br>",
-          "Value: %{y:.1f}<br>",
-          "<extra></extra>"
-        ),
-        text = region_data$admin_area_1
+        hoverinfo = 'text',
+        text = paste0(
+          "<b>", region_data$region_label, "</b><br>",
+          "Year: ", region_data$year, "<br>",
+          "Value: ", round(region_data$value, 1)
+        )
       )
     }
-
-    # Get indicator name for title
-    indicator <- unique(plot_data$indicator_common_id)[1]
 
     p %>% layout(
       title = list(text = paste("Time Series:", indicator), x = 0),
