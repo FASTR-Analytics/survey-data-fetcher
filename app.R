@@ -1716,21 +1716,21 @@ output$country_selector <- renderUI({
     filtered <- explorer_filtered()
     req(filtered, nrow(filtered) > 0)
 
-    # Select and reorder columns for display
-    display_cols <- c("country_name", "admin_area_1", "admin_area_2",
-                     "indicator_common_id", "year", "survey_value", "source")
-    available_cols <- intersect(display_cols, names(filtered))
+    # Prepare display data - rename survey_value to value for cleaner display
+    display_data <- filtered %>%
+      mutate(value = survey_value) %>%
+      select(country_name, admin_area_1, admin_area_2,
+             indicator_common_id, year, value, source)
 
-    filtered %>%
-      select(all_of(available_cols)) %>%
-      DT::datatable(
-        options = list(
-          pageLength = 15,
-          scrollX = TRUE,
-          order = list(list(4, 'desc'))  # Sort by year descending
-        ),
-        rownames = FALSE
-      )
+    DT::datatable(
+      display_data,
+      options = list(
+        pageLength = 15,
+        scrollX = TRUE,
+        order = list(list(4, 'desc'))  # Sort by year descending
+      ),
+      rownames = FALSE
+    )
   })
 
   # Time series plot
@@ -1751,10 +1751,18 @@ output$country_selector <- renderUI({
 
     # Prepare plot data with error handling
     tryCatch({
+      # Handle both survey_value and value column names
+      if("survey_value" %in% names(filtered)) {
+        filtered$plot_value <- filtered$survey_value
+      } else if("value" %in% names(filtered)) {
+        filtered$plot_value <- filtered$value
+      } else {
+        return(plot_ly() %>% layout(title = "No value column found in data"))
+      }
+
       plot_data <- filtered %>%
-        select(admin_area_1, year, survey_value, indicator_common_id) %>%
         mutate(
-          value = suppressWarnings(as.numeric(as.character(survey_value))),
+          value = suppressWarnings(as.numeric(as.character(plot_value))),
           year = suppressWarnings(as.numeric(as.character(year))),
           region = as.character(admin_area_1)
         ) %>%
