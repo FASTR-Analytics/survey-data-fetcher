@@ -1596,10 +1596,10 @@ output$country_selector <- renderUI({
         }
         explorer_db(combined)
 
-        # Update ISO3 dropdown
-        iso3_codes <- sort(unique(combined$iso3_code[!is.na(combined$iso3_code)]))
-        updateSelectInput(session, "explorer_iso3",
-                         choices = c("Select a country" = "", iso3_codes),
+        # Update country dropdown - show names, sorted alphabetically
+        country_names <- sort(unique(combined$country_name[!is.na(combined$country_name) & combined$country_name != ""]))
+        updateSelectInput(session, "explorer_country",
+                         choices = c("Select a country" = "", country_names),
                          selected = "")
 
         showNotification(
@@ -1632,13 +1632,13 @@ output$country_selector <- renderUI({
   })
 
   # Update indicator dropdown when country changes
-  observeEvent(input$explorer_iso3, {
-    req(input$explorer_iso3, input$explorer_iso3 != "")
+  observeEvent(input$explorer_country, {
+    req(input$explorer_country, input$explorer_country != "")
     db <- explorer_db()
     req(db)
 
     # Filter to selected country
-    country_data <- db %>% filter(iso3_code == input$explorer_iso3)
+    country_data <- db %>% filter(country_name == input$explorer_country)
 
     # Get unique indicators
     indicators <- sort(unique(country_data$indicator_common_id[!is.na(country_data$indicator_common_id)]))
@@ -1663,10 +1663,10 @@ output$country_selector <- renderUI({
   observeEvent(input$explorer_apply_filter, {
     db <- explorer_db()
     req(db)
-    req(input$explorer_iso3, input$explorer_iso3 != "")
+    req(input$explorer_country, input$explorer_country != "")
 
     # Start with country filter
-    filtered <- db %>% filter(iso3_code == input$explorer_iso3)
+    filtered <- db %>% filter(country_name == input$explorer_country)
 
     # Apply indicator filter if selected
     if(!is.null(input$explorer_indicator) && input$explorer_indicator != "") {
@@ -1795,13 +1795,14 @@ output$country_selector <- renderUI({
   # Download handler
   output$explorer_download <- downloadHandler(
     filename = function() {
-      iso3 <- input$explorer_iso3
+      # Sanitize country name for filename
+      country <- gsub("[^a-zA-Z0-9]", "_", input$explorer_country)
       indicator <- if(!is.null(input$explorer_indicator) && input$explorer_indicator != "") {
         paste0("_", input$explorer_indicator)
       } else {
         ""
       }
-      paste0("database_", iso3, indicator, "_", Sys.Date(), ".csv")
+      paste0("database_", country, indicator, "_", Sys.Date(), ".csv")
     },
     content = function(file) {
       filtered <- explorer_filtered()

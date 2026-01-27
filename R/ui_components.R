@@ -721,12 +721,12 @@ create_database_explorer_tab <- function() {
             box(
               title = "Filters", status = "info", solidHeader = TRUE, width = 4,
 
-              selectInput("explorer_iso3", "Country (ISO3):",
-                         choices = c("Loading..." = ""),
+              selectInput("explorer_country", "Country:",
+                         choices = c("Load database first..." = ""),
                          selected = NULL),
 
               conditionalPanel(
-                condition = "input.explorer_iso3 != '' && input.explorer_iso3 != null",
+                condition = "input.explorer_country != '' && input.explorer_country != null",
                 selectInput("explorer_indicator", "Indicator:",
                            choices = c("All indicators" = ""),
                            selected = NULL,
