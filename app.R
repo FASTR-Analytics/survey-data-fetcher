@@ -1736,60 +1736,63 @@ output$country_selector <- renderUI({
   # Time series plot
   output$explorer_plot <- renderPlotly({
     filtered <- explorer_filtered()
-    req(filtered, nrow(filtered) > 0)
 
-    # Prepare plot data - ensure numeric values
-    plot_data <- filtered %>%
-      mutate(
-        value = as.numeric(value),
-        year = as.numeric(year),
-        region_label = as.character(admin_area_1)
-      ) %>%
-      filter(!is.na(value), !is.na(year)) %>%
-      arrange(year)
-
-    if(nrow(plot_data) == 0) {
-      return(plotly_empty() %>% layout(title = "No data to plot"))
-    }
-
-    # Create color palette for regions
-    regions <- unique(plot_data$region_label)
-    base_colors <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-                     "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf")
-    colors <- rep(base_colors, length.out = length(regions))
-
-    # Get indicator name for title
-    indicator <- unique(plot_data$indicator_common_id)[1]
-
-    # Build plot
-    p <- plot_ly()
-
-    for(i in seq_along(regions)) {
-      region_data <- plot_data %>% filter(region_label == regions[i])
-      p <- p %>% add_trace(
-        x = region_data$year,
-        y = region_data$value,
-        type = 'scatter',
-        mode = 'lines+markers',
-        name = regions[i],
-        line = list(color = colors[i]),
-        marker = list(color = colors[i], size = 8),
-        hoverinfo = 'text',
-        text = paste0(
-          "<b>", region_data$region_label, "</b><br>",
-          "Year: ", region_data$year, "<br>",
-          "Value: ", round(region_data$value, 1)
-        )
+    # Return empty plot if no data
+    if(is.null(filtered) || nrow(filtered) == 0) {
+      return(
+        plot_ly() %>%
+          layout(
+            title = "Select a country and apply filters to view data",
+            xaxis = list(visible = FALSE),
+            yaxis = list(visible = FALSE)
+          )
       )
     }
 
-    p %>% layout(
-      title = list(text = paste("Time Series:", indicator), x = 0),
-      xaxis = list(title = "Year", dtick = 1),
-      yaxis = list(title = "Value"),
-      legend = list(orientation = "h", y = -0.2),
-      hovermode = "closest"
-    )
+    # Prepare plot data with error handling
+    tryCatch({
+      plot_data <- filtered %>%
+        select(admin_area_1, year, value, indicator_common_id) %>%
+        mutate(
+          value = suppressWarnings(as.numeric(as.character(value))),
+          year = suppressWarnings(as.numeric(as.character(year))),
+          region = as.character(admin_area_1)
+        ) %>%
+        filter(!is.na(value), !is.na(year)) %>%
+        arrange(region, year)
+
+      if(nrow(plot_data) == 0) {
+        return(
+          plot_ly() %>%
+            layout(title = "No numeric data available to plot")
+        )
+      }
+
+      # Get indicator for title
+      indicator <- as.character(plot_data$indicator_common_id[1])
+
+      # Simple scatter plot with lines
+      plot_ly(
+        data = plot_data,
+        x = ~year,
+        y = ~value,
+        color = ~region,
+        type = 'scatter',
+        mode = 'lines+markers',
+        marker = list(size = 8),
+        colors = "Set2"
+      ) %>%
+        layout(
+          title = paste("Time Series:", indicator),
+          xaxis = list(title = "Year", dtick = 1),
+          yaxis = list(title = "Value"),
+          legend = list(orientation = "h", y = -0.15),
+          hovermode = "x unified"
+        )
+    }, error = function(e) {
+      plot_ly() %>%
+        layout(title = paste("Plot error:", e$message))
+    })
   })
 
   # Download handler
