@@ -1603,7 +1603,7 @@ output$country_selector <- renderUI({
                          selected = "")
 
         showNotification(
-          paste("Loaded", nrow(combined), "records from", length(iso3_codes), "countries"),
+          paste("Loaded", nrow(combined), "records from", length(country_names), "countries"),
           type = "message", duration = 5)
       } else {
         showNotification("Could not load database - check connection", type = "warning")
