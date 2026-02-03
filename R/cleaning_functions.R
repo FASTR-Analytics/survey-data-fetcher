@@ -9,6 +9,50 @@
 # ========================================
 
 # ========================================
+# ETHIOPIAN CALENDAR CONVERSION
+# ========================================
+# Ethiopia uses its own calendar which is ~7-8 years behind Gregorian.
+# Ethiopian New Year falls on Sept 11 (Gregorian).
+# For annual data, we use a 7-year offset as approximation.
+#
+# DHS data for Ethiopia already comes in Ethiopian calendar years.
+# UNWPP and MICS data come in Gregorian and need conversion.
+
+#' Convert Gregorian year to Ethiopian calendar year
+#' @param gregorian_year Integer Gregorian year
+#' @return Integer Ethiopian calendar year
+gregorian_to_ethiopian <- function(gregorian_year) {
+
+  # Ethiopian calendar is approximately 7-8 years behind Gregorian
+
+# Using 7 as the standard offset (Sept-Dec dates would be 7, Jan-Aug would be 8)
+  # For annual data without specific dates, 7 is a reasonable approximation
+  return(as.integer(gregorian_year) - 7L)
+}
+
+#' Apply Ethiopian calendar conversion to data frame
+#' Only converts for Ethiopia (iso3_code == "ETH")
+#' @param df Data frame with year and iso3_code columns
+#' @return Data frame with years converted for Ethiopia
+apply_ethiopian_calendar_conversion <- function(df) {
+  if(nrow(df) == 0) return(df)
+  if(!"iso3_code" %in% names(df) || !"year" %in% names(df)) return(df)
+
+  # Count records being converted
+  eth_records <- sum(df$iso3_code == "ETH", na.rm = TRUE)
+
+if(eth_records > 0) {
+    df <- df %>%
+      mutate(
+        year = ifelse(iso3_code == "ETH", gregorian_to_ethiopian(year), year)
+      )
+    message("Ethiopian calendar conversion: Converted ", eth_records, " records from Gregorian to Ethiopian calendar (year - 7)")
+  }
+
+  return(df)
+}
+
+# ========================================
 # INDICATOR MAPPING
 # ========================================
 
@@ -385,6 +429,9 @@ clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standar
   # Apply FASTR name standardization
   cleaned_data <- apply_fastr_name_standardization(cleaned_data, apply_standardization = apply_fastr_standardization)
 
+  # Apply Ethiopian calendar conversion (MICS/UNICEF data is in Gregorian)
+  cleaned_data <- apply_ethiopian_calendar_conversion(cleaned_data)
+
   message("UNICEF data cleaning completed. Final records: ", nrow(cleaned_data))
   return(cleaned_data)
 }
@@ -457,6 +504,9 @@ clean_mics_wuenic_data <- function(df, apply_fastr_standardization = TRUE) {
 
   # Apply FASTR name standardization
   cleaned_data <- apply_fastr_name_standardization(cleaned_data, apply_standardization = apply_fastr_standardization)
+
+  # Apply Ethiopian calendar conversion (WUENIC data is in Gregorian)
+  cleaned_data <- apply_ethiopian_calendar_conversion(cleaned_data)
 
   message("MICS WUENIC data cleaning completed. Final records: ", nrow(cleaned_data))
   return(cleaned_data)
@@ -999,6 +1049,9 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
   
   # Apply FASTR name standardization
   final_cleaned <- apply_fastr_name_standardization(final_cleaned, apply_standardization = apply_fastr_standardization)
+
+  # Apply Ethiopian calendar conversion (UNWPP data is in Gregorian)
+  final_cleaned <- apply_ethiopian_calendar_conversion(final_cleaned)
 
   message("UNWPP cleaning completed. Final records: ", nrow(final_cleaned))
   message("Available indicators: ", paste(unique(final_cleaned$indicator_common_id), collapse = ", "))
