@@ -1113,9 +1113,9 @@ output$country_selector <- renderUI({
         p(style = "margin-bottom: 8px;", strong("Years:"), row$years, " | ", strong("Records:"), row$n_records),
         selectInput(
           inputId = input_id,
-          label = "Select correct name or IGNORE:",
+          label = "Select: ADD AS NEW, correct name, or IGNORE:",
           choices = row$db_options[[1]],
-          selected = "IGNORE",
+          selected = "ADD AS NEW",
           width = "100%"
         )
       )

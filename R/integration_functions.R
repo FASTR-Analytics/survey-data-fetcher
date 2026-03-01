@@ -304,7 +304,7 @@ validate_admin_areas <- function(new_data, survey_db) {
       dplyr::filter(!admin_area_2 %in% existing_areas)
 
     if (nrow(unmatched) > 0) {
-      unmatched$db_options <- list(c("IGNORE", sort(existing_areas)))
+      unmatched$db_options <- list(c("ADD AS NEW", "IGNORE", sort(existing_areas)))
       unmatched_list[[iso_code]] <- unmatched
     }
   }
@@ -331,9 +331,10 @@ apply_name_corrections <- function(data, corrections) {
 
   corrected_data <- data
 
-  # Separate IGNORE vs actual corrections
+  # Separate IGNORE vs ADD AS NEW vs actual corrections
   to_ignore <- corrections %>% dplyr::filter(selected_name == "IGNORE")
-  to_correct <- corrections %>% dplyr::filter(selected_name != "IGNORE")
+  to_add_new <- corrections %>% dplyr::filter(selected_name == "ADD AS NEW")
+  to_correct <- corrections %>% dplyr::filter(!selected_name %in% c("IGNORE", "ADD AS NEW"))
 
   # Apply corrections
   if (nrow(to_correct) > 0) {
