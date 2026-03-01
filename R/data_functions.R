@@ -4,6 +4,9 @@
 # File: R/data_functions.R
 # Purpose: All functions for fetching data from DHS, MICS, and UNWPP APIs
 
+# Session-level cache to avoid repeated slow API calls
+.metadata_cache <- new.env(parent = emptyenv())
+
 # ========================================
 # DATASET LABELING HELPER
 # ========================================
@@ -108,9 +111,10 @@ get_dhs_favorites <- function() {
 # ========================================
 
 fetch_dhs_countries <- function() {
-  tryCatch({
+  if (exists("dhs_countries", envir = .metadata_cache)) return(get("dhs_countries", envir = .metadata_cache))
+  result <- tryCatch({
     url <- "https://api.dhsprogram.com/rest/dhs/countries?f=json"
-    response <- GET(url)
+    response <- GET(url, timeout(15))
     data_parsed <- fromJSON(content(response, as = "text"), flatten = TRUE)
     countries_df <- data_parsed$Data
     
@@ -137,6 +141,8 @@ fetch_dhs_countries <- function() {
     message("Error fetching DHS countries: ", e$message)
     return(get_fallback_countries("DHS"))
   })
+  if (nrow(result) > 0) assign("dhs_countries", result, envir = .metadata_cache)
+  result
 }
 
 get_fallback_countries <- function(source) {
@@ -162,7 +168,8 @@ get_fallback_countries <- function(source) {
 }
 
 fetch_unicef_countries <- function() {
-  tryCatch({
+  if (exists("unicef_countries", envir = .metadata_cache)) return(get("unicef_countries", envir = .metadata_cache))
+  result <- tryCatch({
     # Try to fetch from UNICEF SDMX API first
     ref_area_codelist <- readSDMX("https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/codelist/UNICEF/CL_UNICEF_REF_AREA/1.0")
     countries_df <- as.data.frame(ref_area_codelist)
@@ -209,6 +216,8 @@ fetch_unicef_countries <- function() {
 
     return(unicef_countries)
   })
+  if (is.data.frame(result) && nrow(result) > 0) assign("unicef_countries", result, envir = .metadata_cache)
+  result
 }
 
 fetch_mics_wuenic_countries <- function() {
@@ -265,9 +274,10 @@ fetch_unwpp_countries <- function() {
 # ========================================
 
 fetch_dhs_metadata <- function() {
-  tryCatch({
+  if (exists("dhs_metadata", envir = .metadata_cache)) return(get("dhs_metadata", envir = .metadata_cache))
+  result <- tryCatch({
     url <- "https://api.dhsprogram.com/rest/dhs/indicators?f=json"
-    response <- GET(url)
+    response <- GET(url, timeout(15))
     data_parsed <- fromJSON(content(response, as = "text"), flatten = TRUE)
     indicators_df <- data_parsed$Data
 
@@ -292,10 +302,13 @@ fetch_dhs_metadata <- function() {
     message("Error fetching DHS metadata: ", e$message)
     return(data.frame())
   })
+  if (nrow(result) > 0) assign("dhs_metadata", result, envir = .metadata_cache)
+  result
 }
 
 fetch_unicef_metadata <- function() {
-  tryCatch({
+  if (exists("unicef_metadata", envir = .metadata_cache)) return(get("unicef_metadata", envir = .metadata_cache))
+  result <- tryCatch({
     # Fetch indicator metadata from UNICEF SDMX API
     codelist_url <- "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/codelist/UNICEF/CL_UNICEF_INDICATOR"
     codelist <- readSDMX(codelist_url)
@@ -376,13 +389,16 @@ fetch_unicef_metadata <- function() {
       stringsAsFactors = FALSE
     )
   })
+  if (is.data.frame(result) && nrow(result) > 0) assign("unicef_metadata", result, envir = .metadata_cache)
+  result
 }
 
 fetch_unwpp_metadata <- function() {
-  tryCatch({
+  if (exists("unwpp_metadata", envir = .metadata_cache)) return(get("unwpp_metadata", envir = .metadata_cache))
+  result <- tryCatch({
     # Fetch indicator metadata from UN Population Division API
     api_url <- "https://population.un.org/dataportalapi/api/v1/indicators/"
-    response <- GET(api_url)
+    response <- GET(api_url, timeout(15))
     data_parsed <- fromJSON(content(response, as = "text"), flatten = TRUE)
     indicators_df <- data_parsed$data
 
@@ -455,6 +471,8 @@ fetch_unwpp_metadata <- function() {
       stringsAsFactors = FALSE
     )
   })
+  if (is.data.frame(result) && nrow(result) > 0) assign("unwpp_metadata", result, envir = .metadata_cache)
+  result
 }
 
 # ========================================
