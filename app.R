@@ -95,19 +95,8 @@ server <- function(input, output, session) {
     country_regions = list()               # Regions per country from backbone
   )
 
-  # Initialize indicator lookup table for better plotting labels
-  observe({
-    if(!exists("indicator_lookup", envir = .GlobalEnv)) {
-      tryCatch({
-        message("Building indicator lookup table...")
-        lookup <- get_all_indicators_lookup()
-        assign("indicator_lookup", lookup, envir = .GlobalEnv)
-        message("Indicator lookup table created with ", nrow(lookup), " indicators")
-      }, error = function(e) {
-        message("Could not build indicator lookup table: ", e$message)
-      })
-    }
-  })
+  # Initialize indicator lookup table lazily (built on first use, not at startup)
+  # This avoids slow API calls blocking app startup on HF Spaces
   
   observe({
     req(input$data_source)  # Add this line to require the input exists
