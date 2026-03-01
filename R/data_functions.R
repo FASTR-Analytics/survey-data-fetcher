@@ -114,7 +114,7 @@ fetch_dhs_countries <- function() {
   if (exists("dhs_countries", envir = .metadata_cache)) return(get("dhs_countries", envir = .metadata_cache))
   result <- tryCatch({
     url <- "https://api.dhsprogram.com/rest/dhs/countries?f=json"
-    response <- GET(url, timeout(15))
+    response <- GET(url, timeout(60))
     data_parsed <- fromJSON(content(response, as = "text"), flatten = TRUE)
     countries_df <- data_parsed$Data
     
@@ -277,7 +277,7 @@ fetch_dhs_metadata <- function() {
   if (exists("dhs_metadata", envir = .metadata_cache)) return(get("dhs_metadata", envir = .metadata_cache))
   result <- tryCatch({
     url <- "https://api.dhsprogram.com/rest/dhs/indicators?f=json"
-    response <- GET(url, timeout(15))
+    response <- GET(url, timeout(60))
     data_parsed <- fromJSON(content(response, as = "text"), flatten = TRUE)
     indicators_df <- data_parsed$Data
 
@@ -299,8 +299,35 @@ fetch_dhs_metadata <- function() {
              `Measurement Type`, Denominator, is_favorite, source) %>%
       arrange(desc(is_favorite), Category, Subcategory, display_label)
   }, error = function(e) {
-    message("Error fetching DHS metadata: ", e$message)
-    return(data.frame())
+    message("Error fetching DHS metadata: ", e$message, ". Using fallback indicators.")
+    # Fallback with core favorite indicators so the app remains usable
+    fav <- get_dhs_favorites()
+    ids <- unlist(fav, use.names = FALSE)
+    labels <- c(
+      "ANC1 from skilled provider", "ANC4+", "Institutional delivery", "PNC mother", "Iron supplementation ANC",
+      "IPTp1", "IPTp2+", "IPTp3+",
+      "mCPR",
+      "Stillbirth rate", "IMR", "NMR", "Women reproductive age", "Crude birth rate", "Total fertility rate",
+      "Fully immunized", "BCG", "Penta1", "Penta2", "Penta3", "Measles1", "Measles2",
+      "Polio1", "Polio2", "Polio3",
+      "U5MR"
+    )
+    cats <- rep(names(fav), lengths(fav))
+    data.frame(
+      IndicatorId = ids,
+      display_label = paste0(labels, " (", ids, ")"),
+      Label = labels,
+      full_definition = labels,
+      Category = cats,
+      Subcategory = "",
+      `Demographic Group` = "",
+      `Measurement Type` = "percent",
+      Denominator = "",
+      is_favorite = TRUE,
+      source = "DHS",
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
   })
   if (nrow(result) > 0) assign("dhs_metadata", result, envir = .metadata_cache)
   result
@@ -398,7 +425,7 @@ fetch_unwpp_metadata <- function() {
   result <- tryCatch({
     # Fetch indicator metadata from UN Population Division API
     api_url <- "https://population.un.org/dataportalapi/api/v1/indicators/"
-    response <- GET(api_url, timeout(15))
+    response <- GET(api_url, timeout(60))
     data_parsed <- fromJSON(content(response, as = "text"), flatten = TRUE)
     indicators_df <- data_parsed$data
 
