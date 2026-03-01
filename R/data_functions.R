@@ -560,17 +560,24 @@ fetch_dhs_data <- function(indicators, countries, breakdown = "national") {
   all_data <- list()
   
   # Get fresh country mapping from API to ensure we have DHS codes
-  tryCatch({
+  country_mapping <- tryCatch({
     url <- "https://api.dhsprogram.com/rest/dhs/countries?f=json"
-    response <- GET(url)
+    response <- GET(url, timeout(60))
     data_parsed <- fromJSON(content(response, as = "text"), flatten = TRUE)
-    country_mapping <- data_parsed$Data %>%
+    data_parsed$Data %>%
       select(ISO2_CountryCode, DHS_CountryCode) %>%
       filter(!is.na(ISO2_CountryCode), !is.na(DHS_CountryCode))
-    
   }, error = function(e) {
-    message("Error getting country mapping: ", e$message)
-    return(data.frame())
+    message("Error getting country mapping: ", e$message, ". Using cached countries.")
+    # Fallback: use cached countries if available, otherwise build from input
+    if (exists("dhs_countries", envir = .metadata_cache)) {
+      cached <- get("dhs_countries", envir = .metadata_cache)
+      if ("dhs_code" %in% names(cached)) {
+        return(data.frame(ISO2_CountryCode = cached$country_code, DHS_CountryCode = cached$dhs_code))
+      }
+    }
+    # Last resort: assume ISO2 codes work as DHS codes
+    data.frame(ISO2_CountryCode = countries, DHS_CountryCode = countries)
   })
   
   # Convert selected ISO2 codes to DHS codes
