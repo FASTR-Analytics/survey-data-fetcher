@@ -303,30 +303,22 @@ fetch_dhs_metadata <- function() {
     # Fallback with core favorite indicators so the app remains usable
     fav <- get_dhs_favorites()
     ids <- unlist(fav, use.names = FALSE)
-    labels <- c(
-      "ANC1 from skilled provider", "ANC4+", "Institutional delivery", "PNC mother", "Iron supplementation ANC",
-      "IPTp1", "IPTp2+", "IPTp3+",
-      "mCPR",
-      "Stillbirth rate", "IMR", "NMR", "Women reproductive age", "Crude birth rate", "Total fertility rate",
-      "Fully immunized", "BCG", "Penta1", "Penta2", "Penta3", "Measles1", "Measles2",
-      "Polio1", "Polio2", "Polio3",
-      "U5MR"
-    )
     cats <- rep(names(fav), lengths(fav))
+    # Use IDs as labels (readable enough for fallback)
+    labels <- gsub("_", " ", sub("^[A-Z]+_[A-Z]+_[A-Z]_", "", ids))
     data.frame(
       IndicatorId = ids,
-      display_label = paste0(labels, " (", ids, ")"),
+      display_label = paste0(ids),
       Label = labels,
       full_definition = labels,
       Category = cats,
       Subcategory = "",
-      `Demographic Group` = "",
-      `Measurement Type` = "percent",
+      `Demographic.Group` = "",
+      `Measurement.Type` = "percent",
       Denominator = "",
       is_favorite = TRUE,
       source = "DHS",
-      stringsAsFactors = FALSE,
-      check.names = FALSE
+      stringsAsFactors = FALSE
     )
   })
   if (nrow(result) > 0) assign("dhs_metadata", result, envir = .metadata_cache)
