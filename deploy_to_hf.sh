@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Paths
-DEV_DIR="/Users/claireboulange/Desktop/modules/survey_data_fetcher"
+DEV_DIR="/Users/claireboulange/Desktop/modules/06_survey_data_fetcher"
 DEPLOY_DIR="/Users/claireboulange/Desktop/hf-clean"
 
 # Check if commit message provided

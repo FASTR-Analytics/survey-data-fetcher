@@ -1141,7 +1141,8 @@ get_country_name_mappings <- function(use_dhis2 = TRUE) {
     "SierraLeone" = "Sierra Leone",
     "Cameroon" = "Ministere de la Sante Publique",
     "DRC" = "République Démocratique du Congo",
-    "Senegal" = "Sénégal"
+    "Senegal" = "Sénégal",
+    "Central African Republic" = "République centrafricaine"
   )
 }
 
@@ -1311,6 +1312,16 @@ get_province_name_mappings <- function() {
       "Tonkolili" = "Tonkolili District",
       "Western Rural" = "Western Area Rural District",
       "Western Urban" = "Western Area Urban District"
+    ),
+
+    # Central African Republic regions (after country name is fixed to "République centrafricaine")
+    "République centrafricaine" = c(
+      "RS I"   = "RS 1",
+      "RS II"  = "RS 2",
+      "RS III" = "RS 3",
+      "RS IV"  = "RS 4",
+      "RS V"   = "RS 5",
+      "Bangui" = "RS 7"
     )
   )
 }
