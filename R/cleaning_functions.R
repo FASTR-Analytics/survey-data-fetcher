@@ -422,8 +422,12 @@ clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standar
         TRUE ~ "other"
       ),
       country_name = admin_area_1,
-      iso2_code = admin_area_1_iso,  # MICS REF_AREA provides ISO2 codes
-      iso3_code = countrycode(admin_area_1_iso, "iso2c", "iso3c", warn = FALSE)
+      iso2_code = admin_area_1_iso,  # MICS REF_AREA provides ISO2 or ISO3 codes
+      iso3_code = ifelse(
+        nchar(admin_area_1_iso) == 3,
+        admin_area_1_iso,  # Already ISO3 (e.g., "CAF")
+        countrycode(admin_area_1_iso, "iso2c", "iso3c", warn = FALSE)
+      )
     )
 
   # Apply FASTR name standardization
