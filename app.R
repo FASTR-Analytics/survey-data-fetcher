@@ -574,7 +574,7 @@ output$country_selector <- renderUI({
         data <- fetch_dhs_data(input$indicators, input$countries, input$breakdown)
       } else if(input$data_source == "unicef") {
         session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching UNICEF SDMX data..."))
-        data <- fetch_unicef_data(input$indicators, input$countries)
+        data <- fetch_unicef_data(input$indicators, input$countries, input$start_year, input$end_year)
       } else if(input$data_source == "unwpp") {
         session$sendCustomMessage("updateProgress", list(percent = 50, text = "Fetching UNWPP data..."))
         data <- fetch_unwpp_data(input$indicators, input$countries, input$start_year, input$end_year)

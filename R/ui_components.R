@@ -314,7 +314,7 @@ create_country_selection_box <- function() {
       div(
         h5("Date Range:"),
         fluidRow(
-          column(6, numericInput("start_year", "Start Year:", value = 2020, min = 2000, max = 2025)),
+          column(6, numericInput("start_year", "Start Year:", value = 1990, min = 1990, max = 2025)),
           column(6, numericInput("end_year", "End Year:", value = 2025, min = 2000, max = 2030))
         )
       )

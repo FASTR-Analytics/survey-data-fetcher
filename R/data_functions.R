@@ -637,7 +637,7 @@ fetch_dhs_data <- function(indicators, countries, breakdown = "national") {
   }
 }
 
-fetch_unicef_data <- function(indicators, countries = NULL) {
+fetch_unicef_data <- function(indicators, countries = NULL, start_year = 1990, end_year = 2025) {
   tryCatch({
     # Build country filter for SDMX URL
     if(!is.null(countries) && length(countries) > 0) {
@@ -662,7 +662,7 @@ fetch_unicef_data <- function(indicators, countries = NULL) {
       "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,GLOBAL_DATAFLOW,1.0/",
       country_filter, ".",
       paste(indicators, collapse = "+"),
-      "..?startPeriod=2010&endPeriod=2024"
+      "..?startPeriod=", start_year, "&endPeriod=", end_year
     )
 
     message("Fetching UNICEF data from: ", unicef_url)
