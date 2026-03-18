@@ -2234,7 +2234,9 @@ output$country_selector <- renderUI({
       "senegal" = "Sénégal",
       "sierraleone" = "Sierra Leone",
       "somalia" = "Somalia",
-      "somaliland" = "Somaliland"
+      "somaliland" = "Somaliland",
+      "mauritania" = "Mauritanie",
+      "chad" = "TCHAD"
     )
 
     countries <- c()

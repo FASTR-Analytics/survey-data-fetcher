@@ -1146,7 +1146,9 @@ get_country_name_mappings <- function(use_dhis2 = TRUE) {
     "Cameroon" = "Ministere de la Sante Publique",
     "DRC" = "République Démocratique du Congo",
     "Senegal" = "Sénégal",
-    "Central African Republic" = "République centrafricaine"
+    "Central African Republic" = "République centrafricaine",
+    "Mauritania" = "Mauritanie",
+    "Chad" = "TCHAD"
   )
 }
 
@@ -1326,6 +1328,44 @@ get_province_name_mappings <- function() {
       "RS IV"  = "RS 4",
       "RS V"   = "RS 5",
       "Bangui" = "RS 7"
+    ),
+
+    # Mauritania wilayas (after country name is fixed to "Mauritanie")
+    # DHS 2020 has 14 regions; DHIS2 has 15 wilayas
+    # DHS merges Tiris Zemmour + Inchiri into one region
+    "Mauritanie" = c(
+      "Hodh Echargui"             = "Hodh Chargui",
+      "Hodh Gharbi"               = "Hodh El Gharbi",
+      "Nouakchott Nord"           = "Nouakchott  Nord",
+      "Tiris Zemour et Inchiri"   = "Tiris Zemmour"
+    ),
+
+    # Chad provinces (after country name is fixed to "TCHAD")
+    # DHS 2014 has 20 province entries (with ".." prefix stripped by cleaning)
+    # plus zone aggregations (Zone 2-8) which are left unmapped
+    # DHS merges Borkou/Tibesti and Ennedi Est/Ennedi Ouest
+    "TCHAD" = c(
+      "Barh El Gazal"             = "BAHR EL GHAZAL",
+      "Batha"                     = "BATHA",
+      "Borkou/Tibesti"            = "BORKOU",
+      "Chari Baguirmi"            = "CHARI BAGUIRMI",
+      "Ennedi Est/Ennedi Ouest"   = "ENNEDI EST",
+      "Guéra"                     = "GUERA",
+      "Hadjer-Lamis"              = "HADJER LAMIS",
+      "Kanem"                     = "KANEM",
+      "Lac"                       = "LAC",
+      "Logone Occidental"         = "LOGONE OCCIDENTAL",
+      "Logone Oriental"           = "LOGONE ORIENTAL",
+      "Mandoul"                   = "MANDOUL",
+      "Mayo Kebbi Est"            = "MAYO KEBBI EST",
+      "Mayo Kebbi Ouest"          = "MAYO KEBBI OUEST",
+      "Moyen Chari"               = "MOYEN CHARI",
+      "Ouaddaï"                   = "OUADDAÏ",
+      "Salamat"                   = "SALAMAT",
+      "Sila"                      = "SILA",
+      "Tandjilé"                  = "TANDJILÉ",
+      "Wadi Fira"                 = "WADI FIRA",
+      "N'Djaména 2014"            = "NDJAMENA"
     )
   )
 }
