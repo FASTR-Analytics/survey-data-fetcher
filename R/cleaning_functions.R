@@ -1365,7 +1365,8 @@ get_province_name_mappings <- function() {
       "Sila"                      = "SILA",
       "Tandjilé"                  = "TANDJILÉ",
       "Wadi Fira"                 = "WADI FIRA",
-      "N'Djaména 2014"            = "NDJAMENA"
+      "N'Djaména 2014"            = "NDJAMENA",
+      "N'Djaména 1997"            = "NDJAMENA"
     )
   )
 }
