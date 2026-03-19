@@ -1365,7 +1365,8 @@ get_province_name_mappings <- function() {
       "Sila"                      = "SILA",
       "Tandjilé"                  = "TANDJILÉ",
       "Wadi Fira"                 = "WADI FIRA",
-      "N'Djaména"                 = "NDJAMENA"
+      "N'Djaména 1997"            = "NDJAMENA",
+      "N'Djaména 2014"            = "NDJAMENA"
     )
   )
 }
@@ -1392,12 +1393,6 @@ apply_fastr_name_standardization <- function(data, apply_standardization = TRUE)
       message("FASTR Standardization: Fixed ", country_changes, " country name variants: ",
               paste(changed_countries, collapse = ", "))
     }
-  }
-
-  # STEP 1.5: Strip trailing year suffixes from admin_area_2
-  # DHS appends survey years to city names (e.g., "N'Djaména 2014", "N'Djaména 1997")
-  if("admin_area_2" %in% names(data)) {
-    data$admin_area_2 <- sub(" \\d{4}$", "", data$admin_area_2)
   }
 
   # STEP 2: Fix province names by country (after country names are corrected)
