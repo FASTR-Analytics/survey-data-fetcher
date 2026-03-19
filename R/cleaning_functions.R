@@ -1365,8 +1365,11 @@ get_province_name_mappings <- function() {
       "Sila"                      = "SILA",
       "Tandjilé"                  = "TANDJILÉ",
       "Wadi Fira"                 = "WADI FIRA",
-      "N'Djaména 1997"            = "NDJAMENA",
       "N'Djaména 2014"            = "NDJAMENA"
+      # N'Djaména 1997 deliberately NOT mapped — it's from an urban/rural
+      # sampling frame (TD1997DHS), not the current provincial structure
+      # Zone 1-8 (TD2004DHS, TD2014DHS) also left unmapped — these are
+      # multi-province aggregations, not individual provinces
     )
   )
 }
