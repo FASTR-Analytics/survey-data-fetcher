@@ -1383,11 +1383,14 @@ apply_fastr_name_standardization <- function(data, apply_standardization = TRUE)
   country_changes <- 0
   province_changes <- 0
 
-  # STEP 1: Fix country names FIRST
+  # STEP 1: Fix country names FIRST (both admin_area_1 and country_name)
   if("admin_area_1" %in% names(data)) {
     country_fixes <- get_country_name_mappings()
     before_countries <- unique(data$admin_area_1)
     data$admin_area_1 <- dplyr::recode(data$admin_area_1, !!!country_fixes)
+    if("country_name" %in% names(data)) {
+      data$country_name <- dplyr::recode(data$country_name, !!!country_fixes)
+    }
     after_countries <- unique(data$admin_area_1)
     country_changes <- length(setdiff(before_countries, after_countries))
 
