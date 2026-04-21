@@ -1374,26 +1374,36 @@ get_province_name_mappings <- function() {
     ),
 
     # Niger regions
-    # DHS 1992/1998 have 6 merged regions; DHS 2006/2012 have 8+2 merged
+    # DHS 1992/1998 have 6 merged regions; DHS 2006/2012 have 8 individual + 6 merged
     # ".." prefix is stripped by clean_dhs_data line 237
-    # Merged regions (Tahoua/Agadez, Zinder/Diffa) map to the first named region
+    # Merged "Tahoua/Agadez" and "Zinder/Diffa" are NOT mapped — in 2006/2012 the
+    # individual regions (Tahoua, Agadez, Zinder, Diffa) exist separately, so mapping
+    # the merged labels would double-count. For 1992/1998 (merged-only), these
+    # unmatched labels are simply dropped — no subnational data for those old surveys.
     "Niger" = c(
-      "Tillabéri"      = "Tillaberi",
-      "Tahoua/Agadez"  = "Tahoua",
-      "Zinder/Diffa"   = "Zinder"
+      "Tillabéri"      = "Tillaberi"
     ),
 
     # Madagascar regions (after country name is fixed to "MADAGASCAR")
-    # DHS 2021 has 23 regions; DHIS2 has 23 regions
-    # 19 exact matches; 4 need mapping (spelling + one merge/split)
-    # DHS merges Vatovavy + Fitovinany into "Vatovavy Fitovinany"
-    # DHS "Antananarivo capital" + "Analamanga excluding capital" both map to Analamanga
+    # DHS 2008/2021 has 22+2 regions; DHIS2 has 23 regions
+    # "Vatovavy Fitovinany" split handled in get_province_split_mappings()
+    # "Antananarivo capital" + "Analamanga excluding capital" both map to Analamanga
     "MADAGASCAR" = c(
       "Anamoroni'i Mania"             = "Amoron I Mania",
       "Vakinankarata"                 = "Vakinankaratra",
-      "Vatovavy Fitovinany"           = "Vatovavy",
       "Analamanga excluding capital"  = "Analamanga",
       "Antananarivo capital"          = "Analamanga"
+    )
+  )
+}
+
+# One-to-many province splits: DHS merged region → multiple DHIS2 regions
+# Each entry: list(from = "DHS name", to = c("DHIS2 name 1", "DHIS2 name 2"))
+# The same survey values are duplicated to each target region
+get_province_split_mappings <- function() {
+  list(
+    "MADAGASCAR" = list(
+      list(from = "Vatovavy Fitovinany", to = c("Vatovavy", "Fitovinany"))
     )
   )
 }
@@ -1465,6 +1475,30 @@ apply_fastr_name_standardization <- function(data, apply_standardization = TRUE)
     }
 
     province_changes <- total_province_changes
+
+    # STEP 2b: Apply one-to-many province splits (duplicate rows)
+    split_mappings <- get_province_split_mappings()
+    for(country in countries_in_data) {
+      if(country %in% names(split_mappings)) {
+        for(split in split_mappings[[country]]) {
+          mask <- data$admin_area_1 == country & data$admin_area_2 == split$from
+          if(any(mask)) {
+            rows_to_split <- data[mask, ]
+            # Replace original rows with first target
+            data$admin_area_2[mask] <- split$to[1]
+            # Duplicate rows for remaining targets
+            for(target in split$to[-1]) {
+              new_rows <- rows_to_split
+              new_rows$admin_area_2 <- target
+              data <- dplyr::bind_rows(data, new_rows)
+            }
+            message("FASTR Standardization: Split '", split$from, "' in ", country,
+                    " → ", paste(split$to, collapse = " + "),
+                    " (", sum(mask), " rows duplicated)")
+          }
+        }
+      }
+    }
   }
 
   if(country_changes > 0 || province_changes > 0) {
