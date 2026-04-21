@@ -1385,14 +1385,14 @@ get_province_name_mappings <- function() {
     ),
 
     # Madagascar regions (after country name is fixed to "MADAGASCAR")
-    # DHS 2008/2021 has 22+2 regions; DHIS2 has 23 regions
+    # DHS 2008/2021 has 3 levels: 6 provinces (no dots), 22 regions (..), 2 sub-regions (....)
+    # Provinces (Antananarivo, Fianarantsoa, etc.) don't match DHIS2 → naturally dropped
+    # Sub-regions ("Analamanga excluding capital", "Antananarivo capital") are NOT mapped
+    #   because "..Analamanga" already covers the full region — mapping them would triple-count
     # "Vatovavy Fitovinany" split handled in get_province_split_mappings()
-    # "Antananarivo capital" + "Analamanga excluding capital" both map to Analamanga
     "MADAGASCAR" = c(
       "Anamoroni'i Mania"             = "Amoron I Mania",
-      "Vakinankarata"                 = "Vakinankaratra",
-      "Analamanga excluding capital"  = "Analamanga",
-      "Antananarivo capital"          = "Analamanga"
+      "Vakinankarata"                 = "Vakinankaratra"
     )
   )
 }
@@ -1503,6 +1503,26 @@ apply_fastr_name_standardization <- function(data, apply_standardization = TRUE)
 
   if(country_changes > 0 || province_changes > 0) {
     message("FASTR Standardization completed: ", country_changes, " countries, ", province_changes, " provinces standardized")
+  }
+
+  # STEP 3: Duplicate detection — warn if same (admin_area_1, admin_area_2, year, indicator_id) appears multiple times
+  if(all(c("admin_area_1", "admin_area_2", "year", "indicator_id") %in% names(data))) {
+    subnational <- data[data$admin_area_2 != "NATIONAL", ]
+    if(nrow(subnational) > 0) {
+      dupes <- subnational %>%
+        dplyr::group_by(admin_area_1, admin_area_2, year, indicator_id) %>%
+        dplyr::filter(dplyr::n() > 1) %>%
+        dplyr::ungroup()
+      if(nrow(dupes) > 0) {
+        dupe_summary <- dupes %>%
+          dplyr::distinct(admin_area_1, admin_area_2, year, indicator_id)
+        warning("FASTR Standardization: ", nrow(dupe_summary),
+                " DUPLICATE entries detected after mapping! Risk of double-counting.\n",
+                "  Examples: ", paste(head(paste0(dupe_summary$admin_area_1, "/",
+                dupe_summary$admin_area_2, "/", dupe_summary$year, "/",
+                dupe_summary$indicator_id), 5), collapse = ", "))
+      }
+    }
   }
 
   return(data)
