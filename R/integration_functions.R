@@ -327,7 +327,38 @@ fuzzy_match_names <- function(new_names, existing_names, threshold = 0.85) {
   return(results)
 }
 
-#' Validate admin area names in new data against existing database
+#' Load DHIS2 backbone admin_area_2 names for a given ISO3 code
+#' @param iso3 ISO3 country code
+#' @return character vector of valid admin_area_2 names, or NULL if no backbone
+get_backbone_areas <- function(iso3) {
+  # Map ISO3 codes to backbone filenames
+  iso3_to_file <- c(
+    "AFG" = "afghanistan", "BGD" = "bangladesh1", "CMR" = "cameroon",
+    "TCD" = "chad", "COD" = "drc", "ETH" = "ethiopia", "GHA" = "ghana",
+    "GIN" = "guinea", "HTI" = "haiti", "KEN" = "kenya", "LBR" = "liberia",
+    "MDG" = "madagascar", "MWI" = "malawi", "MLI" = "mali",
+    "MRT" = "mauritania", "NGA" = "nigeria", "CAF" = "rca",
+    "SEN" = "senegal", "SLE" = "sierraleone", "SOM" = "somalia",
+    "NER" = "niger", "CIV" = "ci", "ZMB" = "zambia"
+  )
+
+  slug <- iso3_to_file[iso3]
+  if (is.na(slug) || is.null(slug)) return(NULL)
+
+  backbone_path <- file.path("assets", paste0(slug, "_backbone.csv"))
+  if (!file.exists(backbone_path)) return(NULL)
+
+  tryCatch({
+    bb <- read.csv(backbone_path, stringsAsFactors = FALSE)
+    if ("admin_area_2" %in% names(bb)) {
+      areas <- unique(bb$admin_area_2[!is.na(bb$admin_area_2)])
+      return(areas)
+    }
+    NULL
+  }, error = function(e) NULL)
+}
+
+#' Validate admin area names in new data against existing database AND DHIS2 backbone
 #' @param new_data data.frame of new survey data
 #' @param survey_db data.frame of existing survey database
 #' @return list with validation results per country
@@ -336,30 +367,22 @@ validate_admin_areas <- function(new_data, survey_db) {
     return(list(all_matched = TRUE, unmatched = NULL))
   }
 
-  if (is.null(survey_db) || nrow(survey_db) == 0) {
-    # No existing database - all areas are "new"
-    return(list(
-      all_matched = FALSE,
-      unmatched = new_data %>%
-        dplyr::select(iso3_code, country_name, admin_area_2) %>%
-        dplyr::distinct() %>%
-        dplyr::mutate(
-          db_options = list(c("IGNORE")),
-          years = "all",
-          n_records = nrow(new_data)
-        )
-    ))
-  }
-
   countries_in_new <- unique(new_data$iso3_code)
   unmatched_list <- list()
 
   for (iso_code in countries_in_new) {
-    # Get existing admin areas for this country
-    existing_areas <- survey_db %>%
-      dplyr::filter(iso3_code == iso_code) %>%
-      dplyr::pull(admin_area_2) %>%
-      unique()
+    # Get existing admin areas for this country from database
+    existing_areas <- character(0)
+    if (!is.null(survey_db) && nrow(survey_db) > 0) {
+      existing_areas <- survey_db %>%
+        dplyr::filter(iso3_code == iso_code) %>%
+        dplyr::pull(admin_area_2) %>%
+        unique()
+    }
+
+    # Also get valid areas from DHIS2 backbone
+    backbone_areas <- get_backbone_areas(iso_code)
+    known_areas <- unique(c(existing_areas, backbone_areas))
 
     # Get admin areas from new data
     new_areas_summary <- new_data %>%
@@ -371,12 +394,13 @@ validate_admin_areas <- function(new_data, survey_db) {
         .groups = "drop"
       )
 
-    # Find which ones are NOT in database
+    # Find which ones are NOT in database OR backbone
     unmatched <- new_areas_summary %>%
-      dplyr::filter(!admin_area_2 %in% existing_areas)
+      dplyr::filter(!admin_area_2 %in% known_areas)
 
     if (nrow(unmatched) > 0) {
-      unmatched$db_options <- list(c("ADD AS NEW", "IGNORE", sort(existing_areas)))
+      dropdown_options <- sort(unique(c(existing_areas, backbone_areas)))
+      unmatched$db_options <- list(c("ADD AS NEW", "IGNORE", dropdown_options))
       unmatched_list[[iso_code]] <- unmatched
     }
   }

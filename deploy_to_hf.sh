@@ -44,14 +44,14 @@ rsync -av --delete \
   --exclude='*.log' \
   --exclude='.DS_Store' \
   --exclude='assets/*.geojson' \
-  --exclude='assets/*.csv' \
+  --exclude='assets/*_hierarchy.csv' \
   --exclude='assets/*.png' \
   --exclude='.Renviron' \
   --exclude='*.pdf' \
-  --exclude='*.csv' \
   --exclude='fix_database_names.R' \
   --exclude='.claude' \
   --exclude='CLAUDE.md' \
+  --filter='- /*.csv' \
   "$DEV_DIR/" "$DEPLOY_DIR/"
 
 echo -e "${GREEN}✓${NC} Files synced"
