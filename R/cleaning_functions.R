@@ -1373,6 +1373,16 @@ get_province_name_mappings <- function() {
       # multi-province aggregations, not individual provinces
     ),
 
+    # Niger regions
+    # DHS 1992/1998 have 6 merged regions; DHS 2006/2012 have 8+2 merged
+    # ".." prefix is stripped by clean_dhs_data line 237
+    # Merged regions (Tahoua/Agadez, Zinder/Diffa) map to the first named region
+    "Niger" = c(
+      "Tillabéri"      = "Tillaberi",
+      "Tahoua/Agadez"  = "Tahoua",
+      "Zinder/Diffa"   = "Zinder"
+    ),
+
     # Madagascar regions (after country name is fixed to "MADAGASCAR")
     # DHS 2021 has 23 regions; DHIS2 has 23 regions
     # 19 exact matches; 4 need mapping (spelling + one merge/split)
