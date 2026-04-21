@@ -1141,14 +1141,15 @@ get_country_name_mappings <- function(use_dhis2 = TRUE) {
     "Nigeria" = "ng Federal Government",
     "Somalia" = "Federal Govt of Somalia",
     "Ethiopia" = "Federal Ministry Of Health",
-    "Côte d'Ivoire" = "Cote d Ivoire",
+    "Cote d'Ivoire" = "Côte d'Ivoire",
     "SierraLeone" = "Sierra Leone",
     "Cameroon" = "Ministere de la Sante Publique",
     "DRC" = "République Démocratique du Congo",
     "Senegal" = "Sénégal",
     "Central African Republic" = "République centrafricaine",
     "Mauritania" = "Mauritanie",
-    "Chad" = "TCHAD"
+    "Chad" = "TCHAD",
+    "Madagascar" = "MADAGASCAR"
   )
 }
 
@@ -1370,6 +1371,19 @@ get_province_name_mappings <- function() {
       # sampling frame (TD1997DHS), not the current provincial structure
       # Zone 1-8 (TD2004DHS, TD2014DHS) also left unmapped — these are
       # multi-province aggregations, not individual provinces
+    ),
+
+    # Madagascar regions (after country name is fixed to "MADAGASCAR")
+    # DHS 2021 has 23 regions; DHIS2 has 23 regions
+    # 19 exact matches; 4 need mapping (spelling + one merge/split)
+    # DHS merges Vatovavy + Fitovinany into "Vatovavy Fitovinany"
+    # DHS "Antananarivo capital" + "Analamanga excluding capital" both map to Analamanga
+    "MADAGASCAR" = c(
+      "Anamoroni'i Mania"             = "Amoron I Mania",
+      "Vakinankarata"                 = "Vakinankaratra",
+      "Vatovavy Fitovinany"           = "Vatovavy",
+      "Analamanga excluding capital"  = "Analamanga",
+      "Antananarivo capital"          = "Analamanga"
     )
   )
 }

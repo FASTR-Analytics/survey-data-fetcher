@@ -57,13 +57,52 @@ pull_database_from_github <- function(url) {
   })
 }
 
-#' Push database to GitHub
+#' Create a feature branch from main on GitHub
+#' @param branch_name Name for the new branch
+#' @param github_token GitHub personal access token
+#' @return list with success status and branch SHA
+create_github_branch <- function(branch_name, github_token) {
+  # Get main branch SHA
+  ref_url <- paste0("https://api.github.com/repos/", GITHUB_OWNER, "/", GITHUB_REPO,
+                    "/git/ref/heads/", GITHUB_BRANCH)
+  ref_response <- httr::GET(ref_url, httr::add_headers(
+    Authorization = paste("Bearer", github_token),
+    Accept = "application/vnd.github.v3+json"
+  ))
+
+  if (httr::status_code(ref_response) != 200) {
+    return(list(success = FALSE, message = "Could not get main branch SHA"))
+  }
+
+  main_sha <- httr::content(ref_response)$object$sha
+
+  # Create new branch
+  create_url <- paste0("https://api.github.com/repos/", GITHUB_OWNER, "/", GITHUB_REPO, "/git/refs")
+  create_response <- httr::POST(create_url,
+    httr::add_headers(
+      Authorization = paste("Bearer", github_token),
+      Accept = "application/vnd.github.v3+json"
+    ),
+    body = list(ref = paste0("refs/heads/", branch_name), sha = main_sha),
+    encode = "json"
+  )
+
+  if (httr::status_code(create_response) %in% c(200, 201)) {
+    return(list(success = TRUE, sha = main_sha))
+  } else {
+    error_content <- httr::content(create_response)
+    return(list(success = FALSE, message = paste("Branch creation failed:", error_content$message)))
+  }
+}
+
+#' Push a file to a specific branch on GitHub
 #' @param data data.frame to push
 #' @param file_path Path in the repo (e.g., "survey_data_unified.csv")
 #' @param commit_message Commit message
 #' @param github_token GitHub personal access token
+#' @param branch Branch to push to
 #' @return list with success status and message
-push_database_to_github <- function(data, file_path, commit_message, github_token) {
+push_database_to_github <- function(data, file_path, commit_message, github_token, branch = GITHUB_BRANCH) {
   if (is.null(github_token) || github_token == "") {
     return(list(success = FALSE, message = "GitHub token not provided"))
   }
@@ -73,9 +112,9 @@ push_database_to_github <- function(data, file_path, commit_message, github_toke
     csv_content <- readr::format_csv(data)
     csv_base64 <- base64enc::base64encode(charToRaw(csv_content))
 
-    # Get current file SHA (required for updates)
+    # Get current file SHA from the target branch
     api_url <- paste0("https://api.github.com/repos/", GITHUB_OWNER, "/", GITHUB_REPO,
-                      "/contents/", file_path, "?ref=", GITHUB_BRANCH)
+                      "/contents/", file_path, "?ref=", branch)
 
     get_response <- httr::GET(
       api_url,
@@ -95,7 +134,7 @@ push_database_to_github <- function(data, file_path, commit_message, github_toke
     body <- list(
       message = commit_message,
       content = csv_base64,
-      branch = GITHUB_BRANCH
+      branch = branch
     )
 
     if (!is.null(sha)) {
@@ -103,8 +142,10 @@ push_database_to_github <- function(data, file_path, commit_message, github_toke
     }
 
     # Push to GitHub
+    put_url <- paste0("https://api.github.com/repos/", GITHUB_OWNER, "/", GITHUB_REPO,
+                      "/contents/", file_path)
     put_response <- httr::PUT(
-      api_url,
+      put_url,
       httr::add_headers(
         Authorization = paste("Bearer", github_token),
         Accept = "application/vnd.github.v3+json"
@@ -114,7 +155,7 @@ push_database_to_github <- function(data, file_path, commit_message, github_toke
     )
 
     if (httr::status_code(put_response) %in% c(200, 201)) {
-      return(list(success = TRUE, message = paste("Successfully pushed", file_path, "to GitHub")))
+      return(list(success = TRUE, message = paste("Successfully pushed", file_path, "to branch", branch)))
     } else {
       error_content <- httr::content(put_response)
       return(list(success = FALSE, message = paste("GitHub push failed:", error_content$message)))
@@ -123,6 +164,37 @@ push_database_to_github <- function(data, file_path, commit_message, github_toke
   }, error = function(e) {
     return(list(success = FALSE, message = paste("Error pushing to GitHub:", e$message)))
   })
+}
+
+#' Create a pull request on GitHub
+#' @param branch_name Source branch
+#' @param title PR title
+#' @param body PR body/description
+#' @param github_token GitHub personal access token
+#' @return list with success, message, and pr_url
+create_github_pr <- function(branch_name, title, body, github_token) {
+  pr_url <- paste0("https://api.github.com/repos/", GITHUB_OWNER, "/", GITHUB_REPO, "/pulls")
+  pr_response <- httr::POST(pr_url,
+    httr::add_headers(
+      Authorization = paste("Bearer", github_token),
+      Accept = "application/vnd.github.v3+json"
+    ),
+    body = list(
+      title = title,
+      body = body,
+      head = branch_name,
+      base = GITHUB_BRANCH
+    ),
+    encode = "json"
+  )
+
+  if (httr::status_code(pr_response) %in% c(200, 201)) {
+    pr_info <- httr::content(pr_response)
+    return(list(success = TRUE, message = "PR created", pr_url = pr_info$html_url, pr_number = pr_info$number))
+  } else {
+    error_content <- httr::content(pr_response)
+    return(list(success = FALSE, message = paste("PR creation failed:", error_content$message)))
+  }
 }
 
 # ========================================
@@ -579,7 +651,7 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
       message("Could not write to local files (may be on cloud): ", e$message)
     })
 
-    # Push to GitHub if requested
+    # Push to GitHub via branch + PR (required by branch protection rules)
     github_results <- list(survey = NULL, pop = NULL)
 
     if (push_to_github) {
@@ -593,28 +665,42 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
       # Generate detailed commit message
       commit_msg <- generate_commit_message(records_to_add, commit_notes)
 
-      # Push survey database (if there's new data or updates)
+      # Create a feature branch
+      branch_name <- paste0("data-update-", format(Sys.time(), "%Y%m%d-%H%M%S"))
+      branch_result <- create_github_branch(branch_name, github_token)
+
+      if (!branch_result$success) {
+        return(list(
+          success = FALSE,
+          message = paste("Could not create branch:", branch_result$message),
+          survey_added = nrow(new_survey_data),
+          pop_added = nrow(new_pop_data)
+        ))
+      }
+
+      # Push files to the feature branch
       has_survey_updates <- exists("updates") && nrow(updates) > 0
       if (nrow(new_survey_data) > 0 || has_survey_updates) {
         github_results$survey <- push_database_to_github(
           data = updated_survey_db,
           file_path = "survey_data_unified.csv",
           commit_message = commit_msg,
-          github_token = github_token
+          github_token = github_token,
+          branch = branch_name
         )
       }
 
-      # Push population database
       if (nrow(new_pop_data) > 0) {
         github_results$pop <- push_database_to_github(
           data = updated_pop_db,
           file_path = "population_estimates_only.csv",
           commit_message = commit_msg,
-          github_token = github_token
+          github_token = github_token,
+          branch = branch_name
         )
       }
 
-      # Check for GitHub push errors
+      # Check for push errors
       push_errors <- c()
       if (!is.null(github_results$survey) && !github_results$survey$success) {
         push_errors <- c(push_errors, paste("Survey:", github_results$survey$message))
@@ -631,20 +717,35 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
           pop_added = nrow(new_pop_data)
         ))
       }
+
+      # Create PR from feature branch to main
+      countries <- unique(records_to_add$iso3_code)
+      pr_title <- paste0("Add data: ", paste(countries, collapse = ", "),
+                         " (", nrow(records_to_add), " records)")
+      pr_body <- paste0(commit_msg, "\n\nCreated automatically by survey-data-fetcher app.")
+      pr_result <- create_github_pr(branch_name, pr_title, pr_body, github_token)
+
+      pr_url <- if (pr_result$success) pr_result$pr_url else NULL
+      pr_msg <- if (pr_result$success) {
+        paste0(" PR created: ", pr_result$pr_url)
+      } else {
+        paste0(" Branch '", branch_name, "' pushed but PR creation failed: ", pr_result$message)
+      }
     }
 
     return(list(
       success = TRUE,
-      message = paste("Successfully added", nrow(new_survey_data), "survey records and",
-                     nrow(new_pop_data), "population records.",
-                     if(push_to_github) " Changes pushed to GitHub." else ""),
+      message = paste0("Successfully added ", nrow(new_survey_data), " survey records and ",
+                      nrow(new_pop_data), " population records.",
+                      if(push_to_github) pr_msg else ""),
       survey_added = nrow(new_survey_data),
       pop_added = nrow(new_pop_data),
       survey_total = nrow(updated_survey_db),
       pop_total = nrow(updated_pop_db),
       updated_survey_db = updated_survey_db,
       updated_pop_db = updated_pop_db,
-      pushed_to_github = push_to_github
+      pushed_to_github = push_to_github,
+      pr_url = if(push_to_github && exists("pr_url")) pr_url else NULL
     ))
 
   }, error = function(e) {
