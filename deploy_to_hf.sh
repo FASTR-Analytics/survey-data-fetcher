@@ -46,6 +46,12 @@ rsync -av --delete \
   --exclude='assets/*.geojson' \
   --exclude='assets/*.csv' \
   --exclude='assets/*.png' \
+  --exclude='.Renviron' \
+  --exclude='*.pdf' \
+  --exclude='*.csv' \
+  --exclude='fix_database_names.R' \
+  --exclude='.claude' \
+  --exclude='CLAUDE.md' \
   "$DEV_DIR/" "$DEPLOY_DIR/"
 
 echo -e "${GREEN}✓${NC} Files synced"
