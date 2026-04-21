@@ -675,7 +675,7 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
       message("Could not write to local files (may be on cloud): ", e$message)
     })
 
-    # Push to GitHub via branch + PR (required by branch protection rules)
+    # Push directly to main on GitHub
     github_results <- list(survey = NULL, pop = NULL)
 
     if (push_to_github) {
@@ -689,28 +689,14 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
       # Generate detailed commit message
       commit_msg <- generate_commit_message(records_to_add, commit_notes)
 
-      # Create a feature branch
-      branch_name <- paste0("data-update-", format(Sys.time(), "%Y%m%d-%H%M%S"))
-      branch_result <- create_github_branch(branch_name, github_token)
-
-      if (!branch_result$success) {
-        return(list(
-          success = FALSE,
-          message = paste("Could not create branch:", branch_result$message),
-          survey_added = nrow(new_survey_data),
-          pop_added = nrow(new_pop_data)
-        ))
-      }
-
-      # Push files to the feature branch
+      # Push files directly to main
       has_survey_updates <- exists("updates") && nrow(updates) > 0
       if (nrow(new_survey_data) > 0 || has_survey_updates) {
         github_results$survey <- push_database_to_github(
           data = updated_survey_db,
           file_path = "survey_data_unified.csv",
           commit_message = commit_msg,
-          github_token = github_token,
-          branch = branch_name
+          github_token = github_token
         )
       }
 
@@ -719,8 +705,7 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
           data = updated_pop_db,
           file_path = "population_estimates_only.csv",
           commit_message = commit_msg,
-          github_token = github_token,
-          branch = branch_name
+          github_token = github_token
         )
       }
 
@@ -741,35 +726,20 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
           pop_added = nrow(new_pop_data)
         ))
       }
-
-      # Create PR from feature branch to main
-      countries <- unique(records_to_add$iso3_code)
-      pr_title <- paste0("Add data: ", paste(countries, collapse = ", "),
-                         " (", nrow(records_to_add), " records)")
-      pr_body <- paste0(commit_msg, "\n\nCreated automatically by survey-data-fetcher app.")
-      pr_result <- create_github_pr(branch_name, pr_title, pr_body, github_token)
-
-      pr_url <- if (pr_result$success) pr_result$pr_url else NULL
-      pr_msg <- if (pr_result$success) {
-        paste0(" PR created: ", pr_result$pr_url)
-      } else {
-        paste0(" Branch '", branch_name, "' pushed but PR creation failed: ", pr_result$message)
-      }
     }
 
     return(list(
       success = TRUE,
       message = paste0("Successfully added ", nrow(new_survey_data), " survey records and ",
                       nrow(new_pop_data), " population records.",
-                      if(push_to_github) pr_msg else ""),
+                      if(push_to_github) " Changes pushed to GitHub!" else ""),
       survey_added = nrow(new_survey_data),
       pop_added = nrow(new_pop_data),
       survey_total = nrow(updated_survey_db),
       pop_total = nrow(updated_pop_db),
       updated_survey_db = updated_survey_db,
       updated_pop_db = updated_pop_db,
-      pushed_to_github = push_to_github,
-      pr_url = if(push_to_github && exists("pr_url")) pr_url else NULL
+      pushed_to_github = push_to_github
     ))
 
   }, error = function(e) {

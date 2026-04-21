@@ -1537,11 +1537,7 @@ output$country_selector <- renderUI({
               "Population records added: ", result$pop_added, "<br>",
               "Total survey database: ", result$survey_total, " records<br>",
               "Total population database: ", result$pop_total, " records",
-              if(input$push_to_github && !is.null(result$pr_url))
-                paste0("<br><strong>PR created: <a href='", result$pr_url, "' target='_blank'>", result$pr_url, "</a></strong>")
-              else if(input$push_to_github)
-                "<br><strong>Changes pushed to GitHub!</strong>"
-              else ""
+              if(input$push_to_github) "<br><strong>Changes pushed to GitHub!</strong>" else ""
             ))
         )
       })
