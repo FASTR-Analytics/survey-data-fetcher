@@ -965,15 +965,8 @@ output$country_selector <- renderUI({
     scrollX = TRUE,
     scrollY = "400px",
     pageLength = 10,
-    autoWidth = FALSE,
-    columnDefs = list(
-      list(width = '120px', targets = c(0, 1)),  # admin_area columns
-      list(width = '80px', targets = c(2, 5, 6)), # year, indicator_type, survey_value
-      list(width = '150px', targets = c(3, 4)),  # indicator_id, indicator_common_id
-      list(width = '100px', targets = c(7, 8, 9)), # source, source_detail, survey_type
-      list(width = '120px', targets = c(10, 11, 12)) # country_name, iso2_code, iso3_code
-    ),
-    dom = 'Bfrtip'
+    autoWidth = TRUE,
+    dom = 'frtip'
   ), rownames = FALSE)
   
   output$download_cleaned_csv <- downloadHandler(
