@@ -339,6 +339,7 @@ fetch_unicef_metadata <- function() {
 
     # Define favorite indicators (our current core set)
     favorite_indicators <- c("CME_MRM0", "CME_MRY0T4", "IM_BCG", "IM_DTP1", "IM_DTP3",
+                            "IM_MCV1", "IM_MCV2",
                             "MNCH_ANC1", "MNCH_ANC4", "MNCH_INSTDEL", "MNCH_PNCMOM", "MNCH_ORSZINC")
 
     # Filter for UNICEF-relevant indicators based on common UNICEF survey topics
@@ -383,14 +384,18 @@ fetch_unicef_metadata <- function() {
     # Fallback to hardcoded core indicators if API fails
     data.frame(
       IndicatorId = c("CME_MRM0", "CME_MRY0T4", "IM_BCG", "IM_DTP1", "IM_DTP3",
+                      "IM_MCV1", "IM_MCV2",
                       "MNCH_ANC1", "MNCH_ANC4", "MNCH_INSTDEL", "MNCH_PNCMOM", "MNCH_ORSZINC"),
       display_label = c("Neonatal mortality rate (CME_MRM0)", "Infant mortality rate (CME_MRY0T4)",
                         "BCG vaccination (IM_BCG)", "Penta1 vaccination (IM_DTP1)", "Penta3 vaccination (IM_DTP3)",
+                        "MCV1 vaccination (IM_MCV1)", "MCV2 vaccination (IM_MCV2)",
                         "ANC1 coverage (MNCH_ANC1)", "ANC4+ coverage (MNCH_ANC4)",
                         "Institutional delivery (MNCH_INSTDEL)", "PNC for mother (MNCH_PNCMOM)",
                         "ORS and Zinc treatment (MNCH_ORSZINC)"),
       Label = c("Neonatal mortality rate", "Infant mortality rate", "BCG vaccination coverage",
-                "DTP1 vaccination coverage", "DTP3 vaccination coverage", "ANC1 coverage",
+                "DTP1 vaccination coverage", "DTP3 vaccination coverage",
+                "MCV1 vaccination coverage", "MCV2 vaccination coverage",
+                "ANC1 coverage",
                 "ANC4+ coverage", "Institutional delivery rate", "PNC coverage for mother",
                 "ORS and Zinc treatment"),
       description = c("Neonatal mortality rate (deaths per 1,000 live births)",
@@ -398,10 +403,13 @@ fetch_unicef_metadata <- function() {
                       "BCG vaccination coverage among children 12-23 months",
                       "DTP1 vaccination coverage among children 12-23 months",
                       "DTP3 vaccination coverage among children 12-23 months",
+                      "MCV1 vaccination coverage among children 12-23 months",
+                      "MCV2 vaccination coverage among children 24-35 months",
                       "ANC1 coverage (at least 1 visit)", "ANC4+ coverage (at least 4 visits)",
                       "Institutional delivery rate", "PNC coverage for mother within 2 days",
                       "ORS and Zinc treatment for diarrhea"),
       Category = c("Child Mortality", "Child Mortality", "Immunization", "Immunization", "Immunization",
+                   "Immunization", "Immunization",
                    "Maternal Health", "Maternal Health", "Maternal Health", "Maternal Health", "Child Health"),
       is_favorite = TRUE,
       source = "UNICEF",
