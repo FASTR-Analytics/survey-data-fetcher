@@ -302,7 +302,7 @@ clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standar
 
   # Define percentage indicators (coverage indicators that should be converted to decimals)
   percentage_indicators <- c("anc1", "anc4", "delivery", "pnc1", "bcg", "penta1", "penta3",
-                             "hepb", "hib3", "ors", "ors_zinc", "fp")
+                             "measles1", "measles2", "hepb", "hib3", "ors", "ors_zinc", "fp")
 
   # Define rate indicators (mortality rates that stay as-is)
   rate_indicators <- c("imr", "nmr", "mmr")
@@ -352,6 +352,8 @@ clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standar
         indicator_id == "IM_HIB3" ~ "hib3",          # Hib3
         indicator_id == "IM_DTP1" ~ "penta1",        # DTP1 (Penta1)
         indicator_id == "IM_DTP3" ~ "penta3",        # DTP3 (Penta3)
+        indicator_id == "IM_MCV1" ~ "measles1",      # Measles/MCV1
+        indicator_id == "IM_MCV2" ~ "measles2",      # Measles/MCV2
 
         # Maternal and newborn care
         indicator_id == "MNCH_ANC1" ~ "anc1",        # ANC1

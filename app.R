@@ -376,7 +376,7 @@ output$country_selector <- renderUI({
   })
 
   observeEvent(input$select_unicef_vaccines, {
-    unicef_vaccines <- c("IM_BCG", "IM_DTP1", "IM_DTP3")
+    unicef_vaccines <- c("IM_BCG", "IM_DTP1", "IM_DTP3", "IM_MCV1", "IM_MCV2")
     updatePickerInput(session, "indicators", selected = unicef_vaccines)
   })
 

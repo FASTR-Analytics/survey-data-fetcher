@@ -77,6 +77,8 @@ FAVORITE_UNICEF_LABELS <- list(
   "CME_MRM0" = "nmr",
   "CME_MRY0T4" = "imr",
   "CME_MRY0" = "u5mr",
+  "IM_MCV1" = "measles1",
+  "IM_MCV2" = "measles2",
   "MNCH_ANC4" = "anc4",
   "MNCH_SAB" = "delivery",
   "NT_CF_BF_1HR" = "early_breastfeeding",
