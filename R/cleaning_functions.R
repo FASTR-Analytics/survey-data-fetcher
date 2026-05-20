@@ -274,9 +274,32 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
         admin_area_2 == "Kaolack (2010)" & as.numeric(year) > 2005 ~ "DRS Kaolack",
         admin_area_2 == "Kolda (2010)" & as.numeric(year) > 2005 ~ "DRS Kolda",
         admin_area_2 == "Tambacounda (2010)" & as.numeric(year) > 2005 ~ "DRS Tambacounda",
+        # Kenya legacy provinces (pre-2013 devolution): "Central", "Coast", "Eastern",
+        # "North Eastern", "Nyanza", "Rift Valley", "Western" span multiple counties
+        # and cannot be harmonised to the post-devolution 47-county DHIS2 backbone.
+        # Drop by setting to NA — filtered out a few lines below.
+        # ("Nairobi" is intentionally not in this list: it has stable boundaries and
+        # is mapped to "Nairobi County" by get_province_name_mappings().)
+        admin_area_1 == "Kenya" & admin_area_2 %in% c(
+          "Central", "Coast", "Eastern", "North Eastern",
+          "Nyanza", "Rift Valley", "Western"
+        ) ~ NA_character_,
+        # Malawi: not mapped to admin_area_2 — DHIS2 uses 5 zones (Central East, Central
+        # West, North, South East, South West Zone), a structure that doesn't match
+        # DHS regions or districts. Subnational rows fall through unmapped and get
+        # dropped downstream by name-matching against the backbone. Only the country-
+        # name remap ("Malawi" → "MOH MALAWI Govt") is configured.
         TRUE ~ admin_area_2
       )
-    )
+    ) %>%
+    # Drop rows marked for removal by the case_when above (e.g. Kenya legacy provinces)
+    filter(!is.na(admin_area_2)) %>%
+    # Dedupe on the natural key. DHS returns the same area twice when it appears
+    # at multiple LevelRanks (e.g. Kenya 2014 Nairobi is both LevelRank=1 province
+    # and LevelRank=2 county with identical values). Identical rows after mapping
+    # collapse here.
+    distinct(admin_area_1, admin_area_2, year, indicator_id, source_detail,
+             .keep_all = TRUE)
 
   # Apply FASTR name standardization
   cleaned_data <- apply_fastr_name_standardization(cleaned_data, apply_standardization = apply_fastr_standardization)
@@ -1151,7 +1174,8 @@ get_country_name_mappings <- function(use_dhis2 = TRUE) {
     "Central African Republic" = "République centrafricaine",
     "Mauritania" = "Mauritanie",
     "Chad" = "TCHAD",
-    "Madagascar" = "MADAGASCAR"
+    "Madagascar" = "MADAGASCAR",
+    "Malawi" = "MOH MALAWI Govt"
   )
 }
 
@@ -1238,6 +1262,62 @@ get_province_name_mappings <- function() {
     "Liberia" = c(
       "River Cess" = "Rivercess",
       "Montserrado incl. Monrovia" = "Montserrado"
+    ),
+
+    # Kenya counties (after country name stays as "Kenya")
+    # DHS 2014/2022 returns 46 counties with ".." prefix (stripped by clean_dhs_data
+    # line 237) plus Nairobi without prefix, and 7 legacy provinces (Central, Coast,
+    # Eastern, North Eastern, Nyanza, Rift Valley, Western) which span multiple
+    # counties and are dropped further below. Nairobi has stable boundaries pre-
+    # and post-devolution so the same mapping works for all survey years.
+    "Kenya" = c(
+      "Baringo"         = "Baringo County",
+      "Bomet"           = "Bomet County",
+      "Bungoma"         = "Bungoma County",
+      "Busia"           = "Busia County",
+      "Elgeyo Marakwet" = "Elgeyo Marakwet County",
+      "Embu"            = "Embu County",
+      "Garissa"         = "Garissa County",
+      "Homa Bay"        = "Homa Bay County",
+      "Isiolo"          = "Isiolo County",
+      "Kajiado"         = "Kajiado County",
+      "Kakamega"        = "Kakamega County",
+      "Kericho"         = "Kericho County",
+      "Kiambu"          = "Kiambu County",
+      "Kilifi"          = "Kilifi County",
+      "Kirinyaga"       = "Kirinyaga County",
+      "Kisii"           = "Kisii County",
+      "Kisumu"          = "Kisumu County",
+      "Kitui"           = "Kitui County",
+      "Kwale"           = "Kwale County",
+      "Laikipia"        = "Laikipia County",
+      "Lamu"            = "Lamu County",
+      "Machakos"        = "Machakos County",
+      "Makueni"         = "Makueni County",
+      "Mandera"         = "Mandera County",
+      "Marsabit"        = "Marsabit County",
+      "Meru"            = "Meru County",
+      "Migori"          = "Migori County",
+      "Mombasa"         = "Mombasa County",
+      "Murang'a"        = "Muranga County",
+      "Nairobi"         = "Nairobi County",
+      "Nakuru"          = "Nakuru County",
+      "Nandi"           = "Nandi County",
+      "Narok"           = "Narok County",
+      "Nyamira"         = "Nyamira County",
+      "Nyandarua"       = "Nyandarua County",
+      "Nyeri"           = "Nyeri County",
+      "Samburu"         = "Samburu County",
+      "Siaya"           = "Siaya County",
+      "Taita Taveta"    = "Taita Taveta County",
+      "Tana River"      = "Tana River County",
+      "Tharaka-Nithi"   = "Tharaka Nithi County",
+      "Trans-Nzoia"     = "Trans Nzoia County",
+      "Turkana"         = "Turkana County",
+      "Uasin Gishu"     = "Uasin Gishu County",
+      "Vihiga"          = "Vihiga County",
+      "Wajir"           = "Wajir County",
+      "West Pokot"      = "West Pokot County"
     ),
 
     # Afghanistan provinces
