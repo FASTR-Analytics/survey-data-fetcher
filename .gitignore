@@ -17,3 +17,15 @@ assets/*.geojson
 
 # Regenerable fetch intermediates
 *.rds
+
+# Country fetch/integrate helper scripts (local-only, regenerable)
+moz_*.R
+uganda_*.R
+*_dhs_fetch.R
+*_dhs_integrate.R
+*_unwpp_integrate.R
+*_fix_routing.R
+*_integrate.R
+
+# Local working doc (not for the remote)
+docs/updating-the-database.md
