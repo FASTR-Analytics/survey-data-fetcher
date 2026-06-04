@@ -133,6 +133,8 @@ get_indicator_mapping <- function() {
       "ch_vacc_c_op1",
       "ch_vacc_c_op2",
       "ch_vacc_c_op3",
+      "ch_vacc_c_bas",  # Fully immunized (basic vaccinations)
+      "ch_vacs_c_op1",  # Polio1 (alternative DHS ID, VACS spelling)
 
       "ml_iptp_w_spf", "ml_iptp_w_2sp", "ml_iptp_w_3sp",
       "cm_ecmt_c_imr", "cm_ecmr_c_nnr", "cm_pnmr_c_nsb",
@@ -146,6 +148,7 @@ get_indicator_mapping <- function() {
       "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
       "rotavirus1", "rotavirus2",
       "polio1", "polio2", "polio3",
+      "fully_immunized", "polio1",
       "iptp1", "iptp2", "iptp3",
       "imr", "nmr", "stillbirth",
       "womenrepage", "crudebr", "total_fertility_rate",
@@ -1175,12 +1178,29 @@ get_country_name_mappings <- function(use_dhis2 = TRUE) {
     "Mauritania" = "Mauritanie",
     "Chad" = "TCHAD",
     "Madagascar" = "MADAGASCAR",
-    "Malawi" = "MOH MALAWI Govt"
+    "Malawi" = "MOH MALAWI Govt",
+    "Mozambique" = "MOÇAMBIQUE"
   )
 }
 
 get_province_name_mappings <- function() {
   list(
+    # Mozambique provinces (after country name is fixed to "MOÇAMBIQUE")
+    # DHS region labels -> DHIS2 backbone admin_area_2 (uppercase, accent-stripped)
+    "MOÇAMBIQUE" = c(
+      "Cabo Delgado"     = "CABO DELGADO",
+      "Gaza"             = "GAZA",
+      "Inhambane"        = "INHAMBANE",
+      "Manica"           = "MANICA",
+      "Maputo Cidade"    = "MAPUTO CIDADE",
+      "Maputo Provincia" = "MAPUTO PROVINCIA",
+      "Nampula"          = "NAMPULA",
+      "Niassa"           = "NIASSA",
+      "Sofala"           = "SOFALA",
+      "Tete"             = "TETE",
+      "Zambézia"         = "ZAMBEZIA"
+    ),
+
     # Senegal provinces (after country name is fixed to "Sénégal")
     "Sénégal" = c(
       "Dakar" = "DRS Dakar",

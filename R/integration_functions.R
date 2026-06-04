@@ -339,7 +339,8 @@ get_backbone_areas <- function(iso3) {
     "MDG" = "madagascar", "MWI" = "malawi", "MLI" = "mali",
     "MRT" = "mauritania", "NGA" = "nigeria", "CAF" = "rca",
     "SEN" = "senegal", "SLE" = "sierraleone", "SOM" = "somalia",
-    "NER" = "niger", "CIV" = "ci", "ZMB" = "zambia"
+    "NER" = "niger", "CIV" = "ci", "ZMB" = "zambia",
+    "MOZ" = "mozambique"
   )
 
   slug <- iso3_to_file[iso3]
