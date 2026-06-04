@@ -292,6 +292,24 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
         # DHS regions or districts. Subnational rows fall through unmapped and get
         # dropped downstream by name-matching against the backbone. Only the country-
         # name remap ("Malawi" → "MOH MALAWI Govt") is configured.
+        #
+        # Uganda: DHIS2 backbone uses 15 sub-regions. DHS region reporting changes
+        # by round, so guard with year (cf. Senegal above):
+        #  - 1988/1995/2000 (year < 2006): only 4 broad regions (Central/Eastern/
+        #    Northern/Western) — drop all subnational, keep national only.
+        #  - 2006/2011/2016 (year >= 2006): keep rows whose name matches one of the
+        #    15 sub-regions; map "Bugisu/Elgon" -> "Bugisu"; drop coarse/overlapping
+        #    regions (East Central, South West, Greater Kampala, Islands, etc.).
+        admin_area_1 == "Uganda" & admin_area_2 == "Bugisu/Elgon" &
+          as.numeric(year) >= 2006 ~ "Bugisu",
+        admin_area_1 == "Uganda" & admin_area_2 != "NATIONAL" &
+          as.numeric(year) < 2006 ~ NA_character_,
+        admin_area_1 == "Uganda" & admin_area_2 != "NATIONAL" &
+          !(admin_area_2 %in% c(
+            "Acholi", "Ankole", "Bugisu", "Bukedi", "Bunyoro", "Busoga",
+            "Kampala", "Karamoja", "Kigezi", "Lango", "North Buganda",
+            "South Buganda", "Teso", "Tooro", "West Nile"
+          )) ~ NA_character_,
         TRUE ~ admin_area_2
       )
     ) %>%
@@ -1179,7 +1197,8 @@ get_country_name_mappings <- function(use_dhis2 = TRUE) {
     "Chad" = "TCHAD",
     "Madagascar" = "MADAGASCAR",
     "Malawi" = "MOH MALAWI Govt",
-    "Mozambique" = "MOÇAMBIQUE"
+    "Mozambique" = "MOÇAMBIQUE",
+    "Uganda" = "MOH - Uganda"
   )
 }
 
