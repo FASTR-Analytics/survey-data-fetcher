@@ -1206,23 +1206,25 @@ get_country_name_mappings <- function(use_dhis2 = TRUE) {
 get_province_name_mappings <- function() {
   list(
     # Zimbabwe provinces (after country name is fixed to "Zimbabwe Ministry of Health")
-    # DHS region labels -> DHIS2 backbone admin_area_2. Region names are stable
-    # across all DHS surveys (1994, 1999, 2005, 2010, 2015) — no boundary changes,
-    # no year-suffixing. Two metro provinces are renamed: DHS "Bulawayo" -> backbone
-    # "Bulawayo Metropolitan Province"; DHS "Harare Chitungwiza" -> backbone "Harare
-    # Metropolitan Province" (the province officially covers Harare + Chitungwiza +
-    # Epworth). The other 8 just gain the " Province" suffix.
+    # DHS region labels -> DHIS2 backbone admin_area_2. The DHIS2/HMIS names carry a
+    # 2-letter org-unit prefix (e.g. "bu Bulawayo Metropolitan Province"), so survey
+    # names must include it to join against the HMIS coverage data (same convention
+    # as Nigeria's "ab Abia State"). Region names are stable across all DHS surveys
+    # (1994-2015) — no boundary changes, no year-suffixing. Two metro provinces are
+    # renamed: DHS "Bulawayo" -> "bu Bulawayo Metropolitan Province"; DHS "Harare
+    # Chitungwiza" -> "ha Harare Metropolitan Province" (the province officially
+    # covers Harare + Chitungwiza + Epworth).
     "Zimbabwe Ministry of Health" = c(
-      "Bulawayo"            = "Bulawayo Metropolitan Province",
-      "Harare Chitungwiza"  = "Harare Metropolitan Province",
-      "Manicaland"          = "Manicaland Province",
-      "Mashonaland Central" = "Mashonaland Central Province",
-      "Mashonaland East"    = "Mashonaland East Province",
-      "Mashonaland West"    = "Mashonaland West Province",
-      "Masvingo"            = "Masvingo Province",
-      "Matabeleland North"  = "Matabeleland North Province",
-      "Matabeleland South"  = "Matabeleland South Province",
-      "Midlands"            = "Midlands Province"
+      "Bulawayo"            = "bu Bulawayo Metropolitan Province",
+      "Harare Chitungwiza"  = "ha Harare Metropolitan Province",
+      "Manicaland"          = "ma Manicaland Province",
+      "Mashonaland Central" = "mc Mashonaland Central Province",
+      "Mashonaland East"    = "me Mashonaland East Province",
+      "Mashonaland West"    = "mw Mashonaland West Province",
+      "Masvingo"            = "mv Masvingo Province",
+      "Matabeleland North"  = "mn Matabeleland North Province",
+      "Matabeleland South"  = "ms Matabeleland South Province",
+      "Midlands"            = "mi Midlands Province"
     ),
 
     # Mozambique provinces (after country name is fixed to "MOÇAMBIQUE")
