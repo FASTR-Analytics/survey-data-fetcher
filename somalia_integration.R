@@ -210,7 +210,7 @@ message("New records added: ", nrow(new_records))
 message("Updated DB rows: ", nrow(updated_db))
 
 # Save
-write.csv(updated_db, SURVEY_DB_FILE, row.names = FALSE)
+write.csv(updated_db, SURVEY_DB_FILE, row.names = FALSE, na = "")
 message("\nSaved to: ", SURVEY_DB_FILE)
 
 # =============================================================================

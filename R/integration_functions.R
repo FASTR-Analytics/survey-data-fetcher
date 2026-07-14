@@ -467,25 +467,33 @@ detect_duplicates <- function(new_data, existing_data) {
     return(list(duplicates = data.frame(), new_records = data.frame()))
   }
 
+  # The composite key MUST include `source`. Different sources are designed to coexist for the
+  # same area/year/indicator (DHS + WUENIC penta3, DHS + UNWPP crudebr, MICS + UNWPP poptot).
+  # Without `source` in the key: (a) a new WUENIC row is mis-flagged as a duplicate of the
+  # existing DHS row, (b) the left_join below fans out one new record across every source's row,
+  # and (c) an "update" anti_joins away EVERY source at that key. 353 keys / 706 rows in the
+  # current DBs hold 2+ sources and were exposed to exactly that. Fixed 2026 Jul 14.
   if (is.null(existing_data) || nrow(existing_data) == 0) {
     # No existing data - all records are new
     new_data$composite_key <- paste(new_data$admin_area_1, new_data$admin_area_2,
-                                     new_data$year, new_data$indicator_common_id, sep = "|||")
+                                     new_data$year, new_data$indicator_common_id,
+                                     new_data$source, sep = "|||")
     return(list(duplicates = data.frame(), new_records = new_data))
   }
 
   # Create composite keys
   new_data <- new_data %>%
-    dplyr::mutate(composite_key = paste(admin_area_1, admin_area_2, year, indicator_common_id, sep = "|||"))
+    dplyr::mutate(composite_key = paste(admin_area_1, admin_area_2, year, indicator_common_id, source, sep = "|||"))
 
   existing_data <- existing_data %>%
-    dplyr::mutate(composite_key = paste(admin_area_1, admin_area_2, year, indicator_common_id, sep = "|||"))
+    dplyr::mutate(composite_key = paste(admin_area_1, admin_area_2, year, indicator_common_id, source, sep = "|||"))
 
   # Find duplicates
   duplicates <- new_data %>%
     dplyr::filter(composite_key %in% existing_data$composite_key) %>%
     dplyr::left_join(
-      existing_data %>% dplyr::select(composite_key, existing_value = survey_value),
+      existing_data %>% dplyr::select(composite_key, existing_value = survey_value) %>%
+        dplyr::distinct(composite_key, .keep_all = TRUE),
       by = "composite_key"
     ) %>%
     dplyr::mutate(
@@ -592,14 +600,16 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
       backup_suffix <- format(Sys.time(), "_%Y%m%d_%H%M%S")
       if (!is.null(survey_db) && nrow(survey_db) > 0) {
         tryCatch({
-          readr::write_csv(survey_db, paste0(SURVEY_DB_PATH, backup_suffix, ".backup"))
+          write.csv(survey_db, paste0(SURVEY_DB_PATH, backup_suffix, ".backup"),
+                    row.names = FALSE, na = "")
         }, error = function(e) {
           message("Could not create local backup (may be on cloud): ", e$message)
         })
       }
       if (!is.null(pop_db) && nrow(pop_db) > 0) {
         tryCatch({
-          readr::write_csv(pop_db, paste0(POP_DB_PATH, backup_suffix, ".backup"))
+          write.csv(pop_db, paste0(POP_DB_PATH, backup_suffix, ".backup"),
+                    row.names = FALSE, na = "")
         }, error = function(e) {
           message("Could not create local backup (may be on cloud): ", e$message)
         })
@@ -614,18 +624,23 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
         dplyr::filter(action != "keep_existing")
 
       if (nrow(updates) > 0) {
-        # Remove old versions from databases
+        # Remove old versions from databases.
+        # `source` MUST be in the key — without it, updating a DHS value also deletes the
+        # WUENIC/UNWPP/MICS row for the same area/year/indicator, which the DB is designed to
+        # keep alongside it. See the note in detect_duplicates(). Fixed 2026 Jul 14.
+        REPLACE_KEY <- c("admin_area_1", "admin_area_2", "year", "indicator_common_id", "source")
+
         keys_to_remove <- updates %>%
-          dplyr::select(admin_area_1, admin_area_2, year, indicator_common_id)
+          dplyr::select(dplyr::all_of(REPLACE_KEY))
 
         if (!is.null(survey_db) && nrow(survey_db) > 0) {
           survey_db <- survey_db %>%
-            dplyr::anti_join(keys_to_remove, by = c("admin_area_1", "admin_area_2", "year", "indicator_common_id"))
+            dplyr::anti_join(keys_to_remove, by = REPLACE_KEY)
         }
 
         if (!is.null(pop_db) && nrow(pop_db) > 0) {
           pop_db <- pop_db %>%
-            dplyr::anti_join(keys_to_remove, by = c("admin_area_1", "admin_area_2", "year", "indicator_common_id"))
+            dplyr::anti_join(keys_to_remove, by = REPLACE_KEY)
         }
 
         # Add updated records to the records to add
@@ -669,9 +684,13 @@ append_to_databases <- function(new_records, duplicates, survey_db, pop_db,
     updated_pop_db <- dplyr::bind_rows(pop_db, new_pop_data)
 
     # Write to local files (if possible)
+    # BOTH databases use write.csv(row.names=FALSE, na="") — fully quoted. Do NOT use
+    # readr::write_csv here: minimal quoting rewrites every line of a 26k-row file and
+    # buries the real change in a spurious diff, and readr writes a literal "NA" for
+    # missing values unless na="" is passed. Unified 2026 Jul 14.
     tryCatch({
-      readr::write_csv(updated_survey_db, SURVEY_DB_PATH)
-      readr::write_csv(updated_pop_db, POP_DB_PATH)
+      write.csv(updated_survey_db, SURVEY_DB_PATH, row.names = FALSE, na = "")
+      write.csv(updated_pop_db,    POP_DB_PATH,    row.names = FALSE, na = "")
     }, error = function(e) {
       message("Could not write to local files (may be on cloud): ", e$message)
     })

@@ -99,12 +99,15 @@ get_or_generate_common_id <- function(indicator_id, label = NULL, source = "unkn
     }
     if(grepl("delivery|institutional", label_clean)) return("delivery")
     if(grepl("pnc|postnatal", label_clean)) return("pnc1")
-    if(grepl("family.*plan|contraceptive", label_clean)) return("fp")
+    # Do NOT bucket every FP/contraceptive label into "fp" — that name is retired and
+    # the concepts differ (current use vs demand vs unmet need vs method source).
+    # Fall through to the cleaned indicator id so the distinction survives.
+    if(grepl("contraceptive.*prevalen|modern.*contracepti", label_clean)) return("contraceptive_modern")
     if(grepl("infant.*mort|imr", label_clean)) return("imr")
     if(grepl("neonatal.*mort|nmr", label_clean)) return("nmr")
     if(grepl("under.*five|u5mr", label_clean)) return("u5mr")
     if(grepl("maternal.*mort|mmr", label_clean)) return("mmr")
-    if(grepl("total.*fertil|tfr", label_clean)) return("tfr")
+    if(grepl("total.*fertil|tfr", label_clean)) return("total_fertility_rate")
   }
 
   # Fallback: use cleaned indicator ID
@@ -151,8 +154,15 @@ get_indicator_mapping <- function() {
       "fully_immunized", "polio1",
       "iptp1", "iptp2", "iptp3",
       "imr", "nmr", "stillbirth",
-      "womenrepage", "crudebr", "total_fertility_rate",
-      "fp",
+      # NOTE: this table is POSITIONAL — common_id[i] pairs with dhs_id[i].
+      # Keep both vectors exactly the same length, one entry per line-group.
+      # fe_frty_w_npg is the UNWEIGHTED NUMBER OF WOMEN INTERVIEWED, not the female
+      # population of reproductive age. It must not share a name with the UNWPP
+      # population estimate (sample counts run 27-42k; the population runs 36k-57M).
+      "women_interviewed", "crudebr", "total_fertility_rate",
+      # fp_srcm_w_tot is the TOTAL of the modern-method source distribution (always
+      # ~100%). It is not mCPR and must not be called "fp".
+      "fp_source_total",
       "micronutrient", "deworming", "vitamina", "ors_zinc"
     ),
     stringsAsFactors = FALSE
@@ -177,7 +187,8 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
     "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
     "rotavirus1", "rotavirus2", "polio1", "polio2", "polio3",
     "fully_immunized",
-    "iptp1", "iptp2", "iptp3", "fp",
+    "iptp1", "iptp2", "iptp3",
+    "contraceptive_modern", "contraceptive_any", "unmet_need",
     "deworming", "vitamina", "ors_zinc", "micronutrient"
   )
 
@@ -346,7 +357,9 @@ clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standar
 
   # Define percentage indicators (coverage indicators that should be converted to decimals)
   percentage_indicators <- c("anc1", "anc4", "delivery", "pnc1", "bcg", "penta1", "penta3",
-                             "measles1", "measles2", "hepb", "hib3", "ors", "ors_zinc", "fp")
+                             "measles1", "measles2", "hepb", "hib3", "ors", "ors_zinc",
+                             "contraceptive_modern", "contraceptive_any", "unmet_need",
+                             "fp_demand_satisfied")
 
   # Define rate indicators (mortality rates that stay as-is)
   rate_indicators <- c("imr", "nmr", "mmr")
@@ -412,7 +425,9 @@ clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standar
         indicator_id == "MNCH_ORSZINC" ~ "ors_zinc",  # ORS and Zinc
 
         # Family planning and nutrition
-        indicator_id == "MNCH_DEMAND_FP" ~ "fp",     # Family planning demand satisfied
+        # "fp" is a RETIRED name — it used to hold FP_SRCM_W_TOT, a distribution total
+        # that is always 100%. Demand-satisfied is its own concept; name it as such.
+        indicator_id == "MNCH_DEMAND_FP" ~ "fp_demand_satisfied",
 
         # Fallback: use auto-generation
         TRUE ~ get_or_generate_common_id(indicator_id, indicator_label, "UNICEF")
@@ -903,7 +918,7 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
       admin_area_2 = "NATIONAL",
       year = as.integer(timeLabel),
       indicator_id = indicatorDisplayName,
-      indicator_common_id = "tfr",
+      indicator_common_id = "total_fertility_rate",
       indicator_type = "rate",
       survey_value = as.numeric(value),
       source = "UNWPP",
@@ -1317,7 +1332,7 @@ get_province_name_mappings <- function() {
       "Mamou"       = "IRS Mamou",
       "Boké"        = "IRS Boké",
       "Labé"        = "IRS Labé",
-      "N'Zérékoré"  = "IRS Nzérékoré"
+      "N'Zérékoré"  = "IRS N'zérékoré"
     ),
 
     # Liberia provinces

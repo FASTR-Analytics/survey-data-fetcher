@@ -59,18 +59,44 @@ These indicators are stored in `survey_data_unified.csv`.
 
 | Common ID | Description | DHS ID |
 |-----------|-------------|--------|
-| `mcpr` | Modern contraceptive prevalence | FP_CUSA_W_MOD |
 | `ebf` | Exclusive breastfeeding | NT_EBFR_C_BF |
 | `vitamina` | Vitamin A supplementation | CN_MIAC_C_VAS |
 | `deworming` | Deworming treatment | CN_MIAC_C_DWM |
 | `total_fertility_rate` | Total fertility rate | FE_FRTR_W_TFR |
-| `crude_birth_rate` | Crude birth rate | FE_FRTR_W_CBR |
+| `crudebr` | Crude birth rate (→ **population** file) | FE_FRTR_W_CBR |
+| `women_interviewed` | **Number of women INTERVIEWED** (unweighted sample count) | FE_FRTY_W_NPG |
+| `anc_none` | Women with **NO** antenatal care (= 1 − coverage) | rh_ancn_w_n01 |
+| `stillbirth` | Stillbirths — a **COUNT**, not a rate | CM_PNMR_C_NSB |
+
+### Family planning — read before fetching
+
+| Common ID | Description | DHS ID |
+|-----------|-------------|--------|
+| `contraceptive_modern` | Modern method, **all women** | FP_CUSA_W_MOD |
+| `contraceptive_any` | Any method, **all women** | FP_CUSA_W_ANY |
+| `unmet_need` | Unmet need for FP | FP_NADA_W_UNT |
+| `fp_demand_satisfied` | Demand for FP satisfied | MNCH_DEMAND_FP (UNICEF) |
+| `mcpr` | Modern contraceptive prevalence — currently **UNWPP modelled only**, no DHS rows | UNWPP `1` |
+
+⚠️ **`FP_CUSA_*` is _all women_. `FP_CUSM_*` is _currently married women_.** DHS publishes both and
+they are **not comparable**. Pick one denominator and hold it across every country before fetching.
+
+⛔ **Retired names — never reintroduce:**
+
+| Retired | Why | Use instead |
+|---|---|---|
+| `fp` | held `FP_SRCM_W_TOT`, the **total** of the modern-method *source* distribution — 100% by construction, not a prevalence | `contraceptive_modern` |
+| `anc1_old` | actually meant "**no** ANC" — the inverse of coverage | `anc_none` |
+| `tfr` | duplicate of `total_fertility_rate` | `total_fertility_rate` |
+| `crude_birth_rate` | duplicate of `crudebr` | `crudebr` |
+| `still` | duplicate of `stillbirth` | `stillbirth` |
+| `womenrepage` (DHS-sourced) | a **sample count**, not a population | `women_interviewed` |
 
 ---
 
 ## Population Indicators
 
-These indicators are stored in `population_estimates_only.csv`.
+These indicators are stored in `population_estimates_only.csv` (`POP_INDICATORS`).
 
 | Common ID | Description | UNWPP Code |
 |-----------|-------------|------------|
@@ -79,8 +105,17 @@ These indicators are stored in `population_estimates_only.csv`.
 | `totu1pop` | Annual population under 1 year | - |
 | `totu5pop` | Annual population 0-4 years | - |
 | `livebirth` | Live births per year | 80 |
-| `womenrepage` | Women of reproductive age (15-49) | 52 |
+| `womenrepage` | Female **population** aged 15–49 — **UNWPP only** | 52 |
 | `popgrowth` | Population growth rate | - |
+| `crudebr` | Crude birth rate | 47 |
+
+⚠️ **`womenrepage` is a population, not a sample count.** Until 2026 Jul 14 this name also held
+DHS `FE_FRTY_W_NPG` (women *interviewed*, 27–42,221) alongside the UNWPP population
+(35,796–57,393,553) — four orders of magnitude apart, in the same column. The DHS rows are now
+`women_interviewed` and live in the **survey** file. Do not merge them again.
+
+See `../../DOC_SURVEY_BACKBONE.md` for the full semantics reference, known-broken indicators
+(rotavirus, admin joins), and the pre-write validation checklist.
 
 ---
 

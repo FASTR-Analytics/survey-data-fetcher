@@ -73,13 +73,20 @@ get_dhs_favorites <- function() {
       "ML_IPTP_W_3SP"   # IPTp3+
     ),
     "Family Planning" = c(
-      "FP_SRCM_W_TOT"   # mCPR
+      # FP_SRCM_W_TOT was here, labelled "mCPR". It is NOT mCPR: it is the TOTAL of
+      # the "source of modern method" distribution, which is 100% by construction.
+      # It produced 138 rows of ~1.0 across 28 countries (removed 2026 Jul 14).
+      # Correct code is FP_CUSM_W_MOD (currently married women, the basis DHS reports)
+      # or FP_CUSA_W_MOD (all women). Pick ONE denominator before re-enabling — mixing
+      # them across countries is not comparable.
     ),
     "Mortality and Fertility" = c(
       "CM_PNMR_C_NSB",  # Stillbirth rate
       "CM_ECMT_C_IMR",  # IMR
       "CM_ECMR_C_NNR",  # NMR
-      "FE_FRTY_W_NPG",  # Women of reproductive age
+      "FE_FRTY_W_NPG",  # Number of women INTERVIEWED (unweighted sample count) ->
+                        # common_id "women_interviewed". NOT the female population of
+                        # reproductive age; that is UNWPP id 52 -> "womenrepage".
       "FE_FRTR_W_CBR",  # Crude birth rate
       "FE_FRTR_W_TFR"   # Total fertility rate
     ),

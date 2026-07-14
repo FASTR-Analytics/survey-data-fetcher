@@ -109,7 +109,7 @@ FAVORITE_UNWPP_LABELS <- list(
   "49" = "poptot",
   "68" = "imr",
   "80" = "livebirth",
-  "19" = "tfr",
+  "19" = "total_fertility_rate",
   "58" = "u5mr",
   "52" = "womenrepage",
   "47" = "crudebr",
@@ -176,7 +176,7 @@ AUTO_LABEL_PATTERNS <- list(
   # Population patterns
   list(pattern = "(?i)Total.*population", label = "poptot"),
   list(pattern = "(?i)Life.*expectancy", label = "lifeexp"),
-  list(pattern = "(?i)Total.*fertility.*rate|TFR", label = "tfr"),
+  list(pattern = "(?i)Total.*fertility.*rate|TFR", label = "total_fertility_rate"),
   list(pattern = "(?i)Crude.*birth.*rate", label = "crudebr"),
   list(pattern = "(?i)Live.*births?", label = "livebirth"),
   list(pattern = "(?i)Median.*age", label = "medianage")
@@ -346,7 +346,7 @@ INDICATOR_CATEGORIES <- list(
   "Population & Demographics" = c(
     "poptot", "popu5", "totu1pop", "totu5pop",
     "livebirth", "womenrepage", "popgrowth",
-    "tfr", "crudebr", "lifeexp", "adultmort",
+    "total_fertility_rate", "crudebr", "lifeexp", "adultmort",
     "childdep", "olddep", "totdep", "sexratio", "medianage"
   )
 )
@@ -422,7 +422,7 @@ get_indicator_type <- function(common_id) {
   )
 
   rate_indicators <- c(
-    "imr", "nmr", "u5mr", "mmr", "tfr", "crudebr",
+    "imr", "nmr", "u5mr", "mmr", "total_fertility_rate", "crudebr",
     "lifeexp", "adultmort", "childdep", "olddep", "totdep", "sexratio", "medianage"
   )
 
