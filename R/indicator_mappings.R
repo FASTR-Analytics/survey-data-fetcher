@@ -104,23 +104,48 @@ FAVORITE_WUENIC_LABELS <- list(
   "YFV" = "yellow_fever"
 )
 
+# UN World Population Prospects (Data Portal API) indicator ids.
+#
+# CORRECTED 2026 Jul 14 against the live API
+# (GET https://population.un.org/dataportalapi/api/v1/indicators/ — 86 indicators).
+# 13 of the previous 15 entries pointed at the WRONG indicator, and four of them
+# (13, 14, 15, 16) pointed at ids that DO NOT EXIST. Nothing had written bad rows,
+# because clean_unwpp_data() filters by its own (correct) ids and never consults this
+# table — but it is the reference anyone reads, and it was lying. Examples of what the
+# old ids actually were:
+#     68 -> "Fertility rates by age of mother"   (was labelled imr)
+#     47 -> "Population by 1-year age groups"    (was labelled crudebr)
+#     58 -> "Sex ratio at birth"                 (was labelled u5mr)
+#     52 -> "Natural change of population"       (was labelled womenrepage)
+#     80 -> "Age specific mortality rate"        (was labelled livebirth)
+#      1 -> "Contraceptive prevalence: ANY method" (was labelled mcpr — that is id 2)
+#
+# The official name is on every line. Verify against the API before changing any of them.
 FAVORITE_UNWPP_LABELS <- list(
-  # UN World Population Prospects indicators
-  "49" = "poptot",
-  "68" = "imr",
-  "80" = "livebirth",
-  "19" = "total_fertility_rate",
-  "58" = "u5mr",
-  "52" = "womenrepage",
-  "47" = "crudebr",
-  "69" = "lifeexp",
-  "1" = "mcpr",
-  "16" = "medianage",
-  "70" = "adultmort",
-  "12" = "childdep",
-  "13" = "olddep",
-  "14" = "totdep",
-  "15" = "sexratio"
+  "49" = "poptot",                # Total population by sex
+  "41" = "womenrepage",           # Female population of reproductive age (15-49 years)
+  "55" = "crudebr",               # Crude birth rate
+  "57" = "livebirth",             # Total births by sex
+  "19" = "total_fertility_rate",  # Total fertility rate
+  "22" = "imr",                   # Infant mortality rate (IMR)
+  "24" = "u5mr",                  # Under-five mortality rate (U5MR)
+  "61" = "lifeexp",               # Life expectancy at birth
+  "62" = "adultmort",             # Probability of dying 15-50 (35q15)
+  "67" = "medianage",             # Median age of population
+  "72" = "sexratio",              # Sex ratio of the total population
+  "83" = "childdep",              # Child dependency ratio
+  "84" = "olddep",                # Old-age dependency ratio
+  "86" = "totdep",                # Total dependency ratio
+
+  # Contraceptive prevalence: 1 and 2 are DIFFERENT indicators. mCPR is the MODERN one.
+  "2"  = "mcpr",                  # Contraceptive prevalence: Any MODERN method
+  "1"  = "contraceptive_any"      # Contraceptive prevalence: Any method
+
+  # NOT listed here on purpose: ids 46 and 47 ("Population by 5-year / 1-year age groups
+  # and sex"). They are raw age-structure inputs from which clean_unwpp_data() DERIVES
+  # both totu1pop and totu5pop by filtering ages. One id cannot map to one common_id, so
+  # a 1:1 label here would be wrong. They are still fetched — see the favourites list in
+  # app.R: c("2","22","24","41","46","47","49","55").
 )
 
 # ========================================

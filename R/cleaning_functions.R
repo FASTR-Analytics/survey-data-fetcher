@@ -738,10 +738,22 @@ clean_unwpp_data <- function(df, apply_fastr_standardization = TRUE) {
   
   message("Modern contraceptive prevalence records: ", nrow(mcpr))
 
-  # Total number of live births
-  # Note: This indicator may not have a standard ID, checking if it exists
+  # Total number of live births.
+  # CORRECTED 2026 Jul 14: this used `indicator_id == "48"`, which is
+  # "Total demand for family planning (Number)" — not births. The old comment admitted
+  # the id was a guess ("may not have a standard ID"). The grepl never fired either:
+  # no UNWPP indicator has "live birth" in its name. Verified against the live API,
+  # the correct id is 57 = "Total births by sex". No rows were ever written under the
+  # wrong id (livebirth has 0 rows in both databases), so nothing needs repairing.
+  # `sex == "Both sexes"` is REQUIRED: id 57 is "Total births BY SEX" and returns three
+  # rows per country-year (Male, Female, Both sexes). Without this filter it would emit
+  # all three — e.g. Kenya 2020 as 733,210 / 717,512 / 1,450,722 — tripling the rows and
+  # leaving the value to chance. Every other indicator block here filters sex the same way.
   livebirth <- base %>%
-    filter(grepl("live birth", indicatorDisplayName, ignore.case = TRUE) | indicator_id == "48") %>%
+    filter(
+      indicator_id == "57",
+      sex == "Both sexes"
+    ) %>%
     mutate(
       admin_area_1 = case_when(
         country_name == "Côte d'Ivoire" ~ "Côte d'Ivoire",
