@@ -38,10 +38,10 @@ FAVORITE_DHS_LABELS <- list(
   "CH_VACC_C_MSL2" = "measles2",
   "CH_VACC_C_MS2" = "measles2",
   # Rotavirus - both code variants (ROT and RT)
-  "CH_VACC_C_ROT1" = "rotavirus1",
-  "CH_VACC_C_ROT2" = "rotavirus2",
-  "CH_VACC_C_RT1" = "rotavirus1",
-  "CH_VACC_C_RT2" = "rotavirus2",
+  "CH_VACC_C_ROT1" = "rota1",
+  "CH_VACC_C_ROT2" = "rota2",
+  "CH_VACC_C_RT1" = "rota1",
+  "CH_VACC_C_RT2" = "rota2",
   # Polio - both code variants (VACS and VACC)
   "CH_VACS_C_OP1" = "polio1",
   "CH_VACS_C_OP2" = "polio2",
@@ -321,7 +321,7 @@ INDICATOR_CATEGORIES <- list(
   ),
   "Immunization" = c(
     "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
-    "rotavirus1", "rotavirus2", "rotavirus_complete",
+    "rota1", "rota2", "rotavirus_complete",
     "polio1", "polio2", "polio3",
     "fully_immunized", "no_immunization",
     "hepb3", "pcv3", "hib3", "yellow_fever", "rubella1"
@@ -411,7 +411,7 @@ get_indicator_type <- function(common_id) {
   percentage_indicators <- c(
     "anc1", "anc4", "delivery", "pnc1", "iron_anc",
     "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
-    "rotavirus1", "rotavirus2", "rotavirus_complete", "polio1", "polio2", "polio3",
+    "rota1", "rota2", "rotavirus_complete", "polio1", "polio2", "polio3",
     "fully_immunized", "no_immunization", "iptp1", "iptp2", "iptp3",
     "mcpr", "hepb3", "pcv3", "hib3", "yellow_fever", "rubella1",
     "contraceptive_modern", "contraceptive_any", "unmet_need",

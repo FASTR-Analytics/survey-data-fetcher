@@ -89,8 +89,8 @@ get_or_generate_common_id <- function(indicator_id, label = NULL, source = "unkn
       return("measles1")
     }
     if(grepl("rotavirus|rota", label_clean)) {
-      if(grepl("1", label_clean)) return("rotavirus1")
-      if(grepl("2", label_clean)) return("rotavirus2")
+      if(grepl("1", label_clean)) return("rota1")
+      if(grepl("2", label_clean)) return("rota2")
       return("rotavirus")
     }
     if(grepl("anc", label_clean)) {
@@ -149,7 +149,7 @@ get_indicator_mapping <- function() {
       "anc1", "anc4", "delivery", "pnc1", "pnc1",  # Both PNC variants map to pnc1
       "iron_anc",
       "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
-      "rotavirus1", "rotavirus2",
+      "rota1", "rota2",
       "polio1", "polio2", "polio3",
       "fully_immunized", "polio1",
       "iptp1", "iptp2", "iptp3",
@@ -185,7 +185,7 @@ clean_dhs_data <- function(df, apply_fastr_standardization = TRUE) {
   percentage_indicators <- c(
     "anc1", "anc4", "delivery", "pnc1", "iron_anc",
     "bcg", "penta1", "penta2", "penta3", "measles1", "measles2",
-    "rotavirus1", "rotavirus2", "polio1", "polio2", "polio3",
+    "rota1", "rota2", "polio1", "polio2", "polio3",
     "fully_immunized",
     "iptp1", "iptp2", "iptp3",
     "contraceptive_modern", "contraceptive_any", "unmet_need",
@@ -1524,7 +1524,7 @@ get_province_name_mappings <- function() {
       "Salamat"                   = "SALAMAT",
       "Sila"                      = "SILA",
       "Tandjilé"                  = "TANDJILÉ",
-      "Wadi Fira"                 = "WADI FIRA",
+      "Wadi Fira"                 = "WADIFIRA",   # DHIS2 has no space
       "N'Djaména 2014"            = "NDJAMENA"
       # N'Djaména 1997 deliberately NOT mapped — it's from an urban/rural
       # sampling frame (TD1997DHS), not the current provincial structure
