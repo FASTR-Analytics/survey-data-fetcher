@@ -21,34 +21,59 @@
 #' Convert Gregorian year to Ethiopian calendar year
 #' @param gregorian_year Integer Gregorian year
 #' @return Integer Ethiopian calendar year
+ETHIOPIAN_YEAR_OFFSET <- 8L
+
 gregorian_to_ethiopian <- function(gregorian_year) {
 
-  # Ethiopian calendar is approximately 7-8 years behind Gregorian
-
-# Using 7 as the standard offset (Sept-Dec dates would be 7, Jan-Aug would be 8)
-  # For annual data without specific dates, 7 is a reasonable approximation
-  return(as.integer(gregorian_year) - 7L)
+  # The Ethiopian new year falls ~11 September, so the offset is 8 for Jan-Sep dates
+  # and 7 for Sep-Dec. This used to subtract 7. That was WRONG for this database:
+  #
+  #   every ET survey in survey_data_unified.csv uses Gregorian - 8
+  #     ET2000DHS -> 1992   ET2011DHS -> 2003   ET2019DHS -> 2011   ET2025DHS -> 2017
+  #   the Ethiopian HMIS periods run 200907..201705, i.e. Ethiopian calendar
+  #
+  # Ethiopian DHS fieldwork lands in the Jan-Sep window (EDHS 2019 ran Mar-Jun; EDHS
+  # 2024-25 ran Aug 2024 - Apr 2025), so 8 is the correct offset AND the one the rest
+  # of the database and the HMIS already use. Subtracting 7 put WUENIC/UNWPP rows one
+  # year off from every DHS row for the same country. Fixed 2026 Jul 14.
+  return(as.integer(gregorian_year) - ETHIOPIAN_YEAR_OFFSET)
 }
 
 #' Apply Ethiopian calendar conversion to data frame
-#' Only converts for Ethiopia (iso3_code == "ETH")
+#' Only converts for Ethiopia (iso3_code == "ETH"). DHS data already arrives in
+#' Ethiopian calendar years; this is for UNWPP / MICS / WUENIC, which arrive Gregorian.
+#'
+#' IDEMPOTENT: converting twice would shift Ethiopia by 16 years. This function is
+#' called from three different cleaners (clean_unicef_data, clean_mics_wuenic_data,
+#' clean_unwpp_data) and previously had NO guard, so any data passing through more than
+#' one of them — or any re-clean of already-cleaned data — silently double-shifted.
+#' The guard below makes a second call a no-op and warns loudly.
+#'
 #' @param df Data frame with year and iso3_code columns
 #' @return Data frame with years converted for Ethiopia
 apply_ethiopian_calendar_conversion <- function(df) {
   if(nrow(df) == 0) return(df)
   if(!"iso3_code" %in% names(df) || !"year" %in% names(df)) return(df)
 
-  # Count records being converted
+  if(isTRUE(attr(df, "ethiopian_calendar_applied"))) {
+    warning("apply_ethiopian_calendar_conversion() called twice on the same data — ",
+            "skipping. Converting again would shift Ethiopia by another ",
+            ETHIOPIAN_YEAR_OFFSET, " years.")
+    return(df)
+  }
+
   eth_records <- sum(df$iso3_code == "ETH", na.rm = TRUE)
 
-if(eth_records > 0) {
+  if(eth_records > 0) {
     df <- df %>%
       mutate(
         year = ifelse(iso3_code == "ETH", gregorian_to_ethiopian(year), year)
       )
-    message("Ethiopian calendar conversion: Converted ", eth_records, " records from Gregorian to Ethiopian calendar (year - 7)")
+    message("Ethiopian calendar conversion: ", eth_records,
+            " records Gregorian -> Ethiopian (year - ", ETHIOPIAN_YEAR_OFFSET, ")")
   }
 
+  attr(df, "ethiopian_calendar_applied") <- TRUE
   return(df)
 }
 
@@ -505,77 +530,22 @@ clean_unicef_data <- function(df, selected_countries = NULL, apply_fastr_standar
 # MICS WUENIC DATA CLEANING
 # ========================================
 
-clean_mics_wuenic_data <- function(df, apply_fastr_standardization = TRUE) {
-  if(nrow(df) == 0) return(data.frame())
+# ---------------------------------------------------------------------------
+# REMOVED 2026 Jul 14: the xlsx-based WUENIC/MICS path.
+#
+#   fetch_mics_wuenic_countries()  (was here)
+#   fetch_wuenic_mics_data()       (was here)
+#   clean_mics_wuenic_data()       (was in cleaning_functions.R)
+#
+# They read assets/survey-data_wuenic2024rev.xlsx, a spreadsheet that is long gone.
+# Nothing called them and the UI never exposed them. WUENIC/MICS comes from the
+# UNICEF SDMX API: fetch_unicef_data() -> clean_unicef_data().
+#
+# clean_mics_wuenic_data() was also one of THREE call sites for
+# apply_ethiopian_calendar_conversion(), which had no idempotency guard — removing it
+# shrinks the surface for double-converting Ethiopian years.
+# ---------------------------------------------------------------------------
 
-  # Define percentage indicators (coverage indicators - already in percentage, convert to decimal)
-  percentage_indicators <- c("bcg", "penta1", "penta2", "penta3", "polio1", "polio2", "polio3",
-                             "measles1", "measles2", "pneumococcal", "rotavirus", "hepb3",
-                             "hepb_birth", "hib3", "yellow_fever", "full_vaccination")
-
-  cleaned_data <- df %>%
-    mutate(
-      year = as.integer(SurveyYear),
-      indicator_label = if("IndicatorLabel" %in% names(df)) IndicatorLabel else Indicator,
-      # Map vaccine indicators to common IDs
-      indicator_common_id = case_when(
-        Indicator == "BCG" ~ "bcg",
-        Indicator == "DTP1" ~ "penta1",
-        Indicator == "DTP2" ~ "penta2",
-        Indicator == "DTP3" ~ "penta3",
-        Indicator == "Pol1" ~ "polio1",
-        Indicator == "Pol2" ~ "polio2",
-        Indicator == "Pol3" ~ "polio3",
-        Indicator == "MCV1" ~ "measles1",
-        Indicator == "MCV2" ~ "measles2",
-        Indicator == "PCV3" ~ "pneumococcal",
-        Indicator == "RCV1" ~ "rotavirus",
-        Indicator == "HepB3" ~ "hepb3",
-        Indicator == "HepB_BD" ~ "hepb_birth",
-        Indicator == "Hib3" ~ "hib3",
-        Indicator == "YFV" ~ "yellow_fever",
-        grepl("DTP3.*HepB3.*Hib3", Indicator) ~ "full_vaccination",
-        # Fallback: use auto-generation
-        TRUE ~ get_or_generate_common_id(Indicator, indicator_label, "WUENIC")
-      ),
-      # Convert percentages to decimals
-      survey_value = case_when(
-        indicator_common_id %in% percentage_indicators ~ Value / 100,
-        TRUE ~ Value
-      ),
-      # Set indicator type
-      indicator_type = "percent"
-    ) %>%
-    transmute(
-      admin_area_1 = CountryName,
-      admin_area_2 = "NATIONAL",
-      year = year,
-      indicator_id = Indicator,
-      indicator_common_id = indicator_common_id,
-      indicator_type = indicator_type,
-      survey_value = survey_value,
-      source = "WUENIC",
-      source_detail = SurveyId,
-      survey_type = "household",
-      country_name = CountryName,
-      iso2_code = ISO2_CountryCode,
-      iso3_code = DHS_CountryCode,  # This contains ISO3 code
-      # Add MICS-specific metadata
-      evidence_type = Evidence,
-      validity = Validity,
-      denominator = SampleSize,
-      cards_seen_pct = CardsSeenPct
-    )
-
-  # Apply FASTR name standardization
-  cleaned_data <- apply_fastr_name_standardization(cleaned_data, apply_standardization = apply_fastr_standardization)
-
-  # Apply Ethiopian calendar conversion (WUENIC data is in Gregorian)
-  cleaned_data <- apply_ethiopian_calendar_conversion(cleaned_data)
-
-  message("MICS WUENIC data cleaning completed. Final records: ", nrow(cleaned_data))
-  return(cleaned_data)
-}
 
 # ========================================
 # UNWPP DATA CLEANING

@@ -35,20 +35,31 @@ RUN R -e "install.packages(c('RCurl', 'stringr', 'readxl', 'rsdmx', 'stringdist'
 RUN R -e "install.packages('rdhs', Ncpus = 2)" && \
     R -e "if (!require('rdhs', quietly = TRUE)) { message('rdhs installation check failed'); q(status = 1) }"
 
-# Create app directory
-RUN mkdir -p /app
+# HuggingFace Spaces runs the container as UID 1000, NOT root. Without a matching user
+# and a writable HOME, R cannot write its temp/cache and the app never binds — the Space
+# then sits in APP_STARTING forever with no output. Create the user HF expects.
+RUN useradd -m -u 1000 user || true
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH \
+    R_LIBS_USER=/home/user/R \
+    TMPDIR=/tmp
+RUN mkdir -p $HOME/app $HOME/R && chown -R user:user $HOME
 
-# Copy app files
-COPY app.R /app/
-COPY R/ /app/R/
-COPY www/ /app/www/
-COPY assets/ /app/assets/
+# Copy app files as the runtime user so they are readable/writable at UID 1000
+COPY --chown=user:user app.R   $HOME/app/
+COPY --chown=user:user R/      $HOME/app/R/
+COPY --chown=user:user www/    $HOME/app/www/
+COPY --chown=user:user assets/ $HOME/app/assets/
 
-# Set working directory
-WORKDIR /app
+USER user
+WORKDIR $HOME/app
 
-# Make port 3838 available
+# Make port 3838 available (must match `app_port` in README.md front-matter)
 EXPOSE 3838
 
-# Run app
-CMD ["R", "-e", "shiny::runApp(host='0.0.0.0', port=3838)"]
+# Run app. Unbuffered + explicit appDir so failures surface in the container log
+# instead of the Space hanging silently on "Starting...".
+CMD ["R", "--no-save", "--no-restore", "-e", \
+     "options(shiny.host='0.0.0.0', shiny.port=3838); \
+      message('>>> starting shiny from ', getwd()); \
+      shiny::runApp('.', host='0.0.0.0', port=3838, launch.browser=FALSE)"]
