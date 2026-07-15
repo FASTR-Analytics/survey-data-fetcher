@@ -1706,10 +1706,14 @@ output$country_selector <- renderUI({
 
     DT::datatable(
       display_data,
+      class = 'fastr-dt stripe hover row-border',
+      colnames = c('Country','Admin 1','Admin 2','Indicator','Year','Value','Source'),
       options = list(
         pageLength = 15,
         scrollX = TRUE,
-        order = list(list(4, 'desc'))  # Sort by year descending
+        order = list(list(4, 'desc')),
+        dom = '<"dt-top"f>t<"dt-bot"ip>',
+        columnDefs = list(list(className = 'dt-right', targets = c(4, 5)))
       ),
       rownames = FALSE
     )
@@ -1724,9 +1728,12 @@ output$country_selector <- renderUI({
       return(
         plot_ly() %>%
           layout(
-            title = "Select a country and apply filters to view data",
-            xaxis = list(visible = FALSE),
-            yaxis = list(visible = FALSE)
+            annotations = list(text = "Select a country and apply filters",
+                               showarrow = FALSE,
+                               font = list(size = 13, color = "#95a5a6",
+                                           family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif")),
+            xaxis = list(visible = FALSE), yaxis = list(visible = FALSE),
+            paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)"
           )
       )
     }
@@ -1746,10 +1753,10 @@ output$country_selector <- renderUI({
         mutate(
           value = suppressWarnings(as.numeric(as.character(plot_value))),
           year = suppressWarnings(as.numeric(as.character(year))),
-          region = as.character(admin_area_1)
+          area = as.character(admin_area_2)
         ) %>%
         filter(!is.na(value), !is.na(year)) %>%
-        arrange(region, year)
+        arrange(area, year)
 
       if(nrow(plot_data) == 0) {
         return(
@@ -1761,27 +1768,38 @@ output$country_selector <- renderUI({
       # Get indicator for title
       indicator <- as.character(plot_data$indicator_common_id[1])
 
-      # Simple scatter plot with lines
+      # FASTR-consistent theme: teal-anchored qualitative palette, system font,
+      # transparent surface, recessive grid — matches www/custom.css tokens.
+      fastr_pal <- c("#0f706d","#e08e0b","#3b6fb6","#c0504d","#6a9a3a","#8064a2",
+                     "#d06fa8","#1a8b86","#c98500","#5a6b7a")
+      fastr_font <- list(family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                         size = 13, color = "#2c3e50")
+      axis <- function(t) list(title = t, gridcolor = "#eef1f5", zeroline = FALSE,
+                               linecolor = "#dee2e6", tickcolor = "#dee2e6",
+                               tickfont = list(size = 11, color = "#7f8c8d"))
       plot_ly(
         data = plot_data,
-        x = ~year,
-        y = ~value,
-        color = ~region,
-        type = 'scatter',
-        mode = 'lines+markers',
-        marker = list(size = 8),
-        colors = "Set2"
+        x = ~year, y = ~value, color = ~area, colors = fastr_pal,
+        type = 'scatter', mode = 'lines+markers',
+        line = list(width = 2), marker = list(size = 6),
+        hovertemplate = "%{fullData.name}<br>%{x}: <b>%{y}</b><extra></extra>"
       ) %>%
         layout(
-          title = paste("Time Series:", indicator),
-          xaxis = list(title = "Year", dtick = 1),
-          yaxis = list(title = "Value"),
-          legend = list(orientation = "h", y = -0.15),
+          font = fastr_font,
+          margin = list(l = 50, r = 16, t = 10, b = 44),
+          paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)",
+          xaxis = c(axis(""), list(dtick = 1)),
+          yaxis = axis(""),
+          legend = list(orientation = "h", y = -0.16, font = list(size = 11)),
           hovermode = "x unified"
-        )
+        ) %>%
+        config(displayModeBar = FALSE, responsive = TRUE)
     }, error = function(e) {
-      plot_ly() %>%
-        layout(title = paste("Plot error:", e$message))
+      plot_ly() %>% layout(
+        annotations = list(text = "No data to plot", showarrow = FALSE,
+                           font = list(size = 13, color = "#95a5a6")),
+        xaxis = list(visible = FALSE), yaxis = list(visible = FALSE),
+        paper_bgcolor = "rgba(0,0,0,0)", plot_bgcolor = "rgba(0,0,0,0)")
     })
   })
 

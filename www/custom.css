@@ -435,5 +435,124 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ========================================
+   DATA TABLES (DT) - APP-WIDE, FASTR THEME
+   ======================================== */
+table.dataTable {
+  border-collapse: collapse !important;
+  font-size: 13px !important;
+  width: 100% !important;
+}
+table.dataTable thead th {
+  background: var(--bg-light) !important;
+  color: var(--text-medium) !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  border-bottom: 2px solid var(--fastr-teal) !important;
+  padding: 10px 12px !important;
+}
+table.dataTable tbody td {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  color: var(--text-dark) !important;
+}
+table.dataTable.stripe tbody tr.odd,
+table.dataTable tbody tr:nth-child(odd) {
+  background: rgba(15, 112, 109, 0.02) !important;
+}
+table.dataTable tbody tr:hover td {
+  background: rgba(15, 112, 109, 0.07) !important;
+}
+/* right-align + tabular numerals for numeric columns */
+table.dataTable td.dt-right {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums !important;
+}
+/* search box + pagination match the teal system */
+.dataTables_wrapper .dataTables_filter input {
+  border: 1px solid var(--border-light) !important;
+  border-radius: 4px !important;
+  padding: 5px 9px !important;
+}
+.dataTables_wrapper .dataTables_filter input:focus {
+  border-color: var(--fastr-teal) !important;
+  box-shadow: 0 0 0 0.15rem rgba(15, 112, 109, 0.2) !important;
+  outline: none !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+  background: var(--fastr-teal) !important;
+  border-color: var(--fastr-teal) !important;
+  color: var(--bg-white) !important;
+  border-radius: 4px !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: var(--bg-medium) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-dark) !important;
+  border-radius: 4px !important;
+}
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label {
+  color: var(--text-medium) !important;
+  font-size: 12px !important;
+}
+.dt-top { margin-bottom: 8px !important; }
+.dt-bot { margin-top: 8px !important; }
+
+/* ========================================
+   SELECT INPUTS (selectize) - TEAL FOCUS
+   ======================================== */
+.selectize-input {
+  border: 1px solid var(--border-light) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.selectize-input.focus {
+  border-color: var(--fastr-teal) !important;
+  box-shadow: 0 0 0 0.15rem rgba(15, 112, 109, 0.2) !important;
+}
+.selectize-dropdown .active {
+  background: rgba(15, 112, 109, 0.12) !important;
+  color: var(--text-dark) !important;
+}
+.selectize-input .item {
+  background: rgba(15, 112, 109, 0.1) !important;
+  color: var(--fastr-teal) !important;
+  border-radius: 3px !important;
+}
+
+/* ========================================
+   ALERTS / SUMMARY STRIPS - CONSISTENT
+   ======================================== */
+.alert {
+  border: none !important;
+  border-radius: 6px !important;
+  border-left: 3px solid var(--fastr-teal) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+.alert-info {
+  background: rgba(15, 112, 109, 0.06) !important;
+  color: var(--text-dark) !important;
+}
+.alert-info .fa, .alert-info .glyphicon { color: var(--fastr-teal) !important; }
+.alert-secondary {
+  background: var(--bg-light) !important;
+  color: var(--text-medium) !important;
+  border-left-color: var(--border-light) !important;
+}
+.alert-warning {
+  background: rgba(224, 142, 11, 0.08) !important;
+  border-left-color: #e08e0b !important;
+  color: var(--text-dark) !important;
+}
+
+/* plotly surface: let the box background show through cleanly */
+.js-plotly-plot, .plotly, .plot-container { background: transparent !important; }
+
+/* ========================================
    JAVASCRIPT FOR PROGRESS HANDLING
    ======================================== */
